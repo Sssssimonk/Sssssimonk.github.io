@@ -1,0 +1,20 @@
+html[data-user-color-scheme="light"] .markdown-body pre,
+html[data-user-color-scheme="light"] .markdown-body figure.highlight,
+html[data-user-color-scheme="light"] .markdown-body figure.highlight table,
+html[data-user-color-scheme="light"] .markdown-body .hljs {
+  background: #f6f8fa !important;
+}
+
+.markdown-body pre,
+.markdown-body figure.highlight {
+  border-radius: 6px;
+}
+
+.markdown-body code {
+  border-radius: 4px;
+}
+
+.footer-separator {
+  color: var(--sec-text-color);
+}
+

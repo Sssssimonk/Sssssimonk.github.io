@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <author>
+    <name>Siyu Chen</name>
+  </author>
+  <generator uri="https://hexo.io/">Hexo</generator>
+  <id>https://sssssimonk.github.io/</id>
+  <link href="https://sssssimonk.github.io/" rel="alternate"/>
+  <link href="https://sssssimonk.github.io/atom.xml" rel="self"/>
+  <rights>All rights reserved 2026, Siyu Chen</rights>
+  <subtitle>
+    <![CDATA[AI Research Notes & Engineering Logs]]>
+  </subtitle>
+  <title>Siyu Chen</title>
+  <updated>2026-07-01T14:00:00.000Z</updated>
+  <entry>
+    <author>
+      <name>Siyu Chen</name>
+    </author>
+    <category term="Blog" scheme="https://sssssimonk.github.io/categories/Blog/"/>
+    <category term="AI" scheme="https://sssssimonk.github.io/tags/AI/"/>
+    <category term="Research" scheme="https://sssssimonk.github.io/tags/Research/"/>
+    <category term="Notes" scheme="https://sssssimonk.github.io/tags/Notes/"/>
+    <content>
+      <![CDATA[<p>这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。</p><p>我希望每篇文章都尽量回答三个问题：</p><ol><li>这篇论文或技术真正解决了什么问题？</li><li>它的核心假设、方法设计和实验结论是否站得住？</li><li>如果把它放到真实系统或后续研究里，它给我的启发是什么？</li></ol><p>后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。</p><p>一个简单的公式示例：</p><p>$$<br>\mathcal{L}(\theta) &#x3D; - \sum_{t&#x3D;1}^{T} \log p_\theta(y_t \mid y_{&lt;t}, x)<br>$$</p><p>一个代码块示例：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">summarize_claim</span>(<span class="hljs-params">paper</span>):<br>    <span class="hljs-keyword">return</span> &#123;<br>        <span class="hljs-string">&quot;problem&quot;</span>: paper.problem,<br>        <span class="hljs-string">&quot;method&quot;</span>: paper.method,<br>        <span class="hljs-string">&quot;evidence&quot;</span>: paper.experiments,<br>        <span class="hljs-string">&quot;my_take&quot;</span>: paper.limitations,<br>    &#125;<br></code></pre></td></tr></table></figure>]]>
+    </content>
+    <id>https://sssssimonk.github.io/2026/07/01/about-this-blog/</id>
+    <link href="https://sssssimonk.github.io/2026/07/01/about-this-blog/"/>
+    <published>2026-07-01T14:00:00.000Z</published>
+    <summary>
+      <![CDATA[<p>这个博客会主要记录我对 AI]]>
+    </summary>
+    <title>关于这个博客</title>
+    <updated>2026-07-01T14:00:00.000Z</updated>
+  </entry>
+</feed>
