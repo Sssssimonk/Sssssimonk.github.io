@@ -1,0 +1,189 @@
+favicon: /img/fluid.png
+apple_touch_icon: /img/fluid.png
+
+dark_mode:
+  enable: true
+  default: light
+
+code:
+  copy_btn: true
+  language:
+    enable: true
+    default: "TEXT"
+  highlight:
+    enable: true
+    line_number: true
+    lib: "highlightjs"
+    highlightjs:
+      style: "github"
+      style_dark: "github-dark"
+
+font:
+  font_size: 16px
+  letter_spacing: 0
+  code_font_size: 88%
+
+custom_css:
+  - /css/custom.css
+
+navbar:
+  blog_title: "Siyu Chen"
+  menu:
+    - { key: "home", link: "/", icon: "iconfont icon-home-fill" }
+    - { key: "archive", link: "/archives/", icon: "iconfont icon-archive-fill", name: "归档" }
+    - { key: "category", link: "/categories/", icon: "iconfont icon-category-fill", name: "分类" }
+    - { key: "tag", link: "/tags/", icon: "iconfont icon-tags-fill", name: "标签" }
+    - { key: "about", link: "/about/", icon: "iconfont icon-user-fill", name: "关于" }
+
+search:
+  enable: true
+  path: /local-search.xml
+  generate_path: /local-search.xml
+  field: post
+  content: true
+
+banner:
+  parallax: true
+  width_height_ratio: 1.2
+
+scroll_down_arrow:
+  enable: false
+
+footer:
+  content: '
+    <span>© Siyu Chen</span>
+    <span class="footer-separator"> · </span>
+    <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+    <span class="footer-separator"> · </span>
+    <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+  '
+  statistics:
+    enable: false
+
+index:
+  banner_img: /img/default.png
+  banner_img_height: 62
+  banner_mask_alpha: 0.35
+  slogan:
+    enable: true
+    text:
+      - "Reading papers, tracing ideas, and writing down what actually works."
+      - "AI research notes, algorithm intuition, and engineering lessons."
+  auto_excerpt:
+    enable: true
+  post_url_target: _self
+  post_meta:
+    date: true
+    category: true
+    tag: true
+
+post:
+  banner_img: /img/default.png
+  banner_img_height: 42
+  banner_mask_alpha: 0.35
+  meta:
+    author:
+      enable: false
+    date:
+      enable: true
+      format: "YYYY-MM-DD"
+    wordcount:
+      enable: true
+    min2read:
+      enable: true
+      awl: 2
+      wpm: 60
+    views:
+      enable: false
+  updated:
+    enable: true
+    date_format: "YYYY-MM-DD"
+    relative: false
+    note_class: info
+  category_bar:
+    enable: true
+    specific: true
+    placement: left
+    post_order_by: "-date"
+    post_limit: 0
+  toc:
+    enable: true
+    expand_all: true
+    placement: right
+    headingSelector: "h1,h2,h3,h4,h5,h6"
+    collapseDepth: 0
+  copyright:
+    enable: false
+  prev_next:
+    enable: true
+  image_caption:
+    enable: true
+  image_zoom:
+    enable: true
+  footnote:
+    enable: true
+  math:
+    enable: true
+    specific: true
+    engine: mathjax
+  mermaid:
+    enable: true
+    specific: true
+    options: { theme: "default" }
+  comments:
+    enable: false
+
+archive:
+  banner_img: /img/default.png
+  banner_img_height: 36
+  banner_mask_alpha: 0.35
+
+category:
+  enable: true
+  banner_img: /img/default.png
+  banner_img_height: 36
+  banner_mask_alpha: 0.35
+  order_by: "-length"
+  collapse_depth: 0
+  post_order_by: "-date"
+  post_limit: 10
+
+tag:
+  enable: true
+  banner_img: /img/default.png
+  banner_img_height: 36
+  banner_mask_alpha: 0.35
+  tagcloud:
+    min_font: 15
+    max_font: 28
+    unit: px
+    start_color: "#6b7280"
+    end_color: "#0f766e"
+
+about:
+  enable: true
+  banner_img: /img/default.png
+  banner_img_height: 40
+  banner_mask_alpha: 0.35
+  avatar: /img/avatar.png
+  name: "Siyu Chen"
+  intro: "AI research notes, paper reading, and engineering experience."
+  icons:
+    - { class: "iconfont icon-github-fill", link: "https://github.com/Sssssimonk", tip: "GitHub" }
+    - { class: "iconfont icon-mail", link: "mailto:simon.chensiyu@hotmail.com", tip: "Email" }
+
+page:
+  banner_img: /img/default.png
+  banner_img_height: 36
+  banner_mask_alpha: 0.35
+
+page404:
+  enable: true
+  banner_img: /img/default.png
+  banner_img_height: 60
+  banner_mask_alpha: 0.35
+  redirect_delay: 5000
+
+links:
+  enable: false
+

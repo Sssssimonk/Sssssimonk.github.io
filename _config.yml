@@ -1,0 +1,86 @@
+title: Siyu Chen
+subtitle: AI Research Notes & Engineering Logs
+description: Notes on AI papers, algorithms, research ideas, and practical engineering experience.
+keywords: AI, machine learning, LLM, paper reading, algorithms, research notes
+author: Siyu Chen
+language: zh-CN
+timezone: Asia/Shanghai
+
+url: https://sssssimonk.github.io
+root: /
+permalink: :year/:month/:day/:title/
+permalink_defaults:
+pretty_urls:
+  trailing_index: true
+  trailing_html: true
+
+source_dir: source
+public_dir: public
+tag_dir: tags
+archive_dir: archives
+category_dir: categories
+code_dir: downloads/code
+i18n_dir: :lang
+skip_render:
+
+new_post_name: :title.md
+default_layout: post
+titlecase: false
+external_link:
+  enable: true
+  field: site
+  exclude:
+filename_case: 0
+render_drafts: false
+post_asset_folder: true
+relative_link: false
+future: true
+
+syntax_highlighter: highlight.js
+highlight:
+  line_number: true
+  auto_detect: false
+  tab_replace: ""
+  wrap: true
+  hljs: false
+prismjs:
+  preprocess: false
+
+index_generator:
+  path: ""
+  per_page: 10
+  order_by: -date
+
+default_category: research
+category_map:
+tag_map:
+
+date_format: YYYY-MM-DD
+time_format: HH:mm:ss
+per_page: 10
+pagination_dir: page
+
+theme: fluid
+
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
+  hub:
+  content: true
+  content_limit: 140
+  content_limit_delim: " "
+
+sitemap:
+  path: sitemap.xml
+
+search:
+  path: local-search.xml
+  field: post
+  content: true
+
+marked:
+  prependRoot: true
+  postAsset: true
+  lazyload: false
+

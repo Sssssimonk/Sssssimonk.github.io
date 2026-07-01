@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sssssimonk.github.io/sitemap.xml
+
