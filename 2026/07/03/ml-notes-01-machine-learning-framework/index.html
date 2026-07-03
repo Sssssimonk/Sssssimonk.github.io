@@ -19,24 +19,25 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。 一">
+    <meta name="description" content="这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  两个关键词：学习 和 泛化。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过">
 <meta property="og:type" content="article">
-<meta property="og:title" content="关于这个博客">
-<meta property="og:url" content="https://sssssimonk.github.io/2026/07/01/about-this-blog/index.html">
+<meta property="og:title" content="ML Notes 01: 机器学习的基本框架">
+<meta property="og:url" content="https://sssssimonk.github.io/2026/07/03/ml-notes-01-machine-learning-framework/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。 一">
+<meta property="og:description" content="这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  两个关键词：学习 和 泛化。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-01T14:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-01T14:00:00.000Z">
+<meta property="article:published_time" content="2026-07-03T12:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-03T12:00:00.000Z">
 <meta property="article:author" content="Siyu Chen">
-<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Generalization">
+<meta property="article:tag" content="Machine Learning">
 <meta property="article:tag" content="Notes">
-<meta property="article:tag" content="Research">
+<meta property="article:tag" content="Supervised Learning">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>关于这个博客 - Siyu Chen</title>
+  <title>ML Notes 01: 机器学习的基本框架 - Siyu Chen</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -310,7 +311,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="关于这个博客"></span>
+            <span id="subtitle" data-typed-text="ML Notes 01: 机器学习的基本框架"></span>
           
         </div>
 
@@ -321,8 +322,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-07-01 22:00" pubdate>
-          2026-07-01
+        <time datetime="2026-07-03 20:00" pubdate>
+          2026-07-03
         </time>
       </span>
     
@@ -333,7 +334,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          482 字
+          3.2k 字
         
       </span>
     
@@ -344,7 +345,7 @@
         
         
         
-          5 分钟
+          27 分钟
         
       </span>
     
@@ -391,17 +392,17 @@
     
     <div class="category row nomargin-x">
       <a class="category-item 
-          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Blog"
-        id="heading-be8df1f28c0abc85a0ed0c6860e5d832" role="tab" data-toggle="collapse" href="#collapse-be8df1f28c0abc85a0ed0c6860e5d832"
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Machine Learning Notes"
+        id="heading-547d080bbe20e1dc68315bedd6d7a279" role="tab" data-toggle="collapse" href="#collapse-547d080bbe20e1dc68315bedd6d7a279"
         aria-expanded="true"
       >
-        Blog
-        <span class="list-group-count">(1)</span>
+        Machine Learning Notes
+        <span class="list-group-count">(6)</span>
         <i class="iconfont icon-arrowright"></i>
       </a>
       
-      <div class="category-collapse collapse show" id="collapse-be8df1f28c0abc85a0ed0c6860e5d832"
-           role="tabpanel" aria-labelledby="heading-be8df1f28c0abc85a0ed0c6860e5d832">
+      <div class="category-collapse collapse show" id="collapse-547d080bbe20e1dc68315bedd6d7a279"
+           role="tabpanel" aria-labelledby="heading-547d080bbe20e1dc68315bedd6d7a279">
         
         
           
@@ -410,10 +411,55 @@
     
       
       
-        <a href="/2026/07/01/about-this-blog/" title="关于这个博客"
+        <a href="/2026/07/03/ml-notes-06-evaluation-validation-model-selection/" title="ML Notes 06: Evaluation、Validation 与 Model Selection"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 06: Evaluation、Validation 与 Model Selection</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="ML Notes 05: Unsupervised Learning 与 Dimensionality Reduction"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 05: Unsupervised Learning 与 Dimensionality Reduction</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-04-tree-based-models/" title="ML Notes 04: Tree-based Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 04: Tree-based Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-03-linear-models-and-knn/" title="ML Notes 03: Linear Models 与 KNN"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 03: Linear Models 与 KNN</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-02-loss-optimization-regularization/" title="ML Notes 02: Loss、Optimization 与 Regularization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 02: Loss、Optimization 与 Regularization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-01-machine-learning-framework/" title="ML Notes 01: 机器学习的基本框架"
            class="list-group-item list-group-item-action
            active">
-          <span class="category-post">关于这个博客</span>
+          <span class="category-post">ML Notes 01: 机器学习的基本框架</span>
         </a>
       
     
@@ -435,24 +481,131 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">关于这个博客</h1>
+            <h1 id="seo-header">ML Notes 01: 机器学习的基本框架</h1>
             
             
               <div class="markdown-body">
                 
-                <p>这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。</p>
-<p>我希望每篇文章都尽量回答三个问题：</p>
-<ol>
-<li>这篇论文或技术真正解决了什么问题？</li>
-<li>它的核心假设、方法设计和实验结论是否站得住？</li>
-<li>如果把它放到真实系统或后续研究里，它给我的启发是什么？</li>
-</ol>
-<p>后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。</p>
-<p>一个简单的公式示例：</p>
-<p>$$<br>\mathcal{L}(\theta) &#x3D; - \sum_{t&#x3D;1}^{T} \log p_\theta(y_t \mid y_{&lt;t}, x)<br>$$</p>
-<p>一个代码块示例：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">summarize_claim</span>(<span class="hljs-params">paper</span>):<br>    <span class="hljs-keyword">return</span> &#123;<br>        <span class="hljs-string">&quot;problem&quot;</span>: paper.problem,<br>        <span class="hljs-string">&quot;method&quot;</span>: paper.method,<br>        <span class="hljs-string">&quot;evidence&quot;</span>: paper.experiments,<br>        <span class="hljs-string">&quot;my_take&quot;</span>: paper.limitations,<br>    &#125;<br></code></pre></td></tr></table></figure>
+                <p>这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。</p>
+<p>可以先把 machine learning 理解成：</p>
+<blockquote>
+<p>从已有数据中学习一个可以泛化到未来数据的 prediction function。</p>
+</blockquote>
+<p>两个关键词：<strong>学习</strong> 和 <strong>泛化</strong>。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过的数据上仍然给出合理预测。</p>
+<h2 id="1-一个机器学习问题由什么组成"><a href="#1-一个机器学习问题由什么组成" class="headerlink" title="1. 一个机器学习问题由什么组成"></a>1. 一个机器学习问题由什么组成</h2><p>最常见的机器学习问题可以写成：</p>
+<p>$$<br>\hat{y} &#x3D; f_\theta(x)<br>$$</p>
+<p>其中，$x$ 是输入特征，$\hat{y}$ 是模型预测，$f_\theta$ 是模型，$\theta$ 是模型参数。</p>
+<p>如果是房价预测，$x$ 可以是面积、地段、楼层、房龄，$y$ 是真实房价。如果是邮件分类，$x$ 可以是邮件文本的特征表示，$y$ 是是否垃圾邮件。如果是推荐系统，$x$ 可以是用户、物品和上下文特征，$y$ 可以是点击、购买或停留时长。</p>
+<p>所以机器学习不是直接“学一个答案”，而是学习一个从输入到输出的映射关系。</p>
+<p>一个很小的例子：</p>
+<table>
+<thead>
+<tr>
+<th>样本</th>
+<th align="right">面积 $x_1$</th>
+<th align="right">房龄 $x_2$</th>
+<th align="right">真实房价 $y$</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td align="right">80</td>
+<td align="right">5</td>
+<td align="right">500</td>
+</tr>
+<tr>
+<td>B</td>
+<td align="right">60</td>
+<td align="right">15</td>
+<td align="right">320</td>
+</tr>
+<tr>
+<td>C</td>
+<td align="right">100</td>
+<td align="right">2</td>
+<td align="right">720</td>
+</tr>
+</tbody></table>
+<p>模型可能会先学一个很简单的函数：</p>
+<p>$$<br>\hat{y} &#x3D; w_1x_1 + w_2x_2 + b<br>$$</p>
+<p>训练过程就是不断调整 $w_1$、$w_2$ 和 $b$，让预测房价 $\hat{y}$ 尽量接近真实房价 $y$。</p>
+<p>这个循环就是训练的核心：模型先预测，loss 衡量预测错了多少，optimizer 根据 loss 更新参数，然后模型再预测。</p>
+<h2 id="2-Supervised-Learning-和-Unsupervised-Learning"><a href="#2-Supervised-Learning-和-Unsupervised-Learning" class="headerlink" title="2. Supervised Learning 和 Unsupervised Learning"></a>2. Supervised Learning 和 Unsupervised Learning</h2><p>机器学习通常先按有没有 label 来分。</p>
+<p><strong>Supervised Learning</strong> 有明确的输入和目标输出。模型看到的是 $(x, y)$，目标是学会从 $x$ 预测 $y$。常见任务包括 regression 和 classification。</p>
+<p>Regression 预测连续值，比如房价、温度、点击率。Classification 预测类别，比如垃圾邮件识别、疾病诊断、图片分类。</p>
+<p><strong>Unsupervised Learning</strong> 没有明确的 label。模型只看到 $x$，目标是发现数据内部结构。常见任务包括 clustering、dimensionality reduction 和 density estimation。</p>
+<p>比如 KMeans 会尝试把样本分成若干簇，PCA 会尝试找到数据中方差最大的方向。这类方法不直接回答“这个样本属于哪个真实标签”，而是帮助整理数据结构。</p>
+<p>简单说，supervised learning 更像是在学一个带答案的映射函数；unsupervised learning 更像是在没有标准答案的情况下整理数据的内在结构。</p>
+<h2 id="3-数据集划分为什么重要"><a href="#3-数据集划分为什么重要" class="headerlink" title="3. 数据集划分为什么重要"></a>3. 数据集划分为什么重要</h2><p>机器学习里经常会把数据分成：</p>
+<table>
+<thead>
+<tr>
+<th>数据集</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Training set</td>
+<td>用来训练模型参数</td>
+</tr>
+<tr>
+<td>Validation set</td>
+<td>用来调超参数、选模型</td>
+</tr>
+<tr>
+<td>Test set</td>
+<td>用来估计最终泛化能力</td>
+</tr>
+</tbody></table>
+<p>不能只看 training set 表现，因为模型可以通过记住训练样本获得很低的 training loss，但这不代表它真的学到了规律。</p>
+<p>这就是 overfitting 的核心问题：模型在训练集上表现很好，但在新数据上表现很差。</p>
+<p>比如一个垃圾邮件分类器，如果它只是记住了训练集中出现过的垃圾邮件地址，那么训练集 accuracy 可能很高。但新垃圾邮件换了发件人和措辞后，它就可能失效。真正有用的模型应该学习“垃圾邮件通常有哪些模式”，而不是背下训练样本。</p>
+<p>所以 test set 的意义不是“再训练一次”，而是模拟模型未来遇到没见过数据时的表现。</p>
+<h2 id="4-Loss-Function-在做什么"><a href="#4-Loss-Function-在做什么" class="headerlink" title="4. Loss Function 在做什么"></a>4. Loss Function 在做什么</h2><p>训练模型前，第一步是定义什么叫“错”。这个定义就是 loss function。</p>
+<p>对于回归任务，常用 Mean Squared Error：</p>
+<p>$$<br>J(\theta) &#x3D; \frac{1}{n}\sum_{i&#x3D;1}^{n}(y_i - \hat{y}_i)^2<br>$$</p>
+<p>其中，$y_i$ 是真实值，$\hat{y}_i$ 是预测值。预测和真实值差得越远，loss 越大。</p>
+<p>比如真实房价是 500，模型预测 450，误差是 50；如果预测 300，误差是 200。MSE 会让第二种错误受到更大的惩罚，因为它离真实值更远。</p>
+<p>对于分类任务，常用 Cross Entropy。它关心的是模型有没有把概率分配给正确类别。</p>
+<p>直觉上，loss function 规定了模型应该为什么事情付出代价。MSE 惩罚数值误差，cross entropy 惩罚正确类别概率太低，hinge loss 则强调分类边界要有 margin。</p>
+<p>因此，不同 loss 不是公式长得不同而已，而是在表达不同的训练目标。</p>
+<h2 id="5-模型训练的本质"><a href="#5-模型训练的本质" class="headerlink" title="5. 模型训练的本质"></a>5. 模型训练的本质</h2><p>机器学习训练可以粗略理解成最小化 empirical risk：</p>
+<p>$$<br>\theta^* &#x3D; \arg\min_\theta \frac{1}{n}\sum_{i&#x3D;1}^{n} L(f_\theta(x_i), y_i)<br>$$</p>
+<p>这句话的意思是：在所有可能的参数 $\theta$ 中，找到一组参数，让模型在训练数据上的平均 loss 尽可能小。</p>
+<p>但关键问题在于：真正关心的不是训练数据上的 loss，而是未来数据上的 loss。训练数据只是总体数据分布的一个样本。</p>
+<p>所以机器学习一直在处理一个张力：</p>
+<ul>
+<li>训练集上 loss 要足够低，否则模型没有学到东西。</li>
+<li>模型不能只适应训练集，否则泛化能力差。</li>
+</ul>
+<p>这也是为什么后面会有 regularization、cross validation、early stopping、model selection 等一整套方法。它们都在服务同一个目标：让模型不仅会做训练题，也能做新题。</p>
+<h2 id="6-一个完整-ML-pipeline"><a href="#6-一个完整-ML-pipeline" class="headerlink" title="6. 一个完整 ML pipeline"></a>6. 一个完整 ML pipeline</h2><p>从工程角度看，一个机器学习流程通常不是“选个模型训练一下”这么简单。</p>
+<p>一个典型流程是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">data collection<br>-&gt; data cleaning<br>-&gt; feature engineering<br>-&gt; train / validation / test split<br>-&gt; model training<br>-&gt; model selection<br>-&gt; evaluation<br>-&gt; deployment or analysis<br></code></pre></td></tr></table></figure>
 
+<p>每一步都可能决定最终效果。比如在房价预测里，如果房屋面积单位有的用平方米、有的用平方英尺，而清洗阶段没有统一单位，后面再复杂的模型也会被错误数据带偏。</p>
+<p>数据清洗会影响输入质量，feature engineering 会影响模型能看到什么信息，数据划分会影响评估是否可靠，评价指标会影响最后选哪个模型。</p>
+<p>在实际项目里，模型算法本身经常不是唯一瓶颈。数据质量、特征设计、评估方式、线上线下分布差异，往往同样重要。</p>
+<h2 id="7-小结"><a href="#7-小结" class="headerlink" title="7. 小结"></a>7. 小结</h2><p>一句话概括机器学习的基础框架：</p>
+<blockquote>
+<p>机器学习是先定义一个可学习的函数空间，再用 loss function 指定目标，通过 optimization 找到一组参数，最后用 validation&#x2F;test data 判断它是否真的泛化。</p>
+</blockquote>
+<p>这个框架比记算法名字更重要。KNN、决策树、逻辑回归、XGBoost、神经网络看起来差别很大，但都绕不开几个问题：</p>
+<ul>
+<li>输入特征是什么？</li>
+<li>目标变量是什么？</li>
+<li>模型假设是什么？</li>
+<li>loss 如何定义？</li>
+<li>参数如何学习？</li>
+<li>如何判断模型不是在过拟合？</li>
+</ul>
+<p>后面看具体算法时，也尽量从这些问题出发，而不是只背每个模型的定义。</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://cs229.stanford.edu/">Stanford CS229: Machine Learning</a></li>
+<li><a target="_blank" rel="noopener" href="https://ocw.mit.edu/courses/6-036-introduction-to-machine-learning-fall-2020/">MIT 6.036 Introduction to Machine Learning</a></li>
+<li><a target="_blank" rel="noopener" href="https://scikit-learn.org/stable/user_guide.html">scikit-learn User Guide</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.statlearning.com/">An Introduction to Statistical Learning</a></li>
+</ul>
 
                 
               </div>
@@ -471,7 +624,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/Blog/" class="category-chain-item">Blog</a>
+  <a href="/categories/Machine-Learning-Notes/" class="category-chain-item">Machine Learning Notes</a>
   
   
 
@@ -486,11 +639,13 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/AI/" class="print-no-link">#AI</a>
-      
-        <a href="/tags/Research/" class="print-no-link">#Research</a>
-      
         <a href="/tags/Notes/" class="print-no-link">#Notes</a>
+      
+        <a href="/tags/Machine-Learning/" class="print-no-link">#Machine Learning</a>
+      
+        <a href="/tags/Supervised-Learning/" class="print-no-link">#Supervised Learning</a>
+      
+        <a href="/tags/Generalization/" class="print-no-link">#Generalization</a>
       
     </div>
   
@@ -504,15 +659,21 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/07/03/ml-notes-01-machine-learning-framework/" title="ML Notes 01: 机器学习的基本框架">
+                      <a href="/2026/07/03/ml-notes-02-loss-optimization-regularization/" title="ML Notes 02: Loss、Optimization 与 Regularization">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">ML Notes 01: 机器学习的基本框架</span>
+                        <span class="hidden-mobile">ML Notes 02: Loss、Optimization 与 Regularization</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
                   </article>
                   <article class="post-next col-6">
                     
+                    
+                      <a href="/2026/07/01/about-this-blog/" title="关于这个博客">
+                        <span class="hidden-mobile">关于这个博客</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
                     
                   </article>
                 </div>
@@ -573,21 +734,6 @@
 
 
 
-
-
-  <script>
-  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
-    mermaid.initialize({"theme":"default"});
-
-    Fluid.utils.listenDOMLoaded(function() {
-      Fluid.events.registerRefreshCallback(function() {
-        if ('mermaid' in window) {
-          mermaid.init();
-        }
-      });
-    });
-  });
-</script>
 
 
 

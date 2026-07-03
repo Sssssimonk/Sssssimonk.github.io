@@ -337,6 +337,418 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2026/07/03/ml-notes-06-evaluation-validation-model-selection/" target="_self">
+          ML Notes 06: Evaluation、Validation 与 Model Selection
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/07/03/ml-notes-06-evaluation-validation-model-selection/" target="_self">
+        <div>
+          这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？  不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-03 22:30" pubdate>
+              2026-07-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Machine-Learning-Notes/" class="category-chain-item">Machine Learning Notes</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Notes/">#Notes</a>
+            
+              <a href="/tags/Machine-Learning/">#Machine Learning</a>
+            
+              <a href="/tags/Evaluation/">#Evaluation</a>
+            
+              <a href="/tags/Cross-Validation/">#Cross Validation</a>
+            
+              <a href="/tags/Model-Selection/">#Model Selection</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/07/03/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
+          ML Notes 05: Unsupervised Learning 与 Dimensionality Reduction
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/07/03/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
+        <div>
+          这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是 Unsupervised Learning无监督学习只有输入 $x$，没有标签 $y$。 比如有一批用户行为数据：    用户 访问次数 平均停留时间 购买次数
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-03 22:00" pubdate>
+              2026-07-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Machine-Learning-Notes/" class="category-chain-item">Machine Learning Notes</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Notes/">#Notes</a>
+            
+              <a href="/tags/Machine-Learning/">#Machine Learning</a>
+            
+              <a href="/tags/Unsupervised-Learning/">#Unsupervised Learning</a>
+            
+              <a href="/tags/Clustering/">#Clustering</a>
+            
+              <a href="/tags/PCA/">#PCA</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/07/03/ml-notes-04-tree-based-models/" target="_self">
+          ML Notes 04: Tree-based Models
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/07/03/ml-notes-04-tree-based-models/" target="_self">
+        <div>
+          这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 1. Decision Tree 的基本想法Decision Tree 每一步都在问一个问题： 1这个 feature 按
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-03 21:30" pubdate>
+              2026-07-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Machine-Learning-Notes/" class="category-chain-item">Machine Learning Notes</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Notes/">#Notes</a>
+            
+              <a href="/tags/Machine-Learning/">#Machine Learning</a>
+            
+              <a href="/tags/Decision-Tree/">#Decision Tree</a>
+            
+              <a href="/tags/Random-Forest/">#Random Forest</a>
+            
+              <a href="/tags/XGBoost/">#XGBoost</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/07/03/ml-notes-03-linear-models-and-knn/" target="_self">
+          ML Notes 03: Linear Models 与 KNN
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/07/03/ml-notes-03-linear-models-and-knn/" target="_self">
+        <div>
+          这一篇整理监督学习里最基础的几类模型：linear regression、logistic regression 和 KNN。它们看起来简单，但很多后面的模型都能从这里找到影子：线性模型关心如何用特征加权得到预测，logistic regression 把线性打分变成概率，KNN 则完全依赖样本之间的距离。 1. Linear Regression：用线性函数做预测Linear regressio
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-03 21:00" pubdate>
+              2026-07-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Machine-Learning-Notes/" class="category-chain-item">Machine Learning Notes</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Notes/">#Notes</a>
+            
+              <a href="/tags/Machine-Learning/">#Machine Learning</a>
+            
+              <a href="/tags/Linear-Regression/">#Linear Regression</a>
+            
+              <a href="/tags/Logistic-Regression/">#Logistic Regression</a>
+            
+              <a href="/tags/KNN/">#KNN</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/07/03/ml-notes-02-loss-optimization-regularization/" target="_self">
+          ML Notes 02: Loss、Optimization 与 Regularization
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/07/03/ml-notes-02-loss-optimization-regularization/" target="_self">
+        <div>
+          上一篇笔记里把机器学习看成一个从数据中学习 prediction function 的过程。这篇继续往下看：模型到底是怎么被训练出来的。 训练过程可以先抓住一条主线：  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  这几个概念连起来，基本就是传统机器学习和
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-03 20:30" pubdate>
+              2026-07-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Machine-Learning-Notes/" class="category-chain-item">Machine Learning Notes</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Notes/">#Notes</a>
+            
+              <a href="/tags/Machine-Learning/">#Machine Learning</a>
+            
+              <a href="/tags/Loss-Function/">#Loss Function</a>
+            
+              <a href="/tags/Optimization/">#Optimization</a>
+            
+              <a href="/tags/Regularization/">#Regularization</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/07/03/ml-notes-01-machine-learning-framework/" target="_self">
+          ML Notes 01: 机器学习的基本框架
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/07/03/ml-notes-01-machine-learning-framework/" target="_self">
+        <div>
+          这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  两个关键词：学习 和 泛化。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-03 20:00" pubdate>
+              2026-07-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Machine-Learning-Notes/" class="category-chain-item">Machine Learning Notes</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Notes/">#Notes</a>
+            
+              <a href="/tags/Machine-Learning/">#Machine Learning</a>
+            
+              <a href="/tags/Supervised-Learning/">#Supervised Learning</a>
+            
+              <a href="/tags/Generalization/">#Generalization</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2026/07/01/about-this-blog/" target="_self">
           关于这个博客
         </a>

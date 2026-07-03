@@ -19,24 +19,26 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。 一">
+    <meta name="description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？  不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不">
 <meta property="og:type" content="article">
-<meta property="og:title" content="关于这个博客">
-<meta property="og:url" content="https://sssssimonk.github.io/2026/07/01/about-this-blog/index.html">
+<meta property="og:title" content="ML Notes 06: Evaluation、Validation 与 Model Selection">
+<meta property="og:url" content="https://sssssimonk.github.io/2026/07/03/ml-notes-06-evaluation-validation-model-selection/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。 一">
+<meta property="og:description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？  不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-01T14:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-01T14:00:00.000Z">
+<meta property="article:published_time" content="2026-07-03T14:30:00.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:30:00.000Z">
 <meta property="article:author" content="Siyu Chen">
-<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Cross Validation">
+<meta property="article:tag" content="Evaluation">
+<meta property="article:tag" content="Machine Learning">
+<meta property="article:tag" content="Model Selection">
 <meta property="article:tag" content="Notes">
-<meta property="article:tag" content="Research">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>关于这个博客 - Siyu Chen</title>
+  <title>ML Notes 06: Evaluation、Validation 与 Model Selection - Siyu Chen</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -310,7 +312,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="关于这个博客"></span>
+            <span id="subtitle" data-typed-text="ML Notes 06: Evaluation、Validation 与 Model Selection"></span>
           
         </div>
 
@@ -321,8 +323,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-07-01 22:00" pubdate>
-          2026-07-01
+        <time datetime="2026-07-03 22:30" pubdate>
+          2026-07-03
         </time>
       </span>
     
@@ -333,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          482 字
+          3.8k 字
         
       </span>
     
@@ -344,7 +346,7 @@
         
         
         
-          5 分钟
+          32 分钟
         
       </span>
     
@@ -391,17 +393,17 @@
     
     <div class="category row nomargin-x">
       <a class="category-item 
-          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Blog"
-        id="heading-be8df1f28c0abc85a0ed0c6860e5d832" role="tab" data-toggle="collapse" href="#collapse-be8df1f28c0abc85a0ed0c6860e5d832"
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Machine Learning Notes"
+        id="heading-547d080bbe20e1dc68315bedd6d7a279" role="tab" data-toggle="collapse" href="#collapse-547d080bbe20e1dc68315bedd6d7a279"
         aria-expanded="true"
       >
-        Blog
-        <span class="list-group-count">(1)</span>
+        Machine Learning Notes
+        <span class="list-group-count">(6)</span>
         <i class="iconfont icon-arrowright"></i>
       </a>
       
-      <div class="category-collapse collapse show" id="collapse-be8df1f28c0abc85a0ed0c6860e5d832"
-           role="tabpanel" aria-labelledby="heading-be8df1f28c0abc85a0ed0c6860e5d832">
+      <div class="category-collapse collapse show" id="collapse-547d080bbe20e1dc68315bedd6d7a279"
+           role="tabpanel" aria-labelledby="heading-547d080bbe20e1dc68315bedd6d7a279">
         
         
           
@@ -410,10 +412,55 @@
     
       
       
-        <a href="/2026/07/01/about-this-blog/" title="关于这个博客"
+        <a href="/2026/07/03/ml-notes-06-evaluation-validation-model-selection/" title="ML Notes 06: Evaluation、Validation 与 Model Selection"
            class="list-group-item list-group-item-action
            active">
-          <span class="category-post">关于这个博客</span>
+          <span class="category-post">ML Notes 06: Evaluation、Validation 与 Model Selection</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="ML Notes 05: Unsupervised Learning 与 Dimensionality Reduction"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 05: Unsupervised Learning 与 Dimensionality Reduction</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-04-tree-based-models/" title="ML Notes 04: Tree-based Models"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 04: Tree-based Models</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-03-linear-models-and-knn/" title="ML Notes 03: Linear Models 与 KNN"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 03: Linear Models 与 KNN</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-02-loss-optimization-regularization/" title="ML Notes 02: Loss、Optimization 与 Regularization"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 02: Loss、Optimization 与 Regularization</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/07/03/ml-notes-01-machine-learning-framework/" title="ML Notes 01: 机器学习的基本框架"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">ML Notes 01: 机器学习的基本框架</span>
         </a>
       
     
@@ -435,24 +482,156 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">关于这个博客</h1>
+            <h1 id="seo-header">ML Notes 06: Evaluation、Validation 与 Model Selection</h1>
             
             
               <div class="markdown-body">
                 
-                <p>这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。</p>
-<p>我希望每篇文章都尽量回答三个问题：</p>
-<ol>
-<li>这篇论文或技术真正解决了什么问题？</li>
-<li>它的核心假设、方法设计和实验结论是否站得住？</li>
-<li>如果把它放到真实系统或后续研究里，它给我的启发是什么？</li>
-</ol>
-<p>后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。</p>
-<p>一个简单的公式示例：</p>
-<p>$$<br>\mathcal{L}(\theta) &#x3D; - \sum_{t&#x3D;1}^{T} \log p_\theta(y_t \mid y_{&lt;t}, x)<br>$$</p>
-<p>一个代码块示例：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">summarize_claim</span>(<span class="hljs-params">paper</span>):<br>    <span class="hljs-keyword">return</span> &#123;<br>        <span class="hljs-string">&quot;problem&quot;</span>: paper.problem,<br>        <span class="hljs-string">&quot;method&quot;</span>: paper.method,<br>        <span class="hljs-string">&quot;evidence&quot;</span>: paper.experiments,<br>        <span class="hljs-string">&quot;my_take&quot;</span>: paper.limitations,<br>    &#125;<br></code></pre></td></tr></table></figure>
+                <p>这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。</p>
+<h2 id="1-评估指标不是装饰"><a href="#1-评估指标不是装饰" class="headerlink" title="1. 评估指标不是装饰"></a>1. 评估指标不是装饰</h2><p>模型评估的核心问题是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">这个模型在真正关心的场景里，到底有没有变好？<br></code></pre></td></tr></table></figure>
 
+<p>不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。</p>
+<p>所以指标不是越多越好，而是要对应任务代价。</p>
+<h2 id="2-Regression-Metrics"><a href="#2-Regression-Metrics" class="headerlink" title="2. Regression Metrics"></a>2. Regression Metrics</h2><p>回归任务预测连续值，常见指标有 MSE、RMSE、MAE、$R^2$。</p>
+<h3 id="MSE-和-RMSE"><a href="#MSE-和-RMSE" class="headerlink" title="MSE 和 RMSE"></a>MSE 和 RMSE</h3><p>MSE：</p>
+<p>$$<br>MSE&#x3D;\frac{1}{n}\sum_{i&#x3D;1}^{n}(y_i-\hat{y}_i)^2<br>$$</p>
+<p>RMSE：</p>
+<p>$$<br>RMSE&#x3D;\sqrt{MSE}<br>$$</p>
+<p>MSE 对大误差更敏感，因为误差被平方。RMSE 和原始目标变量单位一致，更容易解释。</p>
+<p>比如预测房价时，RMSE &#x3D; 20 万，比 MSE &#x3D; 400 亿更直观。</p>
+<h3 id="MAE"><a href="#MAE" class="headerlink" title="MAE"></a>MAE</h3><p>MAE：</p>
+<p>$$<br>MAE&#x3D;\frac{1}{n}\sum_{i&#x3D;1}^{n}|y_i-\hat{y}_i|<br>$$</p>
+<p>MAE 对 outlier 没有 MSE 那么敏感。</p>
+<p>如果数据里有少数极端样本，比如一两套超级豪宅，MSE 会被这些样本强烈影响，MAE 会更稳一些。</p>
+<h3 id="R-2"><a href="#R-2" class="headerlink" title="$R^2$"></a>$R^2$</h3><p>$R^2$ 衡量模型解释了多少目标变量的 variance：</p>
+<p>$$<br>R^2&#x3D;1-\frac{\sum_i(y_i-\hat{y}_i)^2}{\sum_i(y_i-\bar{y})^2}<br>$$</p>
+<p>如果 $R^2&#x3D;0.8$，可以粗略理解为模型解释了 80% 的变化。它适合看整体拟合程度，但不一定能说明具体业务误差是否可接受。</p>
+<h2 id="3-Classification-Metrics"><a href="#3-Classification-Metrics" class="headerlink" title="3. Classification Metrics"></a>3. Classification Metrics</h2><p>分类任务常见指标都可以从 confusion matrix 出发。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th align="right">Predicted Positive</th>
+<th align="right">Predicted Negative</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Actual Positive</td>
+<td align="right">TP</td>
+<td align="right">FN</td>
+</tr>
+<tr>
+<td>Actual Negative</td>
+<td align="right">FP</td>
+<td align="right">TN</td>
+</tr>
+</tbody></table>
+<p>TP 是真正例，FP 是假正例，FN 是假负例，TN 是真负例。</p>
+<h3 id="Accuracy"><a href="#Accuracy" class="headerlink" title="Accuracy"></a>Accuracy</h3><p>$$<br>Accuracy&#x3D;\frac{TP+TN}{TP+TN+FP+FN}<br>$$</p>
+<p>Accuracy 直观，但在 imbalanced dataset 上容易误导。</p>
+<p>比如一个疾病数据集中，99% 都是阴性。模型全部预测阴性，也有 99% accuracy，但它完全找不到阳性病人。</p>
+<h3 id="Precision"><a href="#Precision" class="headerlink" title="Precision"></a>Precision</h3><p>$$<br>Precision&#x3D;\frac{TP}{TP+FP}<br>$$</p>
+<p>Precision 关心预测为正的样本里，有多少是真的正。</p>
+<p>垃圾邮件识别里 precision 很重要，因为把正常邮件误判成垃圾邮件会影响用户。</p>
+<h3 id="Recall"><a href="#Recall" class="headerlink" title="Recall"></a>Recall</h3><p>$$<br>Recall&#x3D;\frac{TP}{TP+FN}<br>$$</p>
+<p>Recall 关心真实正样本里，有多少被找出来。</p>
+<p>疾病筛查里 recall 很重要，因为漏诊的代价可能很高。</p>
+<h3 id="F1-Score"><a href="#F1-Score" class="headerlink" title="F1 Score"></a>F1 Score</h3><p>$$<br>F1&#x3D;2\cdot\frac{Precision\cdot Recall}{Precision+Recall}<br>$$</p>
+<p>F1 是 precision 和 recall 的调和平均。它适合在两者都重要时作为综合指标。</p>
+<p>但 F1 也不是万能的。如果业务上 FP 和 FN 代价明显不同，还是要单独看 precision 和 recall。</p>
+<h2 id="4-ROC-和-AUC"><a href="#4-ROC-和-AUC" class="headerlink" title="4. ROC 和 AUC"></a>4. ROC 和 AUC</h2><p>ROC 曲线关注不同 threshold 下 TPR 和 FPR 的变化。</p>
+<p>$$<br>TPR&#x3D;\frac{TP}{TP+FN}<br>$$</p>
+<p>$$<br>FPR&#x3D;\frac{FP}{FP+TN}<br>$$</p>
+<p>AUC 是 ROC 曲线下面积。它也可以理解为：随机抽一个正样本和一个负样本，模型把正样本排在负样本前面的概率。</p>
+<p>这就是为什么 AUC 常用于排序、推荐、广告等场景。很多时候模型输出的不是最终类别，而是一个 score，业务再根据 threshold 或排序位置使用这个 score。</p>
+<p>一个小例子：</p>
+<table>
+<thead>
+<tr>
+<th>用户</th>
+<th align="right">是否点击</th>
+<th align="right">模型 score</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td align="right">1</td>
+<td align="right">0.90</td>
+</tr>
+<tr>
+<td>B</td>
+<td align="right">0</td>
+<td align="right">0.80</td>
+</tr>
+<tr>
+<td>C</td>
+<td align="right">1</td>
+<td align="right">0.70</td>
+</tr>
+<tr>
+<td>D</td>
+<td align="right">0</td>
+<td align="right">0.20</td>
+</tr>
+</tbody></table>
+<p>AUC 关心的是正样本是否整体排在负样本前面，而不是某个固定 threshold 下分对了多少。</p>
+<h2 id="5-PR-Curve"><a href="#5-PR-Curve" class="headerlink" title="5. PR Curve"></a>5. PR Curve</h2><p>PR Curve 的横轴是 recall，纵轴是 precision。</p>
+<p>在正负样本极度不平衡时，PR curve 往往比 ROC curve 更敏感。</p>
+<p>比如欺诈检测里，正样本非常少。ROC-AUC 可能看起来还不错，但 precision 可能很低：模型找出一堆“疑似欺诈”，里面真正欺诈的比例很小。这个时候 PR curve 更能反映实际使用体验。</p>
+<h2 id="6-Imbalanced-Dataset"><a href="#6-Imbalanced-Dataset" class="headerlink" title="6. Imbalanced Dataset"></a>6. Imbalanced Dataset</h2><p>类别不平衡时，accuracy 通常不够。</p>
+<p>常见处理方式：</p>
+<ul>
+<li>换指标：precision、recall、F1、AUC、PR-AUC</li>
+<li>重采样：oversampling &#x2F; undersampling</li>
+<li>调整 loss：给少数类更高权重</li>
+<li>调 threshold：根据业务代价调整预测阈值</li>
+<li>anomaly detection：把少数类当异常点处理</li>
+</ul>
+<p>一个例子：阳性率只有 1% 的疾病筛查。模型如果全部预测阴性，accuracy 是 99%，但 recall 是 0。这种模型没有实际价值。</p>
+<h2 id="7-Validation：怎么可靠地估计泛化能力"><a href="#7-Validation：怎么可靠地估计泛化能力" class="headerlink" title="7. Validation：怎么可靠地估计泛化能力"></a>7. Validation：怎么可靠地估计泛化能力</h2><p>训练集表现不能代表泛化能力，所以需要 validation。</p>
+<h3 id="Holdout-Validation"><a href="#Holdout-Validation" class="headerlink" title="Holdout Validation"></a>Holdout Validation</h3><p>最常见方式是 train &#x2F; validation &#x2F; test split。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">training set: train model parameters<br>validation set: tune hyperparameters and choose models<br>test set: final evaluation<br></code></pre></td></tr></table></figure>
+
+<p>test set 不应该频繁用来调模型。如果每次调参都看 test score，test set 也会被间接过拟合。</p>
+<h3 id="K-fold-Cross-Validation"><a href="#K-fold-Cross-Validation" class="headerlink" title="K-fold Cross Validation"></a>K-fold Cross Validation</h3><p>K-fold cross validation 把数据分成 $K$ 份，每次用其中一份做 validation，其余做 training，最后平均结果。</p>
+<p>它比单次 holdout 更稳定，尤其适合数据量不大的情况。</p>
+<p>缺点是训练成本更高。比如 5-fold 就要训练 5 次。</p>
+<h3 id="Bootstrap"><a href="#Bootstrap" class="headerlink" title="Bootstrap"></a>Bootstrap</h3><p>Bootstrap 是有放回采样。每次从原始数据中采出一个同样大小的数据集，有些样本会重复，有些样本不会被采到。没被采到的样本可以用于评估。</p>
+<p>它在统计估计里很常见，但日常模型训练中更常用 holdout 和 K-fold。</p>
+<h2 id="8-Model-Selection"><a href="#8-Model-Selection" class="headerlink" title="8. Model Selection"></a>8. Model Selection</h2><p>Model selection 不只是选模型类型，也包括选超参数。</p>
+<p>比如：</p>
+<ul>
+<li>Linear Regression vs Random Forest vs XGBoost</li>
+<li>Decision tree 的 <code>max_depth</code></li>
+<li>KNN 的 <code>K</code></li>
+<li>Logistic regression 的 regularization strength</li>
+<li>XGBoost 的 learning rate、tree depth、number of estimators</li>
+</ul>
+<h3 id="Grid-Search"><a href="#Grid-Search" class="headerlink" title="Grid Search"></a>Grid Search</h3><p>Grid search 枚举所有组合。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">max_depth = [3, 5, 7]<br>learning_rate = [0.01, 0.1]<br></code></pre></td></tr></table></figure>
+
+<p>总共会试 $3 \times 2 &#x3D; 6$ 种组合。</p>
+<p>优点是简单直接，缺点是组合多时成本很高。</p>
+<h3 id="Random-Search"><a href="#Random-Search" class="headerlink" title="Random Search"></a>Random Search</h3><p>Random search 从参数空间中随机采样。它经常比 grid search 更高效，因为并不是所有超参数都同等重要。</p>
+<p>比如 10 个超参数里真正敏感的可能只有 2 个，grid search 会浪费很多组合，random search 反而可能更快碰到好区域。</p>
+<h3 id="Bayesian-Optimization"><a href="#Bayesian-Optimization" class="headerlink" title="Bayesian Optimization"></a>Bayesian Optimization</h3><p>Bayesian optimization 会根据已有实验结果，估计哪些参数区域更可能好，然后优先尝试这些区域。</p>
+<p>它比 random search 更聪明，但实现和调试更复杂。小任务里不一定需要，上规模后才更有价值。</p>
+<h2 id="9-Data-Leakage"><a href="#9-Data-Leakage" class="headerlink" title="9. Data Leakage"></a>9. Data Leakage</h2><p>Data leakage 是评估里最危险的问题之一。它指训练过程中用了不该提前知道的信息。</p>
+<p>例子：预测用户未来是否流失，但 feature 里包含“用户是否已经取消订阅”。这个特征在预测时根本不可用，但训练时会让模型表现非常好。</p>
+<p>另一个例子：先对全量数据做 normalization，再划分 train&#x2F;test。这样 test set 的统计信息已经泄漏到了 training process。正确做法是只在 training set 上 fit scaler，再 apply 到 validation&#x2F;test set。</p>
+<p>Data leakage 会让离线评估虚高，线上效果崩掉。</p>
+<h2 id="10-几个点"><a href="#10-几个点" class="headerlink" title="10. 几个点"></a>10. 几个点</h2><p>Accuracy 不适合严重类别不平衡的问题。</p>
+<p>Precision 和 recall 要结合 FP&#x2F;FN 的业务代价看，不要机械比较谁更大。</p>
+<p>AUC 更像排序指标，适合看 score 的整体区分能力。</p>
+<p>PR curve 在正样本稀少时更敏感。</p>
+<p>Validation set 用来选模型，test set 留到最后做最终评估。</p>
+<p>数据泄漏比模型小 bug 更可怕，因为它会让结果看起来特别好。</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://scikit-learn.org/stable/model_selection.html">scikit-learn User Guide: Model Selection and Evaluation</a></li>
+<li><a target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/model_evaluation.html">scikit-learn User Guide: Metrics and Scoring</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.statlearning.com/">An Introduction to Statistical Learning</a></li>
+</ul>
 
                 
               </div>
@@ -471,7 +650,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/Blog/" class="category-chain-item">Blog</a>
+  <a href="/categories/Machine-Learning-Notes/" class="category-chain-item">Machine Learning Notes</a>
   
   
 
@@ -486,11 +665,15 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/AI/" class="print-no-link">#AI</a>
-      
-        <a href="/tags/Research/" class="print-no-link">#Research</a>
-      
         <a href="/tags/Notes/" class="print-no-link">#Notes</a>
+      
+        <a href="/tags/Machine-Learning/" class="print-no-link">#Machine Learning</a>
+      
+        <a href="/tags/Evaluation/" class="print-no-link">#Evaluation</a>
+      
+        <a href="/tags/Cross-Validation/" class="print-no-link">#Cross Validation</a>
+      
+        <a href="/tags/Model-Selection/" class="print-no-link">#Model Selection</a>
       
     </div>
   
@@ -504,15 +687,15 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/07/03/ml-notes-01-machine-learning-framework/" title="ML Notes 01: 机器学习的基本框架">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">ML Notes 01: 机器学习的基本框架</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
+                    
+                      <a href="/2026/07/03/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="ML Notes 05: Unsupervised Learning 与 Dimensionality Reduction">
+                        <span class="hidden-mobile">ML Notes 05: Unsupervised Learning 与 Dimensionality Reduction</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
                     
                   </article>
                 </div>
@@ -573,21 +756,6 @@
 
 
 
-
-
-  <script>
-  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
-    mermaid.initialize({"theme":"default"});
-
-    Fluid.utils.listenDOMLoaded(function() {
-      Fluid.events.registerRefreshCallback(function() {
-        if ('mermaid' in window) {
-          mermaid.init();
-        }
-      });
-    });
-  });
-</script>
 
 
 
