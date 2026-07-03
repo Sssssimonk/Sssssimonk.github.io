@@ -35,5 +35,8 @@
     "hexo-renderer-stylus": "^3.0.1",
     "hexo-server": "^3.0.0",
     "hexo-theme-fluid": "^1.9.9"
+  },
+  "overrides": {
+    "strip-ansi": "6.0.1"
   }
 }
