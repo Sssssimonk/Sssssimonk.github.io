@@ -593,14 +593,12 @@
 <p>但在 Adam 里，情况不一样。Adam 会用二阶矩 $\sqrt{\hat{v}_t}$ 对梯度做自适应缩放。如果把 $\lambda\theta_t$ 混进 gradient，它也会被 Adam 的自适应项缩放。</p>
 <p>这样 weight decay 就不再是“统一把权重变小”，而是和每个参数的梯度历史纠缠在一起。</p>
 <p>AdamW 的做法是把 weight decay 从 gradient update 里解耦出来：</p>
-<h1 id="theta-t-1"><a href="#theta-t-1" class="headerlink" title="$$\theta_{t+1}"></a>$$<br>\theta_{t+1}</h1><p>\theta_t</p>
-<ul>
-<li>\eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\epsilon}</li>
-<li>\eta\lambda\theta_t<br>$$</li>
-</ul>
+<p>$$<br>\theta_{t+1} &#x3D; \theta_t - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\epsilon} - \eta\lambda\theta_t<br>$$</p>
 <p>也可以理解成：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">adam update: use gradient statistics to update parameters<br>weight decay: separately shrink weights<br></code></pre></td></tr></table></figure>
-
+<ul>
+<li>Adam update: use gradient statistics to update parameters</li>
+<li>Weight decay: separately shrink weights</li>
+</ul>
 <p>这就是 AdamW 的核心变化：weight decay 不再被 Adam 的自适应梯度缩放影响。</p>
 <h2 id="11-Adam-和-AdamW-的区别怎么记"><a href="#11-Adam-和-AdamW-的区别怎么记" class="headerlink" title="11. Adam 和 AdamW 的区别怎么记"></a>11. Adam 和 AdamW 的区别怎么记</h2><p>可以用一句话记：</p>
 <blockquote>
