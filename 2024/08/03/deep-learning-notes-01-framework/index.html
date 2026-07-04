@@ -1,0 +1,1052 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=light>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Siyu Chen">
+  <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
+  
+    <meta name="description" content="机器学习章节里，大部分模型都可以理解成：先把数据整理成特征，再用一个模型把特征映射到预测结果。 深度学习和传统机器学习最大的区别，不是“模型更复杂”这么简单，而是它把 feature learning 也放进了模型里。以前很多时候要人工设计特征，深度学习希望模型自己从原始数据中学出有用表示。 比如图像分类任务： 12345traditional ML:image -&gt; hand-crafte">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深度学习笔记 01：从特征工程到表示学习">
+<meta property="og:url" content="https://sssssimonk.github.io/2024/08/03/deep-learning-notes-01-framework/index.html">
+<meta property="og:site_name" content="Siyu Chen">
+<meta property="og:description" content="机器学习章节里，大部分模型都可以理解成：先把数据整理成特征，再用一个模型把特征映射到预测结果。 深度学习和传统机器学习最大的区别，不是“模型更复杂”这么简单，而是它把 feature learning 也放进了模型里。以前很多时候要人工设计特征，深度学习希望模型自己从原始数据中学出有用表示。 比如图像分类任务： 12345traditional ML:image -&gt; hand-crafte">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-08-03T12:00:00.000Z">
+<meta property="article:modified_time" content="2024-08-03T12:00:00.000Z">
+<meta property="article:author" content="Siyu Chen">
+<meta property="article:tag" content="深度学习">
+<meta property="article:tag" content="神经网络">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="表示学习">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>深度学习笔记 01：从特征工程到表示学习 - Siyu Chen</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"sssssimonk.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Siyu Chen" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 42vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Siyu Chen</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.35)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="深度学习笔记 01：从特征工程到表示学习"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-08-03 20:00" pubdate>
+          2024-08-03
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="深度学习笔记"
+        id="heading-845cd236cabe2a5d5adc3c6ec5b03c83" role="tab" data-toggle="collapse" href="#collapse-845cd236cabe2a5d5adc3c6ec5b03c83"
+        aria-expanded="true"
+      >
+        深度学习笔记
+        <span class="list-group-count">(5)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-845cd236cabe2a5d5adc3c6ec5b03c83"
+           role="tabpanel" aria-labelledby="heading-845cd236cabe2a5d5adc3c6ec5b03c83">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制与 Transformer"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">深度学习笔记 05：注意力机制与 Transformer</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/08/24/deep-learning-notes-04-cnn-rnn-classic-architectures/" title="深度学习笔记 04：CNN、RNN 与经典结构"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">深度学习笔记 04：CNN、RNN 与经典结构</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/08/17/deep-learning-notes-03-training-and-optimizers/" title="深度学习笔记 03：深度网络训练与优化器"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">深度学习笔记 03：深度网络训练与优化器</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/" title="深度学习笔记 02：MLP、前向传播与反向传播"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">深度学习笔记 02：MLP、前向传播与反向传播</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/08/03/deep-learning-notes-01-framework/" title="深度学习笔记 01：从特征工程到表示学习"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">深度学习笔记 01：从特征工程到表示学习</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">深度学习笔记 01：从特征工程到表示学习</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>机器学习章节里，大部分模型都可以理解成：先把数据整理成特征，再用一个模型把特征映射到预测结果。</p>
+<p>深度学习和传统机器学习最大的区别，不是“模型更复杂”这么简单，而是它把 <strong>feature learning</strong> 也放进了模型里。以前很多时候要人工设计特征，深度学习希望模型自己从原始数据中学出有用表示。</p>
+<p>比如图像分类任务：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">traditional ML:<br>image -&gt; hand-crafted features -&gt; classifier -&gt; label<br><br>deep learning:<br>image -&gt; neural network -&gt; label<br></code></pre></td></tr></table></figure>
+
+<p>这里不是说传统 ML 不重要，而是 deep learning 把“特征怎么来”这个问题也变成了可训练的部分。</p>
+<h2 id="1-神经网络仍然是函数"><a href="#1-神经网络仍然是函数" class="headerlink" title="1. 神经网络仍然是函数"></a>1. 神经网络仍然是函数</h2><p>神经网络本质上还是一个函数：</p>
+<p>$$<br>\hat{y} &#x3D; f_\theta(x)<br>$$</p>
+<p>其中，$x$ 是输入，$\hat{y}$ 是预测，$\theta$ 是网络参数。</p>
+<p>训练的目标仍然是找一组参数，让模型预测更接近真实标签：</p>
+<p>$$<br>\theta^* &#x3D; \arg\min_\theta L(f_\theta(x), y)<br>$$</p>
+<p>所以 deep learning 没有跳出机器学习的基本框架。它仍然是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">input<br>-&gt; model prediction<br>-&gt; loss<br>-&gt; gradient<br>-&gt; parameter update<br></code></pre></td></tr></table></figure>
+
+<p>区别在于 $f_\theta$ 变得很灵活，可以由很多层可学习变换组成。</p>
+<h2 id="2-从人工特征到表示学习（representation-learning）"><a href="#2-从人工特征到表示学习（representation-learning）" class="headerlink" title="2. 从人工特征到表示学习（representation learning）"></a>2. 从人工特征到表示学习（representation learning）</h2><p>传统机器学习里，特征工程经常决定上限。</p>
+<p>比如判断一封邮件是不是垃圾邮件，可能会手动构造这些特征：</p>
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>contains_free</code></td>
+<td>是否出现 free</td>
+</tr>
+<tr>
+<td><code>num_links</code></td>
+<td>邮件里的链接数量</td>
+</tr>
+<tr>
+<td><code>sender_reputation</code></td>
+<td>发件人信誉</td>
+</tr>
+<tr>
+<td><code>has_attachment</code></td>
+<td>是否有附件</td>
+</tr>
+</tbody></table>
+<p>模型看到的不是原始邮件，而是这些被设计好的 feature。</p>
+<p>深度学习的思路是：把原始数据输入网络，让网络逐层学出中间表示。</p>
+<p>以图像为例，早期层可能学边缘和纹理，中间层学局部形状，后面层学更接近语义的结构。这个过程不是人为写规则，而是通过 loss 和 gradient 学出来的。</p>
+<p>这就是 representation learning。</p>
+<h2 id="3-什么叫表示（representation）"><a href="#3-什么叫表示（representation）" class="headerlink" title="3. 什么叫表示（representation）"></a>3. 什么叫表示（representation）</h2><p>Representation 可以理解成模型内部对输入的重新编码。</p>
+<p>假设输入是一张图片，原始像素只是一个大矩阵。对模型来说，像素本身不直接等于“猫”“狗”“车”。网络需要把像素变成更有用的中间特征：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">pixels<br>-&gt; edges / textures<br>-&gt; parts<br>-&gt; object-level features<br>-&gt; prediction<br></code></pre></td></tr></table></figure>
+
+<p>在 NLP 里也类似。一个词或者一句话会被表示成 embedding。Embedding 不是原始文本，而是模型学出来的一组向量，用来承载语义和上下文信息。</p>
+<p>比如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">&quot;king&quot; -&gt; [0.21, -0.18, 0.73, ...]<br>&quot;queen&quot; -&gt; [0.19, -0.11, 0.69, ...]<br></code></pre></td></tr></table></figure>
+
+<p>这些数字本身没有人类可读含义，但它们让模型可以计算相似度、组合上下文、做预测。</p>
+<h2 id="4-为什么要多层"><a href="#4-为什么要多层" class="headerlink" title="4. 为什么要多层"></a>4. 为什么要多层</h2><p>单层线性模型表达能力有限：</p>
+<p>$$<br>\hat{y} &#x3D; Wx + b<br>$$</p>
+<p>如果数据关系本身很复杂，只靠一个线性变换很难表达。</p>
+<p>多层网络的想法是把简单变换组合起来：</p>
+<p>$$<br>h_1 &#x3D; \sigma(W_1x + b_1)<br>$$</p>
+<p>$$<br>h_2 &#x3D; \sigma(W_2h_1 + b_2)<br>$$</p>
+<p>$$<br>\hat{y} &#x3D; W_3h_2 + b_3<br>$$</p>
+<p>每一层都在前一层表示的基础上再做一次变换。这样模型可以逐步把原始输入变成更适合任务的表示。</p>
+<p>一个简单例子：判断图片里有没有车。第一层不太可能直接学“车”，它更可能学边缘；中间层组合边缘形成轮子、车窗；后面层再组合成车的整体概念。</p>
+<h2 id="5-非线性为什么重要"><a href="#5-非线性为什么重要" class="headerlink" title="5. 非线性为什么重要"></a>5. 非线性为什么重要</h2><p>如果没有 activation function，多层线性网络仍然等价于一个线性模型。</p>
+<p>比如：</p>
+<p>$$<br>h &#x3D; W_1x<br>$$</p>
+<p>$$<br>\hat{y} &#x3D; W_2h &#x3D; W_2W_1x<br>$$</p>
+<p>这里 $W_2W_1$ 仍然只是一个新的矩阵。堆很多层也没有本质变化。</p>
+<p>所以神经网络需要在层与层之间加入非线性函数：</p>
+<p>$$<br>h &#x3D; \sigma(Wx+b)<br>$$</p>
+<p>常见 activation 有 ReLU、sigmoid、tanh。现代深度网络里 ReLU 及其变体很常见，因为它简单、梯度更稳定、训练效率高。</p>
+<h2 id="6-端到端学习（end-to-end-learning）"><a href="#6-端到端学习（end-to-end-learning）" class="headerlink" title="6. 端到端学习（end-to-end learning）"></a>6. 端到端学习（end-to-end learning）</h2><p>End-to-end learning 指模型从输入到输出整体一起训练。</p>
+<p>比如语音识别：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">audio waveform -&gt; neural network -&gt; text<br></code></pre></td></tr></table></figure>
+
+<p>相比传统 pipeline：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">audio<br>-&gt; acoustic features<br>-&gt; phoneme model<br>-&gt; language model<br>-&gt; text<br></code></pre></td></tr></table></figure>
+
+<p>端到端模型的优点是中间步骤不需要完全人工设计，模型可以为了最终目标自动调整内部表示。</p>
+<p>但它也有代价：</p>
+<ul>
+<li>需要更多数据</li>
+<li>需要更大计算资源</li>
+<li>可解释性通常更弱</li>
+<li>出问题时不一定容易定位是哪一层表示出了问题</li>
+</ul>
+<p>所以 end-to-end 不是永远更好，只是当数据和算力足够时，它可以减少人工特征设计的限制。</p>
+<h2 id="7-深度学习的成功条件"><a href="#7-深度学习的成功条件" class="headerlink" title="7. 深度学习的成功条件"></a>7. 深度学习的成功条件</h2><p>Deep learning 不是单靠一个想法突然成功。它通常需要几个条件同时出现：</p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>大数据</td>
+<td>让大模型有足够样本学习表示</td>
+</tr>
+<tr>
+<td>GPU &#x2F; TPU</td>
+<td>让矩阵计算足够快</td>
+</tr>
+<tr>
+<td>更好的优化方法</td>
+<td>让深层网络能稳定训练</td>
+</tr>
+<tr>
+<td>更好的结构设计</td>
+<td>CNN、ResNet、Transformer 等</td>
+</tr>
+<tr>
+<td>软件生态</td>
+<td>PyTorch、TensorFlow、CUDA 等</td>
+</tr>
+</tbody></table>
+<p>如果数据很少、任务很简单，传统机器学习模型可能仍然更合适。Deep learning 的优势通常在原始输入复杂、人工特征难设计、数据规模足够大的场景里更明显。</p>
+<h2 id="8-几个点"><a href="#8-几个点" class="headerlink" title="8. 几个点"></a>8. 几个点</h2><p>Deep learning 不是另一个完全独立的范式，它还是机器学习，只是模型函数更复杂，并且把表示也纳入学习过程。</p>
+<p>Representation learning 是理解 deep learning 的核心。模型不是直接“理解”数据，而是在训练目标的驱动下学出对任务有用的内部表示。</p>
+<p>多层结构的意义在于逐步组合特征。低层更接近局部和简单模式，高层更接近抽象和任务相关模式。</p>
+<p>非线性 activation 很关键。没有非线性，多层线性网络仍然只是线性模型。</p>
+<p>End-to-end learning 减少了手工设计特征的负担，但也带来数据、算力和可解释性问题。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.deeplearningbook.org/">Deep Learning Book</a></li>
+<li><a target="_blank" rel="noopener" href="https://d2l.ai/">Dive into Deep Learning</a></li>
+<li><a target="_blank" rel="noopener" href="https://cs231n.github.io/">Stanford CS231n: Convolutional Neural Networks for Visual Recognition</a></li>
+<li><a target="_blank" rel="noopener" href="https://introtodeeplearning.com/">MIT 6.S191: Introduction to Deep Learning</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">深度学习笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="print-no-link">#深度学习</a>
+      
+        <a href="/tags/%E8%A1%A8%E7%A4%BA%E5%AD%A6%E4%B9%A0/" class="print-no-link">#表示学习</a>
+      
+        <a href="/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="print-no-link">#神经网络</a>
+      
+        <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
+      
+    </div>
+  
+</div>
+
+
+              
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/" title="深度学习笔记 02：MLP、前向传播与反向传播">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">深度学习笔记 02：MLP、前向传播与反向传播</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" title="机器学习笔记 06：评估、验证与模型选择">
+                        <span class="hidden-mobile">机器学习笔记 06：评估、验证与模型选择</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© Siyu Chen</span> <span class="footer-separator"> · </span> <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <span class="footer-separator"> · </span> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
