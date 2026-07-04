@@ -19,24 +19,26 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。 一">
+    <meta name="description" content="这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 1. 决策树（decision tree）的基本想法Decision Tree 每一步都在问一个问题： 1这个 featu">
 <meta property="og:type" content="article">
-<meta property="og:title" content="关于这个博客">
-<meta property="og:url" content="https://sssssimonk.github.io/2026/07/01/about-this-blog/index.html">
+<meta property="og:title" content="机器学习笔记 04：树模型">
+<meta property="og:url" content="https://sssssimonk.github.io/2024/06/29/ml-notes-04-tree-based-models/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。 一">
+<meta property="og:description" content="这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 1. 决策树（decision tree）的基本想法Decision Tree 每一步都在问一个问题： 1这个 featu">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-01T14:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-01T14:00:00.000Z">
+<meta property="article:published_time" content="2024-06-29T13:30:00.000Z">
+<meta property="article:modified_time" content="2024-06-29T13:30:00.000Z">
 <meta property="article:author" content="Siyu Chen">
-<meta property="article:tag" content="AI">
-<meta property="article:tag" content="Notes">
-<meta property="article:tag" content="Research">
+<meta property="article:tag" content="XGBoost">
+<meta property="article:tag" content="决策树">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="随机森林">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>关于这个博客 - Siyu Chen</title>
+  <title>机器学习笔记 04：树模型 - Siyu Chen</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -310,7 +312,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="关于这个博客"></span>
+            <span id="subtitle" data-typed-text="机器学习笔记 04：树模型"></span>
           
         </div>
 
@@ -321,8 +323,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-07-01 22:00" pubdate>
-          2026-07-01
+        <time datetime="2024-06-29 21:30" pubdate>
+          2024-06-29
         </time>
       </span>
     
@@ -333,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          482 字
+          3.2k 字
         
       </span>
     
@@ -344,7 +346,7 @@
         
         
         
-          5 分钟
+          28 分钟
         
       </span>
     
@@ -391,17 +393,17 @@
     
     <div class="category row nomargin-x">
       <a class="category-item 
-          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Blog"
-        id="heading-be8df1f28c0abc85a0ed0c6860e5d832" role="tab" data-toggle="collapse" href="#collapse-be8df1f28c0abc85a0ed0c6860e5d832"
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="机器学习笔记"
+        id="heading-9c962f7faf0e1e50316d9067d785ce2f" role="tab" data-toggle="collapse" href="#collapse-9c962f7faf0e1e50316d9067d785ce2f"
         aria-expanded="true"
       >
-        Blog
-        <span class="list-group-count">(1)</span>
+        机器学习笔记
+        <span class="list-group-count">(6)</span>
         <i class="iconfont icon-arrowright"></i>
       </a>
       
-      <div class="category-collapse collapse show" id="collapse-be8df1f28c0abc85a0ed0c6860e5d832"
-           role="tabpanel" aria-labelledby="heading-be8df1f28c0abc85a0ed0c6860e5d832">
+      <div class="category-collapse collapse show" id="collapse-9c962f7faf0e1e50316d9067d785ce2f"
+           role="tabpanel" aria-labelledby="heading-9c962f7faf0e1e50316d9067d785ce2f">
         
         
           
@@ -410,10 +412,55 @@
     
       
       
-        <a href="/2026/07/01/about-this-blog/" title="关于这个博客"
+        <a href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" title="机器学习笔记 06：评估、验证与模型选择"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">机器学习笔记 06：评估、验证与模型选择</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="机器学习笔记 05：无监督学习与降维"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">机器学习笔记 05：无监督学习与降维</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/06/29/ml-notes-04-tree-based-models/" title="机器学习笔记 04：树模型"
            class="list-group-item list-group-item-action
            active">
-          <span class="category-post">关于这个博客</span>
+          <span class="category-post">机器学习笔记 04：树模型</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/06/22/ml-notes-03-linear-models-and-knn/" title="机器学习笔记 03：线性模型与 KNN"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">机器学习笔记 03：线性模型与 KNN</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" title="机器学习笔记 02：损失函数、优化与正则化"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">机器学习笔记 02：损失函数、优化与正则化</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/06/08/ml-notes-01-machine-learning-framework/" title="机器学习笔记 01：机器学习的基本框架"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">机器学习笔记 01：机器学习的基本框架</span>
         </a>
       
     
@@ -435,24 +482,196 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">关于这个博客</h1>
+            <h1 id="seo-header">机器学习笔记 04：树模型</h1>
             
             
               <div class="markdown-body">
                 
-                <p>这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。</p>
-<p>我希望每篇文章都尽量回答三个问题：</p>
-<ol>
-<li>这篇论文或技术真正解决了什么问题？</li>
-<li>它的核心假设、方法设计和实验结论是否站得住？</li>
-<li>如果把它放到真实系统或后续研究里，它给我的启发是什么？</li>
-</ol>
-<p>后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。</p>
-<p>一个简单的公式示例：</p>
-<p>$$<br>\mathcal{L}(\theta) &#x3D; - \sum_{t&#x3D;1}^{T} \log p_\theta(y_t \mid y_{&lt;t}, x)<br>$$</p>
-<p>一个代码块示例：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">summarize_claim</span>(<span class="hljs-params">paper</span>):<br>    <span class="hljs-keyword">return</span> &#123;<br>        <span class="hljs-string">&quot;problem&quot;</span>: paper.problem,<br>        <span class="hljs-string">&quot;method&quot;</span>: paper.method,<br>        <span class="hljs-string">&quot;evidence&quot;</span>: paper.experiments,<br>        <span class="hljs-string">&quot;my_take&quot;</span>: paper.limitations,<br>    &#125;<br></code></pre></td></tr></table></figure>
+                <p>这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。</p>
+<h2 id="1-决策树（decision-tree）的基本想法"><a href="#1-决策树（decision-tree）的基本想法" class="headerlink" title="1. 决策树（decision tree）的基本想法"></a>1. 决策树（decision tree）的基本想法</h2><p>Decision Tree 每一步都在问一个问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">这个 feature 按某个 threshold 切开后，数据会不会更容易预测？<br></code></pre></td></tr></table></figure>
 
+<p>比如判断一个用户是否会购买会员，可以有这样的分裂：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">访问次数 &gt; 10 ?<br>    yes -&gt; 停留时间 &gt; 5 分钟 ?<br>    no  -&gt; 预测不购买<br></code></pre></td></tr></table></figure>
+
+<p>每个内部节点是一个 split rule，每个叶子节点给出最终预测。</p>
+<p>分类树希望叶子节点里的类别尽量单一；回归树希望叶子节点里的目标值尽量接近。</p>
+<h2 id="2-什么叫节点更“纯”"><a href="#2-什么叫节点更“纯”" class="headerlink" title="2. 什么叫节点更“纯”"></a>2. 什么叫节点更“纯”</h2><p>假设一个节点里有 10 个样本：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th align="right">数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>正类</td>
+<td align="right">5</td>
+</tr>
+<tr>
+<td>负类</td>
+<td align="right">5</td>
+</tr>
+</tbody></table>
+<p>这个节点很不纯，因为正负各一半。</p>
+<p>如果一次 split 后变成：</p>
+<table>
+<thead>
+<tr>
+<th>子节点</th>
+<th align="right">正类</th>
+<th align="right">负类</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>left</td>
+<td align="right">5</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td>right</td>
+<td align="right">0</td>
+<td align="right">4</td>
+</tr>
+</tbody></table>
+<p>那这个 split 就不错，因为两个子节点都更容易判断。</p>
+<p>Decision Tree 的 splitting metric，本质上就是量化“split 前后到底变纯了多少”。</p>
+<h2 id="3-熵（entropy）"><a href="#3-熵（entropy）" class="headerlink" title="3. 熵（entropy）"></a>3. 熵（entropy）</h2><p>Entropy 衡量不确定性：</p>
+<p>$$<br>H(S)&#x3D;-\sum_{c}p_c\log_2(p_c)<br>$$</p>
+<p>其中，$p_c$ 是类别 $c$ 在节点中的比例。</p>
+<p>二分类时，如果正负样本各一半，entropy 最大；如果节点里全是同一类，entropy 为 0。</p>
+<p>例子：</p>
+<table>
+<thead>
+<tr>
+<th>节点情况</th>
+<th>Entropy 直觉</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>5 正 &#x2F; 5 负</td>
+<td>不确定性高</td>
+</tr>
+<tr>
+<td>9 正 &#x2F; 1 负</td>
+<td>不确定性低</td>
+</tr>
+<tr>
+<td>10 正 &#x2F; 0 负</td>
+<td>完全纯</td>
+</tr>
+</tbody></table>
+<p>Entropy 越低，节点越纯。</p>
+<h2 id="4-信息增益（information-gain）"><a href="#4-信息增益（information-gain）" class="headerlink" title="4. 信息增益（information gain）"></a>4. 信息增益（information gain）</h2><p>Information Gain 衡量 split 后 entropy 降低了多少：</p>
+<p>$$<br>IG(S,A)&#x3D;H(S)-\sum_{v \in Values(A)}\frac{|S_v|}{|S|}H(S_v)<br>$$</p>
+<p>前半部分是 split 前的不确定性，后半部分是 split 后各子节点不确定性的加权平均。</p>
+<p>如果 split 后子节点变得很纯，后半部分就小，information gain 就大。</p>
+<p>ID3 使用 information gain 来选 split。</p>
+<p>一个直觉例子：用“是否经常访问网站”切用户，如果切完后高访问用户大多购买、低访问用户大多不购买，那么 information gain 就高。如果切完后两边还是正负混杂，那这个 feature 没什么用。</p>
+<h2 id="5-增益率（gain-ratio）"><a href="#5-增益率（gain-ratio）" class="headerlink" title="5. 增益率（gain ratio）"></a>5. 增益率（gain ratio）</h2><p>Information Gain 有一个问题：它偏好取值很多的特征。</p>
+<p>比如用户 ID 这种特征，每个用户几乎都是唯一值。按用户 ID 切，训练集上可以变得很纯，但完全没有泛化意义。</p>
+<p>Gain Ratio 会对这种情况做惩罚：</p>
+<p>$$<br>GainRatio(S,A)&#x3D;\frac{InformationGain(S,A)}{SplitInfo(S,A)}<br>$$</p>
+<p>C4.5 使用 gain ratio。直觉上，它不只看 split 后纯不纯，也看这个 split 是不是把数据切得过于碎。</p>
+<h2 id="6-基尼指数（Gini-index）"><a href="#6-基尼指数（Gini-index）" class="headerlink" title="6. 基尼指数（Gini index）"></a>6. 基尼指数（Gini index）</h2><p>CART 分类树常用 Gini Index：</p>
+<p>$$<br>Gini(S)&#x3D;1-\sum_c p_c^2<br>$$</p>
+<p>Gini 也衡量节点不纯度。节点越纯，Gini 越小。</p>
+<p>二分类时：</p>
+<table>
+<thead>
+<tr>
+<th align="right">正类比例</th>
+<th align="right">Gini</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">0.5</td>
+<td align="right">0.5</td>
+</tr>
+<tr>
+<td align="right">0.9</td>
+<td align="right">0.18</td>
+</tr>
+<tr>
+<td align="right">1.0</td>
+<td align="right">0</td>
+</tr>
+</tbody></table>
+<p>Gini 和 entropy 的目标很接近：都希望 split 后子节点更纯。实际使用中，Gini 计算更简单一些。</p>
+<h2 id="7-ID3、C4-5、CART"><a href="#7-ID3、C4-5、CART" class="headerlink" title="7. ID3、C4.5、CART"></a>7. ID3、C4.5、CART</h2><p>三类经典树可以这样记：</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>Split metric</th>
+<th>任务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ID3</td>
+<td>Information Gain</td>
+<td>Classification</td>
+</tr>
+<tr>
+<td>C4.5</td>
+<td>Gain Ratio</td>
+<td>Classification</td>
+</tr>
+<tr>
+<td>CART</td>
+<td>Gini &#x2F; Squared Error</td>
+<td>Classification &#x2F; Regression</td>
+</tr>
+</tbody></table>
+<p>CART 是二叉树，每次 split 生成两个子节点。分类时常用 Gini，回归时常用 squared error 或 variance reduction。</p>
+<p>回归树的直觉也很简单：如果一次 split 能让两个子节点内部的目标值更接近，这个 split 就有价值。</p>
+<p>比如预测房价时，按“是否靠近地铁”切分后，如果靠近地铁的一组房价普遍更高，不靠近的一组更低，那么这个 split 就能降低每个子节点内部的误差。</p>
+<h2 id="8-剪枝（pruning）：为什么树需要剪枝"><a href="#8-剪枝（pruning）：为什么树需要剪枝" class="headerlink" title="8. 剪枝（pruning）：为什么树需要剪枝"></a>8. 剪枝（pruning）：为什么树需要剪枝</h2><p>单棵树很容易 overfit。如果不限制深度，它可以不断 split，直到叶子节点里只剩很少样本，甚至每个叶子只对应一个训练样本。</p>
+<p>这在训练集上很好，但对新数据很差。</p>
+<p>常见限制方式：</p>
+<ul>
+<li><code>max_depth</code>：限制树深度</li>
+<li><code>min_samples_split</code>：节点样本太少就不再切</li>
+<li><code>min_samples_leaf</code>：叶子节点至少保留一定样本</li>
+<li><code>max_leaf_nodes</code>：限制叶子节点数</li>
+</ul>
+<p>Pruning 分两类：</p>
+<p><strong>Pre-pruning</strong>：树还没长完就提前停止，比如限制最大深度。</p>
+<p><strong>Post-pruning</strong>：先长出一棵比较完整的树，再从底部往上剪掉泛化收益不大的分支。</p>
+<p>简单说，剪枝就是不让树把训练集记得太细。</p>
+<h2 id="9-随机森林（random-forest）：多棵树投票"><a href="#9-随机森林（random-forest）：多棵树投票" class="headerlink" title="9. 随机森林（random forest）：多棵树投票"></a>9. 随机森林（random forest）：多棵树投票</h2><p>Random Forest 属于 Bagging 方法。它训练很多棵 decision tree，然后让它们投票或取平均。</p>
+<p>Random Forest 的随机性主要来自两点：</p>
+<ol>
+<li>每棵树使用 bootstrap sample，也就是有放回地抽训练样本。</li>
+<li>每次 split 时，只从部分特征中选择最佳 split。</li>
+</ol>
+<p>这样每棵树都不太一样，错误也不会完全一致。</p>
+<p>单棵树 variance 很高，Random Forest 通过多棵树平均来降低 variance。</p>
+<p>一个直觉例子：一个人判断可能很偏，但如果很多个相对独立的人投票，最终结果通常更稳定。Random Forest 也是类似的思路。</p>
+<h2 id="10-提升方法（boosting）、GBDT-和-XGBoost"><a href="#10-提升方法（boosting）、GBDT-和-XGBoost" class="headerlink" title="10. 提升方法（boosting）、GBDT 和 XGBoost"></a>10. 提升方法（boosting）、GBDT 和 XGBoost</h2><p>Boosting 和 Random Forest 不一样。Random Forest 里多棵树大致是并行、独立训练的；Boosting 是一棵接一棵训练，后面的树重点修正前面模型的错误。</p>
+<p>GBDT 的思路是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">initial prediction<br>-&gt; compute residual / negative gradient<br>-&gt; train a new tree to fit the residual<br>-&gt; add this tree to the ensemble<br>-&gt; repeat<br></code></pre></td></tr></table></figure>
+
+<p>如果第一棵树预测房价总是偏低，下一棵树就会学习这个偏差，把预测往正确方向拉。</p>
+<p>XGBoost 可以看作更工程化、更正则化、更高效的 gradient boosting tree 实现。它常见特点包括：</p>
+<ul>
+<li>使用一阶和二阶梯度信息</li>
+<li>在目标函数中加入正则项</li>
+<li>支持列采样和行采样</li>
+<li>对缺失值有默认 split direction</li>
+<li>工程实现上做了很多并行和缓存优化</li>
+</ul>
+<p>这也是为什么 XGBoost 在传统 tabular data 上经常很强。</p>
+<h2 id="11-几个点"><a href="#11-几个点" class="headerlink" title="11. 几个点"></a>11. 几个点</h2><p>树模型不需要像 KNN 那样强依赖 feature scaling。因为树只关心某个特征是否大于 threshold，不关心距离。</p>
+<p>树模型擅长处理非线性关系和特征交互。比如“访问次数高并且最近 7 天活跃”这种规则，树可以比较自然地表达。</p>
+<p>单棵树容易 overfit。实际项目里更常用 Random Forest、GBDT、XGBoost 这类 ensemble。</p>
+<p>Random Forest 更偏降低 variance，Boosting 更偏逐步降低 bias，但这只是粗略理解，实际效果还和参数、数据、噪声有关。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/tree.html">scikit-learn User Guide: Decision Trees</a></li>
+<li><a target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/ensemble.html">scikit-learn User Guide: Ensemble Methods</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.statlearning.com/">An Introduction to Statistical Learning</a></li>
+<li><a target="_blank" rel="noopener" href="https://xgboost.readthedocs.io/">XGBoost Documentation</a></li>
+</ul>
 
                 
               </div>
@@ -471,7 +690,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/Blog/" class="category-chain-item">Blog</a>
+  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
   
   
 
@@ -486,11 +705,15 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/AI/" class="print-no-link">#AI</a>
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
-        <a href="/tags/Research/" class="print-no-link">#Research</a>
+        <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
       
-        <a href="/tags/Notes/" class="print-no-link">#Notes</a>
+        <a href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/" class="print-no-link">#决策树</a>
+      
+        <a href="/tags/%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97/" class="print-no-link">#随机森林</a>
+      
+        <a href="/tags/XGBoost/" class="print-no-link">#XGBoost</a>
       
     </div>
   
@@ -504,12 +727,18 @@
                   <article class="post-prev col-6">
                     
                     
+                      <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="机器学习笔记 05：无监督学习与降维">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">机器学习笔记 05：无监督学习与降维</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" title="机器学习笔记 06：评估、验证与模型选择">
-                        <span class="hidden-mobile">机器学习笔记 06：评估、验证与模型选择</span>
+                      <a href="/2024/06/22/ml-notes-03-linear-models-and-knn/" title="机器学习笔记 03：线性模型与 KNN">
+                        <span class="hidden-mobile">机器学习笔记 03：线性模型与 KNN</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
@@ -573,21 +802,6 @@
 
 
 
-
-
-  <script>
-  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
-    mermaid.initialize({"theme":"default"});
-
-    Fluid.utils.listenDOMLoaded(function() {
-      Fluid.events.registerRefreshCallback(function() {
-        if ('mermaid' in window) {
-          mermaid.init();
-        }
-      });
-    });
-  });
-</script>
 
 
 
