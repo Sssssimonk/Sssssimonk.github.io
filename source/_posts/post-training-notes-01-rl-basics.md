@@ -148,7 +148,7 @@ Advantage 想表达的是：相对于当前状态的预期表现，这个 action
 Policy gradient 的经典形式可以写成：
 
 $$
-\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(a \mid s) A(s,a)]
+\nabla_\theta J(\theta) = \underset{\pi_\theta}{\mathbb{E}}[\nabla_\theta \log \pi_\theta(a \mid s) A(s,a)]
 $$
 
 放到 LLM 里，可以粗略理解成：
