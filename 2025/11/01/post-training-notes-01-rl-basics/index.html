@@ -1,0 +1,1082 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=light>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Siyu Chen">
+  <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
+  
+    <meta name="description" content="这一篇先整理后训练里会用到的强化学习基础。 大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。 所以这里不用先背完整 RL 教材。先">
+<meta property="og:type" content="article">
+<meta property="og:title" content="后训练笔记 01：强化学习基础">
+<meta property="og:url" content="https://sssssimonk.github.io/2025/11/01/post-training-notes-01-rl-basics/index.html">
+<meta property="og:site_name" content="Siyu Chen">
+<meta property="og:description" content="这一篇先整理后训练里会用到的强化学习基础。 大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。 所以这里不用先背完整 RL 教材。先">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-11-01T12:00:00.000Z">
+<meta property="article:modified_time" content="2025-11-01T12:00:00.000Z">
+<meta property="article:author" content="Siyu Chen">
+<meta property="article:tag" content="Policy Gradient">
+<meta property="article:tag" content="RLHF">
+<meta property="article:tag" content="RLVR">
+<meta property="article:tag" content="后训练">
+<meta property="article:tag" content="强化学习">
+<meta property="article:tag" content="笔记">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>后训练笔记 01：强化学习基础 - Siyu Chen</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"sssssimonk.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Siyu Chen" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 42vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Siyu Chen</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.35)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="后训练笔记 01：强化学习基础"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-11-01 20:00" pubdate>
+          2025-11-01
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          44 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="后训练笔记"
+        id="heading-d9d29db33a19a24c41b99f16038424a8" role="tab" data-toggle="collapse" href="#collapse-d9d29db33a19a24c41b99f16038424a8"
+        aria-expanded="true"
+      >
+        后训练笔记
+        <span class="list-group-count">(5)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d9d29db33a19a24c41b99f16038424a8"
+           role="tabpanel" aria-labelledby="heading-d9d29db33a19a24c41b99f16038424a8">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2025/11/29/post-training-notes-05-opd/" title="后训练笔记 05：OPD，On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">后训练笔记 05：OPD，On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/11/22/post-training-notes-04-grpo-variants-and-kto/" title="后训练笔记 04：GRPO 变体与 KTO"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">后训练笔记 04：GRPO 变体与 KTO</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/11/15/post-training-notes-03-ppo-dpo-grpo/" title="后训练笔记 03：PPO、DPO 与 GRPO"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">后训练笔记 03：PPO、DPO 与 GRPO</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/11/08/post-training-notes-02-sft-and-peft/" title="后训练笔记 02：SFT 与 PEFT"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">后训练笔记 02：SFT 与 PEFT</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/11/01/post-training-notes-01-rl-basics/" title="后训练笔记 01：强化学习基础"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">后训练笔记 01：强化学习基础</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">后训练笔记 01：强化学习基础</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>这一篇先整理后训练里会用到的强化学习基础。</p>
+<p>大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。</p>
+<p>所以这里不用先背完整 RL 教材。先抓住一条主线：</p>
+<blockquote>
+<p>后训练里的 RL，本质上是在让模型生成的回答更容易得到高 reward，同时又不能偏离原模型太远。</p>
+</blockquote>
+<p>这句话里有三个关键词：policy、reward、reference。</p>
+<h2 id="1-语言模型里的-policy-是什么"><a href="#1-语言模型里的-policy-是什么" class="headerlink" title="1. 语言模型里的 policy 是什么"></a>1. 语言模型里的 policy 是什么</h2><p>在 RL 里，policy 通常写成：</p>
+<p>$$<br>\pi_\theta(a \mid s)<br>$$</p>
+<p>它表示在状态 $s$ 下采取动作 $a$ 的概率。</p>
+<p>放到语言模型里，可以这样对应：</p>
+<ul>
+<li>状态（state）：当前 prompt 加上已经生成的 tokens</li>
+<li>动作（action）：下一个 token</li>
+<li>policy：语言模型给下一个 token 的概率分布</li>
+</ul>
+<p>如果把完整回答看成一个 token 序列：</p>
+<p>$$<br>y &#x3D; (y_1, y_2, …, y_T)<br>$$</p>
+<p>那么模型生成这个回答的概率是：</p>
+<p>$$<br>\pi_\theta(y \mid x) &#x3D; \prod_{t&#x3D;1}^{T} \pi_\theta(y_t \mid x, y_{&lt;t})<br>$$</p>
+<p>其中 $x$ 是 prompt。</p>
+<p>这也是为什么很多后训练算法会用 log probability：</p>
+<p>$$<br>\log \pi_\theta(y \mid x) &#x3D; \sum_{t&#x3D;1}^{T} \log \pi_\theta(y_t \mid x, y_{&lt;t})<br>$$</p>
+<p>因为整段 response 的概率是 token 概率连乘，直接乘容易数值很小，取 log 后就变成求和。</p>
+<h2 id="2-Token-level-action-和-response-level-action"><a href="#2-Token-level-action-和-response-level-action" class="headerlink" title="2. Token-level action 和 response-level action"></a>2. Token-level action 和 response-level action</h2><p>理论上，LLM 每一步生成 token 都是一个 action。</p>
+<p>但很多 reward 是 response-level 的。比如数学题最后答案对不对、代码是否通过测试、回答是否更符合人类偏好，这些通常是整段回答生成完之后才知道。</p>
+<p>这就带来一个 credit assignment 问题：</p>
+<blockquote>
+<p>如果最终回答错了，到底是哪几个 token 造成的？</p>
+</blockquote>
+<p>PPO 里会尝试用 value model 和 advantage estimation，把整段 reward 分摊到 token-level 更新上。</p>
+<p>GRPO 里则常见做法是对同一个 prompt 采样多个 responses，再用组内 reward 相对大小得到 advantage。</p>
+<p>DPO 更进一步，不显式做在线 RL，而是直接比较 chosen response 和 rejected response 的 log probability。</p>
+<p>这些算法看起来差很多，但都绕不开同一个问题：训练信号怎样从“整段回答好不好”传回到模型参数。</p>
+<h2 id="3-Reward：后训练真正优化的目标"><a href="#3-Reward：后训练真正优化的目标" class="headerlink" title="3. Reward：后训练真正优化的目标"></a>3. Reward：后训练真正优化的目标</h2><p>Reward 可以来自很多地方。</p>
+<p>在人类偏好场景里，reward 可能来自 reward model：</p>
+<p>$$<br>r_\phi(x, y)<br>$$</p>
+<p>它输入 prompt 和 response，输出一个标量分数。</p>
+<p>在 reasoning &#x2F; coding 场景里，reward 经常是 verifiable reward：</p>
+<ul>
+<li>数学题最终答案是否匹配</li>
+<li>代码是否通过单元测试</li>
+<li>格式是否满足要求</li>
+<li>工具调用是否成功</li>
+</ul>
+<p>这类方法常被叫做 RLVR，也就是 reinforcement learning from verifiable rewards。</p>
+<p>RLVR 的优势是 reward 更客观，不需要每个样本都人工标注偏好。</p>
+<p>但它也有明显局限：reward 很稀疏。一个数学题只有最终答案对&#x2F;错，模型并不知道中间哪一步推理值得奖励。</p>
+<p>这也是为什么 reasoning model 训练里经常会关心：</p>
+<ul>
+<li>如何采样更多候选</li>
+<li>如何过滤高质量 reasoning traces</li>
+<li>如何避免只学会猜答案</li>
+<li>如何让 reward 不只看最终答案</li>
+</ul>
+<h2 id="4-Return、value-和-advantage"><a href="#4-Return、value-和-advantage" class="headerlink" title="4. Return、value 和 advantage"></a>4. Return、value 和 advantage</h2><p>在一般 RL 里，return 是从当前时刻往后能拿到的累计 reward：</p>
+<p>$$<br>G_t &#x3D; \sum_{k&#x3D;t}^{T} \gamma^{k-t} r_k<br>$$</p>
+<p>LLM 后训练里，很多任务只有最终 reward，所以可以粗略理解为整段回答的得分。</p>
+<p>Value function 估计的是某个状态下未来能拿到多少 reward：</p>
+<p>$$<br>V^\pi(s) &#x3D; \mathbb{E}_{\pi}[G_t \mid s_t&#x3D;s]<br>$$</p>
+<p>Advantage 衡量的是某个 action 比平均水平好多少：</p>
+<p>$$<br>A_t &#x3D; G_t - V^\pi(s_t)<br>$$</p>
+<p>这个量很重要。</p>
+<p>如果一个回答得分是 0.8，不一定说明它很值得加强。也许这个 prompt 很简单，随便生成都能 0.8。</p>
+<p>如果另一个回答得分是 0.6，也不一定差。也许这个 prompt 很难，大多数回答都是 0.1。</p>
+<p>Advantage 想表达的是：相对于当前状态的预期表现，这个 action &#x2F; response 到底更好还是更差。</p>
+<h2 id="5-Policy-gradient-的直觉"><a href="#5-Policy-gradient-的直觉" class="headerlink" title="5. Policy gradient 的直觉"></a>5. Policy gradient 的直觉</h2><p>Policy gradient 的经典形式可以写成：</p>
+<p>$$<br>\nabla_\theta J(\theta) &#x3D; \mathbb{E}<em>{\pi</em>\theta}[\nabla_\theta \log \pi_\theta(a \mid s) A(s,a)]<br>$$</p>
+<p>放到 LLM 里，可以粗略理解成：</p>
+<blockquote>
+<p>如果某个 response 的 advantage 为正，就提高它的生成概率；如果 advantage 为负，就降低它的生成概率。</p>
+</blockquote>
+<p>但这里有两个细节。</p>
+<p>第一，提高的是整段 response 里 tokens 的 log probability，不是直接给最终答案加分。</p>
+<p>第二，更新不能太大。语言模型是高维分布，一次更新如果把概率分布拉得太远，可能会破坏原来的语言能力。</p>
+<p>这就引出 KL constraint。</p>
+<h2 id="6-KL-constraint：为什么需要-reference-model"><a href="#6-KL-constraint：为什么需要-reference-model" class="headerlink" title="6. KL constraint：为什么需要 reference model"></a>6. KL constraint：为什么需要 reference model</h2><p>后训练里通常会保留一个 reference model，记作 $\pi_{\mathrm{ref}}$。</p>
+<p>它通常是 SFT 后的模型，或者训练开始前的 policy snapshot。</p>
+<p>更新 policy 时，会惩罚当前模型和 reference model 的差异：</p>
+<p>$$<br>D_{KL}(\pi_\theta || \pi_{\mathrm{ref}})<br>$$</p>
+<p>直觉上，KL constraint 在说：</p>
+<blockquote>
+<p>可以朝高 reward 方向走，但不要走到完全不像原来的模型。</p>
+</blockquote>
+<p>没有 KL 约束会有什么问题？</p>
+<p>模型可能为了骗 reward model 生成奇怪模式。比如 reward model 偏好长回答，模型就越来越啰嗦；reward model 偏好自信语气，模型就更容易胡说；verifier 只看最终答案，模型可能学会投机格式。</p>
+<p>所以后训练不是简单最大化 reward，而是：</p>
+<p>$$<br>\max_\theta \mathbb{E}[r(x,y)] - \beta D_{KL}(\pi_\theta || \pi_{\mathrm{ref}})<br>$$</p>
+<p>这里 $\beta$ 控制 reward 优化和保持原模型分布之间的平衡。</p>
+<h2 id="7-On-policy-和-off-policy"><a href="#7-On-policy-和-off-policy" class="headerlink" title="7. On-policy 和 off-policy"></a>7. On-policy 和 off-policy</h2><p>On-policy 指训练数据来自当前 policy。</p>
+<p>Off-policy 指训练数据来自旧 policy、其他模型，或者离线数据集。</p>
+<p>LLM 后训练里，这个区别非常关键。</p>
+<p>如果模型训练时看到的是自己当前会生成的回答，那训练分布和推理分布更接近。这是 on-policy 的优势。</p>
+<p>但 on-policy 代价高，因为训练过程中要不断采样新 responses。</p>
+<p>Off-policy 成本低，可以直接用已有数据训练。但如果数据分布和当前模型差很多，模型学到的更新可能不稳定。</p>
+<p>这就是为什么 PPO &#x2F; GRPO &#x2F; OPD 都强调 on-policy 或接近 on-policy。它们希望模型在自己的生成分布上学习，而不是只模仿静态数据。</p>
+<h2 id="8-RLHF、RLVR-和-preference-optimization"><a href="#8-RLHF、RLVR-和-preference-optimization" class="headerlink" title="8. RLHF、RLVR 和 preference optimization"></a>8. RLHF、RLVR 和 preference optimization</h2><p>这几个词容易混。</p>
+<p>RLHF 通常指 reinforcement learning from human feedback。经典流程是：人类偏好数据 -&gt; reward model -&gt; PPO 优化 policy。</p>
+<p>RLVR 是 reinforcement learning from verifiable rewards。它不一定需要人类偏好，而是用规则、答案、测试来给 reward。</p>
+<p>Preference optimization 更宽，包括 DPO、IPO、KTO 等直接从偏好或二元反馈训练的算法。它们不一定显式训练 reward model，也不一定跑在线 RL。</p>
+<p>可以这样记：</p>
+<ul>
+<li>RLHF：人类偏好先变 reward model，再做 RL</li>
+<li>RLVR：可验证任务直接给 reward</li>
+<li>DPO&#x2F;KTO：从偏好数据直接优化 policy，不显式训练 reward model</li>
+<li>OPD：用 teacher 的 dense supervision 替代 sparse reward</li>
+</ul>
+<p>这些路线都属于后训练，但训练信号来源不一样。</p>
+<h2 id="9-为什么-reasoning-model-更依赖-RL"><a href="#9-为什么-reasoning-model-更依赖-RL" class="headerlink" title="9. 为什么 reasoning model 更依赖 RL"></a>9. 为什么 reasoning model 更依赖 RL</h2><p>SFT 可以让模型学会解题格式，但它本质上是模仿。</p>
+<p>如果 SFT 数据里有高质量 reasoning traces，模型会学到“像这样推理”。但它没有直接被奖励“答案正确”。</p>
+<p>RLVR 可以直接优化最终正确率。比如同一个数学题，模型生成多个答案，只有正确答案拿到 reward。经过训练，模型会提高能得到正确答案的生成轨迹概率。</p>
+<p>这也是 DeepSeek-R1 这类 reasoning model 重要的地方：它不是只靠人工写好的 CoT，而是通过可验证 reward 强化推理行为。</p>
+<p>不过这也带来风险。</p>
+<p>如果 reward 只看最终答案，模型可能学到短路策略。比如中间推理不可靠，但答案格式正确；或者生成更长 reasoning 来提高偶然命中率。</p>
+<p>所以 reasoning RL 的关键不是“用了 RL”，而是 reward、采样、过滤、KL、长度控制一起设计。</p>
+<h2 id="10-后训练里的几个常见失败模式"><a href="#10-后训练里的几个常见失败模式" class="headerlink" title="10. 后训练里的几个常见失败模式"></a>10. 后训练里的几个常见失败模式</h2><p>第一，reward hacking。</p>
+<p>模型学会利用 reward 的漏洞，而不是真的变好。</p>
+<p>第二，mode collapse。</p>
+<p>模型输出变得单一，缺少多样性。</p>
+<p>第三，length inflation。</p>
+<p>模型生成越来越长，因为长回答更容易看起来努力，或者更容易覆盖答案。</p>
+<p>第四，over-optimization。</p>
+<p>训练集 reward 越来越高，但真实评估变差。</p>
+<p>第五，distribution drift。</p>
+<p>policy 离 reference model 太远，语言能力或安全边界受损。</p>
+<p>这些问题后面讲 PPO、GRPO、OPD 时都会反复出现。</p>
+<h2 id="11-读后训练论文时先看什么"><a href="#11-读后训练论文时先看什么" class="headerlink" title="11. 读后训练论文时先看什么"></a>11. 读后训练论文时先看什么</h2><p>我会先看这几个问题：</p>
+<ul>
+<li>训练信号来自哪里：人类偏好、reward model、verifier、teacher model？</li>
+<li>数据是 on-policy 还是 off-policy？</li>
+<li>reward 是 token-level、step-level，还是 response-level？</li>
+<li>有没有 reference model 和 KL constraint？</li>
+<li>是否需要 value model？</li>
+<li>每个 prompt 采样多少 responses？</li>
+<li>如何处理全对&#x2F;全错样本？</li>
+<li>如何控制长度膨胀？</li>
+<li>benchmark 提升是否只是来自更多采样或更长输出？</li>
+</ul>
+<p>这些问题比算法名字本身更重要。</p>
+<h2 id="12-小结"><a href="#12-小结" class="headerlink" title="12. 小结"></a>12. 小结</h2><p>后训练里的 RL 可以压缩成一句话：</p>
+<blockquote>
+<p>让模型在自己的生成分布上尝试回答，用 reward 或偏好信号判断好坏，再提高好回答的概率，同时用 reference model 限制分布漂移。</p>
+</blockquote>
+<p>PPO、GRPO、DPO、KTO、OPD 的区别，主要在于训练信号怎么来、advantage 怎么算、是否需要在线采样、是否需要额外模型。</p>
+<p>所以这一章先把 RL 语言打通。后面再看具体算法时，就不会只是在背缩写。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>Schulman et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization Algorithms</a></li>
+<li>Ouyang et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a></li>
+<li>Rafailov et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization: Your Language Model is Secretly a Reward Model</a></li>
+<li>Shao et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a></li>
+<li>DeepSeek-AI, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%90%8E%E8%AE%AD%E7%BB%83%E7%AC%94%E8%AE%B0/" class="category-chain-item">后训练笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
+      
+        <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/" class="print-no-link">#强化学习</a>
+      
+        <a href="/tags/RLHF/" class="print-no-link">#RLHF</a>
+      
+        <a href="/tags/%E5%90%8E%E8%AE%AD%E7%BB%83/" class="print-no-link">#后训练</a>
+      
+        <a href="/tags/RLVR/" class="print-no-link">#RLVR</a>
+      
+        <a href="/tags/Policy-Gradient/" class="print-no-link">#Policy Gradient</a>
+      
+    </div>
+  
+</div>
+
+
+              
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/11/08/post-training-notes-02-sft-and-peft/" title="后训练笔记 02：SFT 与 PEFT">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">后训练笔记 02：SFT 与 PEFT</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/10/11/modern-llm-notes-06-multimodal-models/" title="现代大模型笔记 06：多模态模型，图像、视频和音频怎么接进 LLM">
+                        <span class="hidden-mobile">现代大模型笔记 06：多模态模型，图像、视频和音频怎么接进 LLM</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© Siyu Chen</span> <span class="footer-separator"> · </span> <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <span class="footer-separator"> · </span> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

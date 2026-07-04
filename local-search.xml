@@ -33,6 +33,187 @@
   
   
   <entry>
+    <title>后训练笔记 05：OPD，On-Policy Distillation</title>
+    <link href="/2025/11/29/post-training-notes-05-opd/"/>
+    <url>/2025/11/29/post-training-notes-05-opd/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇整理 OPD，也就是 On-Policy Distillation。</p><p>OPD 是近期后训练里很值得关注的一条路线。它和 GRPO &#x2F; RLVR 的目标有些相似：都想让模型在自己的生成分布上变强。但它给训练信号的方式不一样。</p><p>GRPO 通常是：</p><blockquote><p>student 自己生成 response，然后 verifier &#x2F; reward model 给一个 scalar reward。</p></blockquote><p>OPD 更像是：</p><blockquote><p>student 自己生成 response，然后 teacher 在这些 on-policy responses 上给 dense supervision。</p></blockquote><p>所以 OPD 的关键词是：on-policy、teacher、distillation、dense signal。</p><h2 id="1-普通-distillation-是什么"><a href="#1-普通-distillation-是什么" class="headerlink" title="1. 普通 distillation 是什么"></a>1. 普通 distillation 是什么</h2><p>Knowledge distillation 的基本想法是：用强 teacher model 指导弱 student model。</p><p>最简单的 supervised distillation 是让 student 模仿 teacher 的输出：</p><p>$$<br>\mathcal{L}<em>{KD} &#x3D; D</em>{KL}(p_{\mathrm{teacher}}(\cdot \mid x) || p_{\mathrm{student}}(\cdot \mid x))<br>$$</p><p>在 LLM 里，可以让 teacher 生成高质量 answers，然后 student 做 SFT。</p><p>这类方法的优点是简单。</p><p>但它通常是 off-policy 的：训练数据来自 teacher 或静态数据集，不一定来自 student 当前会生成的分布。</p><p>这会带来一个问题：student 在推理时遇到的状态，可能和训练时看到的不一样。</p><h2 id="2-为什么需要-on-policy"><a href="#2-为什么需要-on-policy" class="headerlink" title="2. 为什么需要 on-policy"></a>2. 为什么需要 on-policy</h2><p>语言模型生成是自回归的。</p><p>一旦前面某个 token 偏了，后面的上下文就变成 student 自己制造出来的分布。</p><p>如果训练时只看 teacher 的完美轨迹，student 没有学会在自己的错误轨迹上恢复。</p><p>这就是 distribution shift。</p><p>On-policy 的意思是：训练数据来自当前 student policy。</p><p>OPD 会让 student 先 rollout，生成它自己会生成的 responses，然后 teacher 在这些 responses 或中间 token 上提供监督。</p><p>直觉上：</p><blockquote><p>不要只教学生看标准答案，也要在学生自己的解题过程上指出应该怎么走。</p></blockquote><p>这点和 RL 类似。PPO&#x2F;GRPO 也是在当前 policy 的 outputs 上学习。</p><p>区别在于，RL 用 reward；OPD 用 teacher distribution。</p><h2 id="3-RLVR-的-sparse-reward-问题"><a href="#3-RLVR-的-sparse-reward-问题" class="headerlink" title="3. RLVR 的 sparse reward 问题"></a>3. RLVR 的 sparse reward 问题</h2><p>以数学题为例。</p><p>GRPO 可能只知道最终答案是否正确：</p><p>$$<br>r(y) \in {0,1}<br>$$</p><p>如果答案错了，模型不知道哪一步错。</p><p>如果答案对了，模型也不知道中间哪些 token 真的关键。</p><p>这种 scalar reward 很稀疏。</p><p>OPD 希望用 teacher 提供更密集的信号。比如在 student rollout 的每个 token 位置，teacher 都可以给出概率分布或 log probability。</p><p>这样 student 不只是知道整段 response 好不好，而是能看到 teacher 在每个位置上更倾向什么。</p><h2 id="4-OPD-的基本流程"><a href="#4-OPD-的基本流程" class="headerlink" title="4. OPD 的基本流程"></a>4. OPD 的基本流程</h2><p>一个简化的 OPD 流程可以写成：</p><ol><li>从 prompt dataset 里取一批 prompts</li><li>student policy $\pi_\theta$ 生成 responses</li><li>teacher model $\pi_T$ 对这些 on-policy responses 计算 token-level supervision</li><li>student 用 distillation loss 更新</li></ol><p>如果 student 生成：</p><p>$$<br>y &#x3D; (y_1, y_2, …, y_T)<br>$$</p><p>teacher 可以在每个位置给：</p><p>$$<br>\log \pi_T(y_t \mid x, y_{&lt;t})<br>$$</p><p>student 则优化自己在这些 on-policy tokens 上的行为。</p><p>这和纯 SFT 不一样。SFT 的 response 通常来自数据集；OPD 的 response 来自 student 当前 policy。</p><h2 id="5-Reverse-KL-的直觉"><a href="#5-Reverse-KL-的直觉" class="headerlink" title="5. Reverse KL 的直觉"></a>5. Reverse KL 的直觉</h2><p>OPD 论文里经常会出现 KL objective。</p><p>Forward KL 和 reverse KL 的行为不一样。</p><p>Forward KL：</p><p>$$<br>D_{KL}(p_T || p_\theta)<br>$$</p><p>倾向于让 student 覆盖 teacher 的分布。</p><p>Reverse KL：</p><p>$$<br>D_{KL}(p_\theta || p_T)<br>$$</p><p>倾向于让 student 避开 teacher 认为低概率的区域。</p><p>在生成模型里，reverse KL 往往更 mode-seeking。它会鼓励 student 更集中地落到 teacher 支持的高质量区域。</p><p>这对后训练很有吸引力，因为 student 的 on-policy rollout 可能包含很多质量一般的 token。Teacher 的 dense signal 可以把它往更好的区域拉。</p><h2 id="6-OPD-和-GRPO-的核心差别"><a href="#6-OPD-和-GRPO-的核心差别" class="headerlink" title="6. OPD 和 GRPO 的核心差别"></a>6. OPD 和 GRPO 的核心差别</h2><p>GRPO 的训练信号通常是 response-level reward。</p><p>比如：</p><p>$$<br>A_i &#x3D; \frac{r_i - \mu}{\sigma}<br>$$</p><p>它告诉模型：这一组 responses 里哪个更好。</p><p>OPD 的训练信号来自 teacher 对 token distribution 的判断。</p><p>它告诉模型：在 student 自己走到的上下文里，teacher 会怎么分布概率。</p><p>所以两者的区别是：</p><ul><li>GRPO：用 scalar reward 做 outcome-driven learning</li><li>OPD：用 teacher probabilities 做 dense behavior shaping</li></ul><p>这也是 OPD 可能更高效的原因。Scalar reward 只在终点给信号，teacher distribution 可以在每一步给信号。</p><h2 id="7-OPD-和-SFT-的核心差别"><a href="#7-OPD-和-SFT-的核心差别" class="headerlink" title="7. OPD 和 SFT 的核心差别"></a>7. OPD 和 SFT 的核心差别</h2><p>SFT 是在静态数据上模仿。</p><p>OPD 是在 student 当前 rollout 上蒸馏。</p><p>如果 student 已经接近 teacher，SFT 可能足够。</p><p>如果 student 会生成很多偏离 teacher 的中间状态，OPD 更有价值，因为 teacher 可以在这些状态上给反馈。</p><p>这有点像老师批改学生自己的草稿，而不是只给学生看范文。</p><h2 id="8-Online-OPD-的成本"><a href="#8-Online-OPD-的成本" class="headerlink" title="8. Online OPD 的成本"></a>8. Online OPD 的成本</h2><p>标准 OPD 的一个问题是成本。</p><p>训练时需要 student rollout，然后 teacher 对这些 rollouts 计算 supervision。</p><p>如果 teacher 很大，就需要 live teacher inference server。</p><p>这会带来：</p><ul><li>推理成本高</li><li>系统复杂</li><li>训练吞吐低</li><li>teacher 服务和 student 训练要同步</li><li>多机异步时容易出现 stale samples</li></ul><p>所以 OPD 虽然训练信号更密集，但系统上并不轻。</p><p>这也是 Lightning OPD、StableOPD、f-OPD 这些工作的背景。</p><h2 id="9-Lightning-OPD：把-online-teacher-变成-offline"><a href="#9-Lightning-OPD：把-online-teacher-变成-offline" class="headerlink" title="9. Lightning OPD：把 online teacher 变成 offline"></a>9. Lightning OPD：把 online teacher 变成 offline</h2><p>Lightning OPD 关注一个问题：能不能不用 live teacher server？</p><p>它的思路是 offline on-policy distillation。</p><p>核心是预计算 teacher log-probabilities，然后训练时复用。</p><p>但这里有一个关键条件：teacher consistency。</p><p>如果 SFT 阶段和 OPD 阶段使用的 teacher 不一致，或者 teacher 对 student rollouts 的分布不一致，就可能引入不可消除的 gradient bias。</p><p>Lightning OPD 的一个重要结论是：只要保持 teacher consistency，offline OPD 可以接近 standard OPD 的 optimum，同时显著降低系统成本。</p><p>这对个人或学术实验很重要。因为 live teacher server 是很高的门槛。</p><h2 id="10-StableOPD：长度膨胀和重复崩溃"><a href="#10-StableOPD：长度膨胀和重复崩溃" class="headerlink" title="10. StableOPD：长度膨胀和重复崩溃"></a>10. StableOPD：长度膨胀和重复崩溃</h2><p>OPD 也有自己的失败模式。</p><p>一个问题是 length inflation。</p><p>Student on-policy rollouts 可能越来越长，训练目标又在这些 rollouts 上蒸馏，最后导致长而重复的输出变多。</p><p>如果 responses 被截断，训练数据里会出现大量 truncated trajectories。这会造成 biased gradient signal。</p><p>StableOPD 这类方法尝试用 reference-based divergence constraint 和 rollout mixture distillation 稳定训练。</p><p>直觉上，它在防止 student 被自己的坏 rollout 分布拖走。</p><p>这说明 OPD 虽然不用 scalar reward，但仍然有 policy drift 问题。</p><h2 id="11-f-OPD：异步训练里的-freshness"><a href="#11-f-OPD：异步训练里的-freshness" class="headerlink" title="11. f-OPD：异步训练里的 freshness"></a>11. f-OPD：异步训练里的 freshness</h2><p>大规模训练通常不是完全同步的。</p><p>Rollout 生成、teacher 计算、student 更新可能是异步执行。</p><p>这会带来 stale sample 问题。</p><p>一个样本生成时对应的是旧 student policy，但真正训练时 student 已经更新过很多步。</p><p>Teacher supervision 的上下文也可能变旧。</p><p>f-OPD 把这种偏差拆成 rollout drift 和 supervision drift，并引入 freshness score 来判断样本是否还可靠。</p><p>直觉上：</p><blockquote><p>样本不是越多越好，旧到一定程度的样本会偏离 on-policy 目标。</p></blockquote><p>这对 long-horizon agentic tasks 尤其重要。任务越长，轨迹越复杂，staleness 的影响越大。</p><h2 id="12-OPD-适合什么任务"><a href="#12-OPD-适合什么任务" class="headerlink" title="12. OPD 适合什么任务"></a>12. OPD 适合什么任务</h2><p>OPD 适合这些场景：</p><ul><li>有强 teacher model</li><li>Student 需要在自己的生成分布上学习</li><li>Sparse reward 太弱</li><li>希望 token-level dense supervision</li><li>任务轨迹较长，单一 scalar reward 不够</li></ul><p>比如数学 reasoning、代码生成、视频定位、agentic tool use，都可能适合 OPD。</p><p>但 OPD 不是所有场景都合适。</p><p>如果没有强 teacher，OPD 的上限会受限。</p><p>如果 teacher 推理成本太高，系统负担很重。</p><p>如果 student rollout 质量太差，teacher supervision 可能长期在很差的状态上补救，训练效率不一定高。</p><h2 id="13-OPD-和-RL-能不能结合"><a href="#13-OPD-和-RL-能不能结合" class="headerlink" title="13. OPD 和 RL 能不能结合"></a>13. OPD 和 RL 能不能结合</h2><p>可以。</p><p>OPD 和 RLVR 不是互斥关系。</p><p>一种可能是先用 OPD 做 dense behavior shaping，让 student 接近 teacher 的高质量 reasoning 分布。</p><p>再用 RLVR 针对最终正确率做强化。</p><p>另一种可能是在 RL 过程中加入 teacher regularization，防止模型为了 reward 走向奇怪分布。</p><p>也可以把 OPD 看成一种替代 sparse reward 的中间路线：它不像 SFT 那么离线，也不像 RL 那么依赖 scalar reward。</p><h2 id="14-OPD-的风险"><a href="#14-OPD-的风险" class="headerlink" title="14. OPD 的风险"></a>14. OPD 的风险</h2><p>第一，teacher bias。</p><p>Student 会继承 teacher 的偏好和错误。</p><p>第二，teacher ceiling。</p><p>如果目标任务需要超过 teacher 的能力，单纯 OPD 很难突破 teacher。</p><p>第三，计算成本。</p><p>Teacher log-probs 对大模型来说很贵。</p><p>第四，length &#x2F; repetition instability。</p><p>On-policy rollouts 可能产生越来越长、越来越重复的样本。</p><p>第五，staleness。</p><p>异步训练时，rollout 和 supervision 可能过期。</p><p>所以 OPD 不是“比 RL 更简单”的万能方法。它只是把问题从 reward design 转移到 teacher supervision 和系统效率上。</p><h2 id="15-读-OPD-论文时看什么"><a href="#15-读-OPD-论文时看什么" class="headerlink" title="15. 读 OPD 论文时看什么"></a>15. 读 OPD 论文时看什么</h2><p>我会看这些问题：</p><ul><li>Teacher model 是什么</li><li>Student model 是什么</li><li>Rollouts 来自当前 student 还是旧 policy</li><li>Teacher supervision 是 token-level 还是 response-level</li><li>用 forward KL 还是 reverse KL</li><li>是否需要 live teacher server</li><li>是否 offline 预计算 teacher log-probs</li><li>如何处理 length inflation</li><li>如何处理 stale samples</li><li>是否和 GRPO &#x2F; PPO 在同等 compute 下比较</li><li>推理时是否真的提升 greedy performance</li></ul><p>尤其要注意 compute。OPD 如果性能提升但 teacher 成本巨大，实际价值要重新评估。</p><h2 id="16-小结"><a href="#16-小结" class="headerlink" title="16. 小结"></a>16. 小结</h2><p>OPD 可以理解成一条介于 SFT 和 RLVR 之间的后训练路线。</p><p>SFT 在静态数据上模仿。</p><p>GRPO 在 on-policy samples 上用 scalar reward 学。</p><p>OPD 在 on-policy samples 上用 teacher dense supervision 学。</p><p>我的理解是：</p><blockquote><p>OPD 的价值在于，它保留了 on-policy 学习的分布匹配，又用 teacher 分布缓解了 sparse reward 的问题。</p></blockquote><p>但它的难点也很明确：teacher 成本、teacher consistency、长度膨胀、异步 staleness。</p><p>如果后面 reasoning &#x2F; coding &#x2F; agentic post-training 继续发展，OPD 这条线很可能会越来越重要。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Hinton et al., <a href="https://arxiv.org/abs/1503.02531">Distilling the Knowledge in a Neural Network</a></li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li><li>Wu et al., <a href="https://arxiv.org/abs/2604.13010">Lightning OPD: Efficient Post-Training for Large Reasoning Models with Offline On-Policy Distillation</a></li><li>Luo et al., <a href="https://arxiv.org/abs/2604.08527">Demystifying OPD: Length Inflation and Stabilization Strategies for Large Language Models</a></li><li>Chen et al., <a href="https://arxiv.org/abs/2605.17862">f-OPD: Stabilizing Long-Horizon On-Policy Distillation with Freshness-Aware Control</a></li><li>Li et al., <a href="https://arxiv.org/abs/2602.02994">Video-OPD: Efficient Post-Training of Multimodal Large Language Models for Temporal Video Grounding via On-Policy Distillation</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>后训练笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>后训练</tag>
+      
+      <tag>RLVR</tag>
+      
+      <tag>OPD</tag>
+      
+      <tag>蒸馏</tag>
+      
+      <tag>On-Policy</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>后训练笔记 04：GRPO 变体与 KTO</title>
+    <link href="/2025/11/22/post-training-notes-04-grpo-variants-and-kto/"/>
+    <url>/2025/11/22/post-training-notes-04-grpo-variants-and-kto/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇整理 GRPO 的变体，以及 KTO。</p><p>这里需要先区分一下：KTO 不是 GRPO 的变体。它更像 DPO 同一类的 direct alignment 方法。之所以放在这一篇，是因为它属于“PPO&#x2F;GRPO 之外的后训练目标改造”，而且经常和 DPO、IPO、ORPO 放在一起比较。</p><p>所以这一篇分成两条线：</p><ul><li>GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造</li><li>KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback</li></ul><h2 id="1-GRPO-的基本问题"><a href="#1-GRPO-的基本问题" class="headerlink" title="1. GRPO 的基本问题"></a>1. GRPO 的基本问题</h2><p>GRPO 的基础想法很清楚：同一个 prompt 采样多个 responses，用组内 reward 相对值估计 advantage。</p><p>但真实训练里会遇到几个问题。</p><p>第一，组内 reward 没有差异。</p><p>如果一组全对或全错，标准差接近 0，训练信号很弱。</p><p>第二，reward 太稀疏。</p><p>数学题只有最终答案对错，代码题只有测试通过与否。中间推理过程没有细粒度反馈。</p><p>第三，token-level clipping 可能浪费训练信号。</p><p>有些 token 的 ratio 被 clip 后，梯度贡献变小甚至消失。</p><p>第四，长度会膨胀。</p><p>模型可能生成越来越长的 reasoning，因为长输出更容易覆盖更多尝试，也可能更容易骗过某些 reward。</p><p>第五，MoE 模型 RL 更不稳定。</p><p>RL 更新会影响 routing、专家激活和序列分布，sequence-level 稳定性变得更重要。</p><p>GRPO 变体基本都在修这些问题。</p><h2 id="2-Dr-GRPO：重新看-normalization"><a href="#2-Dr-GRPO：重新看-normalization" class="headerlink" title="2. Dr.GRPO：重新看 normalization"></a>2. Dr.GRPO：重新看 normalization</h2><p>GRPO 的 advantage 常写成：</p><p>$$<br>A_i &#x3D; \frac{r_i - \mu}{\sigma}<br>$$</p><p>其中 $\mu$ 和 $\sigma$ 是同一组 responses 的 reward 均值和标准差。</p><p>这个标准化看起来很自然，但它也会改变训练信号强度。</p><p>如果组内 reward 差异很小，$\sigma$ 很小，更新可能被放大或不稳定。</p><p>如果组内全同，$\sigma$ 接近 0，训练信号又会失效。</p><p>Dr.GRPO 这类方法的核心思路，是重新审视 group normalization 是否真的合理，尤其是在二元 reward 场景里。</p><p>二元 reward 下，一组 responses 的 reward 只可能是 0 或 1。此时标准差本质上反映的是这个 prompt 下样本是否有分歧。</p><p>如果全对或全错，没有分歧，就没有可学习的相对信号。</p><p>如果一半对一半错，分歧最大，训练信号最强。</p><p>这说明 GRPO 的学习重点其实被 group disagreement 控制了。</p><h2 id="3-DAPO：dynamic-sampling-和-clipping"><a href="#3-DAPO：dynamic-sampling-和-clipping" class="headerlink" title="3. DAPO：dynamic sampling 和 clipping"></a>3. DAPO：dynamic sampling 和 clipping</h2><p>DAPO 可以理解成对 GRPO 训练细节的进一步修补。</p><p>它关注两个问题：</p><ul><li>哪些 prompts &#x2F; groups 值得训练</li><li>policy ratio 的 clipping 怎样更合理</li></ul><p>如果一个 group 全对或全错，继续训练价值低。Dynamic sampling 会更关注那些能产生有效差异的样本。</p><p>这和人刷题有点像。</p><p>太简单的题已经都会，太难的题全不会，最有训练价值的是“有时会、有时不会”的题。</p><p>对于 LLM RLVR，也是这样。能让同一个 prompt 下的 samples 产生分歧，才有足够的相对学习信号。</p><p>Clipping 的问题则是：固定 clip range 可能不适合所有 token、所有阶段。模型训练初期和后期需要的更新幅度不同，高置信 token 和低置信 token 也不同。</p><p>所以 DAPO 这类方法会尝试让 sampling 和 clipping 更动态。</p><h2 id="4-GSPO：从-token-level-到-sequence-level"><a href="#4-GSPO：从-token-level-到-sequence-level" class="headerlink" title="4. GSPO：从 token-level 到 sequence-level"></a>4. GSPO：从 token-level 到 sequence-level</h2><p>GSPO 是 Group Sequence Policy Optimization。</p><p>它的一个重要变化是把优化从 token-level ratio 推向 sequence-level ratio。</p><p>在语言模型里，reward 很多时候是 response-level 的。数学答案对不对，是整段 response 的结果；代码能不能过测试，也是整段 response 的结果。</p><p>如果 reward 是 sequence-level，但优化时过度依赖 token-level ratio，就可能出现不匹配。</p><p>GSPO 的想法是：既然 reward 是整段序列的结果，就直接在 sequence level 处理 importance ratio、clipping 和优化。</p><p>这对 MoE 模型尤其重要。因为 MoE 的 token-level routing 更复杂，token-level 更新可能带来不稳定。Sequence-level objective 更贴近最终任务评价，也可能更稳定。</p><p>可以这样理解：</p><blockquote><p>GRPO 问的是“这组回答里哪个更好”；GSPO 进一步问“整段回答作为一个整体，应该怎样被加强或削弱”。</p></blockquote><h2 id="5-DCPO：dynamic-clipping"><a href="#5-DCPO：dynamic-clipping" class="headerlink" title="5. DCPO：dynamic clipping"></a>5. DCPO：dynamic clipping</h2><p>DCPO 关注的是 GRPO 里的 zero gradient 和 clipping 问题。</p><p>在 PPO&#x2F;GRPO 类目标里，clipping 是为了防止 policy 更新过猛。</p><p>但 clipping 太强会损失训练信号。</p><p>如果很多 token 的 ratio 都被 clip，模型即使生成了有价值的 response，也不能有效学习。</p><p>DCPO 的思路是动态调整 clipping 策略，让不同 token 或不同训练阶段有更合适的更新空间。</p><p>它还关注 reward standardization 的问题，希望提升 response-level 样本利用率。</p><p>核心不是“clip 越少越好”，而是：</p><blockquote><p>该限制的地方限制，该学习的地方不要过早截断。</p></blockquote><h2 id="6-DRA-GRPO：把-diversity-纳入-reward"><a href="#6-DRA-GRPO：把-diversity-纳入-reward" class="headerlink" title="6. DRA-GRPO：把 diversity 纳入 reward"></a>6. DRA-GRPO：把 diversity 纳入 reward</h2><p>GRPO 采样一组 responses，但如果这些 responses 高度相似，组内比较的价值有限。</p><p>DRA-GRPO 这类方法关注 diversity。</p><p>它希望不同 reasoning paths 不要因为最终 reward 相同就被完全等价对待。</p><p>比如两条解法都错，但一条接近正确思路，另一条完全胡乱推理；或者两条都对，但一条更简洁，另一条绕远路。单纯 0&#x2F;1 reward 分不出来。</p><p>Diversity-aware reward adjustment 试图让训练信号不仅看正确性，也看候选之间的语义差异和探索价值。</p><p>这对 reasoning 很重要。因为模型不是只需要记住一个答案，而是要学习更可靠的解题路径。</p><h2 id="7-GRPO-变体的共同主线"><a href="#7-GRPO-变体的共同主线" class="headerlink" title="7. GRPO 变体的共同主线"></a>7. GRPO 变体的共同主线</h2><p>这些方法名字很多，但不要被缩写带跑。</p><p>它们基本在改四件事。</p><p>第一，采样。</p><p>哪些 prompts 要采，采几个 responses，如何过滤全对&#x2F;全错。</p><p>第二，advantage。</p><p>组内 reward 怎么归一化，是否使用标准差，是否引入 difficulty &#x2F; diversity。</p><p>第三，clipping。</p><p>policy ratio 怎么限制，token-level 还是 sequence-level，固定还是动态。</p><p>第四，reward。</p><p>只看最终答案，还是加入格式、长度、过程、diversity、verifier confidence。</p><p>理解这四个维度，比记住每个方法缩写更有用。</p><h2 id="8-KTO：为什么不是-DPO-的简单替代"><a href="#8-KTO：为什么不是-DPO-的简单替代" class="headerlink" title="8. KTO：为什么不是 DPO 的简单替代"></a>8. KTO：为什么不是 DPO 的简单替代</h2><p>DPO 需要 preference pair：</p><p>$$<br>(x, y_w, y_l)<br>$$</p><p>也就是同一个 prompt 下，一个 chosen response，一个 rejected response。</p><p>但真实产品数据经常不是这样。</p><p>用户可能只是点了赞或踩：</p><p>$$<br>(x, y, \mathrm{desirable})<br>$$</p><p>或者：</p><p>$$<br>(x, y, \mathrm{undesirable})<br>$$</p><p>没有配对 rejected response。</p><p>KTO 的动机就是：能不能直接用这种 binary feedback 做 alignment？</p><p>KTO 全称是 Kahneman-Tversky Optimization，借用了 prospect theory 里的损失厌恶、参考点等想法。</p><h2 id="9-KTO-的-implied-reward"><a href="#9-KTO-的-implied-reward" class="headerlink" title="9. KTO 的 implied reward"></a>9. KTO 的 implied reward</h2><p>KTO 也使用 policy 和 reference 的 log-ratio 来定义 implied reward：</p><p>$$<br>r_\theta(x,y) &#x3D; \beta \log \frac{\pi_\theta(y \mid x)}{\pi_{\mathrm{ref}}(y \mid x)}<br>$$</p><p>这个量表示：相对于 reference model，当前 policy 对这个 response 的偏好提高了多少。</p><p>如果 $y$ 是 desirable，应该提高它的 implied reward。</p><p>如果 $y$ 是 undesirable，应该降低它的 implied reward。</p><p>和 DPO 不同，KTO 不需要同一个 prompt 下同时有 chosen 和 rejected。它只需要知道某个 response 是好还是坏。</p><p>这在真实数据里更容易获得。</p><h2 id="10-KTO-的参考点"><a href="#10-KTO-的参考点" class="headerlink" title="10. KTO 的参考点"></a>10. KTO 的参考点</h2><p>KTO 不只是把好样本推高、坏样本压低。</p><p>它引入 reference point，类似 prospect theory 里人们不是看绝对收益，而是看相对某个参考点的 gain&#x2F;loss。</p><p>可以粗略理解成：</p><blockquote><p>对 desirable response，希望它比参考点更好；对 undesirable response，希望它比参考点更差。</p></blockquote><p>这种设计让 KTO 更适合不成对的二元反馈。</p><p>但它也带来新问题：desirable 和 undesirable 数据分布是否匹配？好样本和坏样本是否来自相同类型 prompt？类别比例是否平衡？</p><p>如果点赞数据和点踩数据分布差很多，模型可能学到数据分布偏差，而不是偏好本身。</p><h2 id="11-DPO-和-KTO-的区别"><a href="#11-DPO-和-KTO-的区别" class="headerlink" title="11. DPO 和 KTO 的区别"></a>11. DPO 和 KTO 的区别</h2><p>DPO 学的是 pairwise preference。</p><p>它看的是：</p><blockquote><p>对同一个 prompt，$y_w$ 应该比 $y_l$ 更可能。</p></blockquote><p>KTO 学的是 binary desirability。</p><p>它看的是：</p><blockquote><p>这个 prompt-response pair 是 desirable 还是 undesirable。</p></blockquote><p>DPO 的信号更强，因为同一个 prompt 下直接比较两个 responses。</p><p>KTO 的数据更容易收集，因为不需要配对。</p><p>所以两者不是谁完全替代谁，而是数据形态不同。</p><p>如果有高质量 pairwise preference，DPO 很自然。</p><p>如果只有线上 thumbs up &#x2F; thumbs down，KTO 更合适。</p><h2 id="12-KTO-和-GRPO-的区别"><a href="#12-KTO-和-GRPO-的区别" class="headerlink" title="12. KTO 和 GRPO 的区别"></a>12. KTO 和 GRPO 的区别</h2><p>KTO 不是 RLVR。</p><p>它不需要对同一个 prompt 采样一组 responses，也不依赖 verifier 给 reward。</p><p>它更接近 DPO 的 direct alignment。</p><p>GRPO 适合数学、代码这种可验证任务。</p><p>KTO 适合真实用户反馈、偏好稀疏、难以构造 pairwise comparison 的场景。</p><p>所以不要把 KTO 放进 GRPO 变体里。它应该放在 direct preference optimization 这条线。</p><h2 id="13-读-GRPO-变体论文时看什么"><a href="#13-读-GRPO-变体论文时看什么" class="headerlink" title="13. 读 GRPO 变体论文时看什么"></a>13. 读 GRPO 变体论文时看什么</h2><p>我会看这些问题：</p><ul><li>它改的是 sampling、advantage、clipping，还是 reward？</li><li>是否仍然需要 group sampling？</li><li>是否处理全对&#x2F;全错 group？</li><li>是否从 token-level 改到 sequence-level？</li><li>是否控制 length inflation？</li><li>是否在 greedy decoding 下提升，而不是只在多采样下提升？</li><li>对 MoE 模型是否稳定？</li><li>训练成本是否增加？</li></ul><p>很多变体会在 benchmark 上提升，但可能用了更复杂的采样、筛选、reward shaping。要看清楚收益来自算法本身，还是额外工程。</p><h2 id="14-读-KTO-论文时看什么"><a href="#14-读-KTO-论文时看什么" class="headerlink" title="14. 读 KTO 论文时看什么"></a>14. 读 KTO 论文时看什么</h2><p>我会看这些问题：</p><ul><li>数据是 pairwise preference 还是 binary feedback？</li><li>desirable &#x2F; undesirable 是否平衡？</li><li>好坏样本是否来自同一 prompt 分布？</li><li>Reference model 是什么？</li><li>是否和 DPO 在同等数据条件下比较？</li><li>是否对真实线上反馈更有优势？</li><li>是否出现过度压制某类回答的问题？</li></ul><p>KTO 的价值不只是 loss 公式，而是它放宽了数据要求。</p><p>在真实系统里，二元反馈通常比 pairwise preference 更容易拿到。</p><h2 id="15-小结"><a href="#15-小结" class="headerlink" title="15. 小结"></a>15. 小结</h2><p>GRPO 变体主要在修 RLVR 训练信号的问题：采样、advantage、clipping、sequence-level 稳定性。</p><p>KTO 则是在修偏好数据形态的问题：从成对偏好变成二元反馈。</p><p>我的理解是：</p><blockquote><p>GRPO 变体关心“怎么从一组 sampled responses 里学得更稳”；KTO 关心“没有 chosen&#x2F;rejected pair 时，怎么从好&#x2F;坏反馈里学”。</p></blockquote><p>这两条线都属于后训练，但不要混成一类。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Shao et al., <a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a></li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li><li>Zheng et al., <a href="https://arxiv.org/abs/2507.18071">Group Sequence Policy Optimization</a></li><li>Yang et al., <a href="https://arxiv.org/abs/2509.02333">DCPO: Dynamic Clipping Policy Optimization</a></li><li>Chen et al., <a href="https://arxiv.org/abs/2505.09655">DRA-GRPO: Exploring Diversity-Aware Reward Adjustment</a></li><li>Ethayarajh et al., <a href="https://arxiv.org/abs/2402.01306">KTO: Model Alignment as Prospect Theoretic Optimization</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>后训练笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>GRPO</tag>
+      
+      <tag>后训练</tag>
+      
+      <tag>DAPO</tag>
+      
+      <tag>GSPO</tag>
+      
+      <tag>KTO</tag>
+      
+      <tag>偏好优化</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>后训练笔记 03：PPO、DPO 与 GRPO</title>
+    <link href="/2025/11/15/post-training-notes-03-ppo-dpo-grpo/"/>
+    <url>/2025/11/15/post-training-notes-03-ppo-dpo-grpo/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇整理 PPO、DPO 和 GRPO。</p><p>这三个方法经常一起出现，但它们解决的问题不完全一样。</p><p>PPO 是经典 RLHF 路线里的 policy optimization 方法。</p><p>DPO 是直接从偏好对里学习，不显式训练 reward model，也不跑在线 RL。</p><p>GRPO 是 reasoning model 里很常见的 RLVR 方法，用同一个 prompt 下的一组 responses 做相对比较，省掉 value model。</p><p>可以先抓住一句话：</p><blockquote><p>PPO、DPO、GRPO 的核心区别，不是公式长得像不像，而是训练信号从哪里来。</p></blockquote><h2 id="1-三种训练信号"><a href="#1-三种训练信号" class="headerlink" title="1. 三种训练信号"></a>1. 三种训练信号</h2><p>PPO 的训练信号来自 reward model 或 verifier，再加 value model 估计 advantage。</p><p>DPO 的训练信号来自 preference pair，也就是 chosen response 和 rejected response。</p><p>GRPO 的训练信号来自 group relative reward：同一个 prompt 采样多个 responses，看谁在组内更好。</p><p>这三者的结构可以粗略写成：</p><ul><li>PPO：prompt -&gt; policy rollout -&gt; reward&#x2F;value&#x2F;reference -&gt; policy update</li><li>DPO：prompt + chosen&#x2F;rejected -&gt; policy&#x2F;reference log-ratio -&gt; preference loss</li><li>GRPO：prompt -&gt; sample group -&gt; rewards -&gt; group advantage -&gt; policy update</li></ul><p>如果只看名字，很容易觉得都是“对齐算法”。但从工程角度看，它们需要的模型、数据、采样方式完全不同。</p><h2 id="2-PPO：经典-RLHF-路线"><a href="#2-PPO：经典-RLHF-路线" class="headerlink" title="2. PPO：经典 RLHF 路线"></a>2. PPO：经典 RLHF 路线</h2><p>PPO 原本是通用强化学习算法，后来被用在 RLHF 里。</p><p>在 LLM RLHF 中，通常会有四个模型角色：</p><ul><li>Policy model：正在训练的模型</li><li>Reference model：冻结的参考模型，用来限制 policy drift</li><li>Reward model：给 response 打分</li><li>Value model：估计 baseline &#x2F; value</li></ul><p>流程大概是：</p><ol><li>policy 根据 prompt 生成 response</li><li>reward model 给 response 打分</li><li>reference model 计算 KL penalty</li><li>value model 估计 baseline</li><li>用 PPO 更新 policy</li></ol><p>PPO 的目标不是简单让 reward 最大，而是在 reward 和分布约束之间平衡。</p><h2 id="3-PPO-clipping-的直觉"><a href="#3-PPO-clipping-的直觉" class="headerlink" title="3. PPO clipping 的直觉"></a>3. PPO clipping 的直觉</h2><p>PPO 的核心是限制 policy 更新幅度。</p><p>定义 probability ratio：</p><p>$$<br>r_t(\theta) &#x3D; \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\mathrm{old}}}(a_t \mid s_t)}<br>$$</p><p>如果 $r_t(\theta)$ 太大，说明新 policy 比旧 policy 更倾向于采取这个 action。</p><p>PPO 会把 ratio clip 到一个范围里：</p><p>$$<br>\mathrm{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)<br>$$</p><p>目标函数可以写成：</p><p>$$<br>\mathcal{L}_{PPO} &#x3D; \mathbb{E}_t[\min(r_t(\theta)A_t, \mathrm{clip}(r_t(\theta),1-\epsilon,1+\epsilon)A_t)]<br>$$</p><p>直觉上，PPO 在说：</p><blockquote><p>如果一个 action 好，可以提高它的概率，但不要一次提高太多；如果一个 action 差，可以降低它的概率，但也不要一次降太多。</p></blockquote><p>语言模型是很脆弱的分布。更新过猛，模型可能学到 reward model 的漏洞，或者输出风格突然崩掉。</p><h2 id="4-PPO-为什么复杂"><a href="#4-PPO-为什么复杂" class="headerlink" title="4. PPO 为什么复杂"></a>4. PPO 为什么复杂</h2><p>PPO 的问题不是理论上不能用，而是系统上很重。</p><p>它通常需要：</p><ul><li>在线采样 responses</li><li>reward model 推理</li><li>reference model 推理</li><li>value model 训练或推理</li><li>advantage estimation</li><li>KL 控制</li><li>多轮 policy update</li></ul><p>这对显存、吞吐、工程稳定性都不友好。</p><p>尤其是大模型场景下，policy 本身已经很大，再加 reward&#x2F;value&#x2F;reference，训练链路会非常重。</p><p>所以后面出现了很多“简化 PPO”的路线：DPO 直接避开 RL；GRPO 去掉 value model；OPD 用 teacher dense supervision 替代 sparse reward。</p><h2 id="5-DPO：直接从偏好对学习"><a href="#5-DPO：直接从偏好对学习" class="headerlink" title="5. DPO：直接从偏好对学习"></a>5. DPO：直接从偏好对学习</h2><p>DPO 的出发点很漂亮。</p><p>经典 RLHF 里，人类偏好先训练 reward model，再用 PPO 优化 policy。</p><p>DPO 认为：如果 reward model 和最优 policy 之间存在对应关系，那能不能跳过 reward model，直接从偏好数据推导 policy loss？</p><p>DPO 数据通常是：</p><ul><li>prompt $x$</li><li>preferred response $y_w$</li><li>rejected response $y_l$</li></ul><p>DPO 不需要在线采样。它直接用这些 preference pairs 训练 policy。</p><h2 id="6-DPO-的-log-ratio"><a href="#6-DPO-的-log-ratio" class="headerlink" title="6. DPO 的 log-ratio"></a>6. DPO 的 log-ratio</h2><p>DPO 会比较 policy model 和 reference model 对 chosen&#x2F;rejected 的相对偏好。</p><p>核心量是：</p><p>$$<br>\log \frac{\pi_\theta(y_w \mid x)}{\pi_{\mathrm{ref}}(y_w \mid x)} - \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\mathrm{ref}}(y_l \mid x)}<br>$$</p><p>如果这个值变大，说明相对于 reference，当前 policy 更偏向 chosen 而不是 rejected。</p><p>DPO loss 可以写成：</p><p>$$<br>\mathcal{L}<em>{DPO} &#x3D; -\log \sigma \left(\beta \left[\log \frac{\pi</em>\theta(y_w \mid x)}{\pi_{\mathrm{ref}}(y_w \mid x)} - \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\mathrm{ref}}(y_l \mid x)}\right]\right)<br>$$</p><p>这个公式看起来复杂，其实直觉很简单：</p><blockquote><p>好回答的概率应该相对变高，差回答的概率应该相对变低，但变化要以 reference model 为锚。</p></blockquote><p>Reference model 在这里也很重要。它防止 policy 只是盲目拉高 chosen 的绝对概率，而是关注相对 reference 的偏好变化。</p><h2 id="7-DPO-的优点和局限"><a href="#7-DPO-的优点和局限" class="headerlink" title="7. DPO 的优点和局限"></a>7. DPO 的优点和局限</h2><p>DPO 的优点很明显：</p><ul><li>不需要训练 reward model</li><li>不需要在线 RL rollout</li><li>不需要 value model</li><li>训练稳定性通常比 PPO 简单</li><li>工程实现更接近 supervised fine-tuning</li></ul><p>但 DPO 也有局限。</p><p>第一，它依赖 preference pair。真实产品里经常只有 thumbs up &#x2F; thumbs down，而不是成对比较。</p><p>第二，它是离线训练。数据分布如果和当前 policy 差很多，可能不如 on-policy 方法。</p><p>第三，它优化的是偏好排序，不一定直接优化可验证正确率。</p><p>第四，chosen&#x2F;rejected 的质量很关键。如果 rejected 只是很差的回答，模型学到的边界可能很粗；如果 chosen 和 rejected 差异太小，训练信号也可能不稳定。</p><p>所以 DPO 很适合偏好对齐，但不是所有 post-training 问题的终点。</p><h2 id="8-GRPO：从-PPO-到-group-relative-advantage"><a href="#8-GRPO：从-PPO-到-group-relative-advantage" class="headerlink" title="8. GRPO：从 PPO 到 group relative advantage"></a>8. GRPO：从 PPO 到 group relative advantage</h2><p>GRPO 是 Group Relative Policy Optimization。</p><p>它可以看成 PPO 在 reasoning &#x2F; RLVR 场景下的一种简化。</p><p>PPO 需要 value model 来估计 baseline。GRPO 不单独训练 value model，而是对同一个 prompt 采样一组 responses，用组内 reward 的相对关系估计 advantage。</p><p>对一个 prompt $x$，采样 $G$ 个 responses：</p><p>$$<br>{y_1, y_2, …, y_G}<br>$$</p><p>每个 response 得到 reward：</p><p>$$<br>{r_1, r_2, …, r_G}<br>$$</p><p>然后用组内均值和标准差归一化：</p><p>$$<br>A_i &#x3D; \frac{r_i - \mathrm{mean}(r_1,…,r_G)}{\mathrm{std}(r_1,…,r_G)}<br>$$</p><p>这就是 group relative 的意思。</p><h2 id="9-GRPO-为什么适合-reasoning"><a href="#9-GRPO-为什么适合-reasoning" class="headerlink" title="9. GRPO 为什么适合 reasoning"></a>9. GRPO 为什么适合 reasoning</h2><p>Reasoning 任务里，同一个问题可以采样多个解法。</p><p>比如一道数学题，模型生成 8 个 responses，其中 3 个答案对，5 个答案错。</p><p>正确的 responses 得到更高 reward，错误的 responses 得到更低 reward。组内比较后，正确 responses 的 advantage 为正，错误 responses 的 advantage 为负。</p><p>这样就不需要 value model 去预测这个题本身有多难。组内样本直接给出了相对基线。</p><p>这对数学、代码这种可验证任务很自然：</p><ul><li>数学题可以匹配答案</li><li>代码题可以跑测试</li><li>格式题可以规则检查</li></ul><p>所以 GRPO 和 RLVR 很搭。</p><h2 id="10-GRPO-的核心代价"><a href="#10-GRPO-的核心代价" class="headerlink" title="10. GRPO 的核心代价"></a>10. GRPO 的核心代价</h2><p>GRPO 省掉了 value model，但它不是免费。</p><p>它需要对每个 prompt 采样多个 responses。</p><p>如果 group size 是 8，训练时生成成本就明显增加。</p><p>更麻烦的是，如果一组 responses 全对或全错，组内 reward 没有差异，advantage 可能接近 0。</p><p>这意味着没有有效学习信号。</p><p>比如某个题太简单，8 个 response 全对；或者太难，8 个 response 全错。它们都不能很好地区分哪些轨迹更值得加强。</p><p>这也是后面 GRPO 变体要解决的问题之一：怎样让采样、reward、advantage 更有效。</p><h2 id="11-PPO、DPO、GRPO-的关键差别"><a href="#11-PPO、DPO、GRPO-的关键差别" class="headerlink" title="11. PPO、DPO、GRPO 的关键差别"></a>11. PPO、DPO、GRPO 的关键差别</h2><p>可以从四个维度比较。</p><p>第一，是否在线采样。</p><p>PPO 和 GRPO 通常需要在线采样；DPO 不需要。</p><p>第二，是否需要 reward model。</p><p>PPO 通常需要 reward model；GRPO 可以用 verifier 或 reward model；DPO 不显式需要 reward model。</p><p>第三，是否需要 value model。</p><p>PPO 需要；DPO 不需要；GRPO 不需要。</p><p>第四，训练信号粒度。</p><p>PPO 用 reward + value 得到 advantage。</p><p>DPO 用 chosen&#x2F;rejected 的偏好差。</p><p>GRPO 用同一 prompt 下多个 responses 的相对 reward。</p><p>这几个差别决定了工程成本和适用场景。</p><h2 id="12-三者分别适合什么"><a href="#12-三者分别适合什么" class="headerlink" title="12. 三者分别适合什么"></a>12. 三者分别适合什么</h2><p>PPO 适合经典 RLHF 场景：已经有 reward model，希望在线优化 policy，并且有足够工程资源。</p><p>DPO 适合偏好数据充足的场景：有 chosen&#x2F;rejected pairs，希望稳定、低成本地做对齐。</p><p>GRPO 适合可验证 reasoning 场景：数学、代码、逻辑推理，能自动给 reward，并且愿意为每个 prompt 采样多个 responses。</p><p>如果从个人学习角度看，我会这样排序：</p><p>先理解 DPO，因为它最简洁，能帮助理解 reference model 和 log-ratio。</p><p>再理解 PPO，因为它是 RLHF 的经典路线。</p><p>最后理解 GRPO，因为它建立在 RL 直觉上，同时更贴近 DeepSeek-R1 这类 reasoning model。</p><h2 id="13-为什么-DPO-不是-RL，但又和-RLHF-有关系"><a href="#13-为什么-DPO-不是-RL，但又和-RLHF-有关系" class="headerlink" title="13. 为什么 DPO 不是 RL，但又和 RLHF 有关系"></a>13. 为什么 DPO 不是 RL，但又和 RLHF 有关系</h2><p>DPO 经常被放在 RLHF 的替代方法里，但它本身不是在线 RL。</p><p>它不采样当前 policy 的新 outputs 来计算 reward，也不做环境交互。</p><p>但 DPO 和 RLHF 有理论联系：DPO 从 reward model 的隐式形式出发，把偏好优化转成 policy loss。</p><p>所以 DPO 更像是：</p><blockquote><p>把“先学 reward，再优化 policy”的两步合成一个监督式目标。</p></blockquote><p>这也是为什么 DPO 训练起来像 SFT，但作用却更接近偏好对齐。</p><h2 id="14-为什么-GRPO-不是简单版-PPO"><a href="#14-为什么-GRPO-不是简单版-PPO" class="headerlink" title="14. 为什么 GRPO 不是简单版 PPO"></a>14. 为什么 GRPO 不是简单版 PPO</h2><p>GRPO 省掉 value model，但它引入了 group sampling。</p><p>它不是“PPO 少一个模型”这么简单。</p><p>PPO 的 baseline 来自 value model。</p><p>GRPO 的 baseline 来自同一 prompt 下其他 samples。</p><p>这意味着 GRPO 的训练效果很依赖采样分布。如果 samples 没有差异，学习信号就弱。如果 samples 很混乱，advantage 也可能噪声很大。</p><p>所以 GRPO 的关键不只是公式，而是：</p><ul><li>group size 怎么选</li><li>sampling temperature 怎么设</li><li>reward 怎么设计</li><li>是否过滤无效 groups</li><li>如何控制 response length</li><li>KL penalty 怎么加</li></ul><p>这些细节决定了 GRPO 是否稳定。</p><h2 id="15-读-PPO-DPO-GRPO-论文时看什么"><a href="#15-读-PPO-DPO-GRPO-论文时看什么" class="headerlink" title="15. 读 PPO &#x2F; DPO &#x2F; GRPO 论文时看什么"></a>15. 读 PPO &#x2F; DPO &#x2F; GRPO 论文时看什么</h2><p>我会看这些问题：</p><ul><li>数据是离线 preference pair，还是 online rollout？</li><li>Reward 来自人类偏好、reward model，还是 verifier？</li><li>是否需要 value model？</li><li>Reference model 是哪个 checkpoint？</li><li>KL 系数怎么设？</li><li>每个 prompt 采样几个 responses？</li><li>是否使用 length penalty？</li><li>是否报告训练 token 成本？</li><li>提升是 greedy decoding 下提升，还是采样多次后提升？</li><li>有没有看 reward hacking 或长度膨胀？</li></ul><p>很多方法 benchmark 看起来提升，但可能是采样更多、输出更长、筛选更强带来的。读的时候要把训练方法和推理策略分开看。</p><h2 id="16-小结"><a href="#16-小结" class="headerlink" title="16. 小结"></a>16. 小结</h2><p>PPO、DPO、GRPO 是三条不同的后训练路线。</p><p>PPO 是经典 RLHF：强大但重。</p><p>DPO 是直接偏好优化：简单稳定，但依赖 preference pairs。</p><p>GRPO 是 reasoning RL 常用路线：省掉 value model，但依赖 group sampling 和可验证 reward。</p><p>我的理解是：</p><blockquote><p>PPO 学 reward，DPO 学偏好差，GRPO 学组内相对好坏。</p></blockquote><p>后面讲 GRPO 变体时，很多改动都围绕一个问题展开：怎么让这个“组内相对好坏”的训练信号更稳定、更有效。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Schulman et al., <a href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization Algorithms</a></li><li>Ouyang et al., <a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a></li><li>Rafailov et al., <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization: Your Language Model is Secretly a Reward Model</a></li><li>Shao et al., <a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a></li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>后训练笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>DPO</tag>
+      
+      <tag>GRPO</tag>
+      
+      <tag>RLHF</tag>
+      
+      <tag>后训练</tag>
+      
+      <tag>RLVR</tag>
+      
+      <tag>PPO</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>后训练笔记 02：SFT 与 PEFT</title>
+    <link href="/2025/11/08/post-training-notes-02-sft-and-peft/"/>
+    <url>/2025/11/08/post-training-notes-02-sft-and-peft/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇整理 SFT 和 PEFT。</p><p>在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。</p><p>PEFT 则是另一类问题：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。</p><p>这篇把两件事放一起看：</p><blockquote><p>SFT 解决“训练什么行为”，PEFT 解决“用多低成本训练”。</p></blockquote><h2 id="1-Base-model-为什么不能直接用"><a href="#1-Base-model-为什么不能直接用" class="headerlink" title="1. Base model 为什么不能直接用"></a>1. Base model 为什么不能直接用</h2><p>Base model 的训练目标通常是 next token prediction：</p><p>$$<br>\max_\theta \sum_t \log p_\theta(x_t \mid x_{&lt;t})<br>$$</p><p>它学的是文本分布。</p><p>如果给 base model 一个问题：</p><blockquote><p>请解释一下 LoRA 是什么。</p></blockquote><p>它可能回答，也可能继续补全网页文本，或者生成一段类似问答数据的续写。问题不一定是它“不知道”，而是它没有被训练成稳定的 instruction-following model。</p><p>SFT 的目标就是把输入输出形式固定下来：</p><p>$$<br>\max_\theta \log \pi_\theta(y \mid x)<br>$$</p><p>其中 $x$ 是 instruction，$y$ 是高质量回答。</p><h2 id="2-SFT-具体学到了什么"><a href="#2-SFT-具体学到了什么" class="headerlink" title="2. SFT 具体学到了什么"></a>2. SFT 具体学到了什么</h2><p>SFT 不只是“灌知识”。</p><p>它主要学这些行为：</p><ul><li>遵循指令</li><li>按对话格式回答</li><li>输出更清晰的结构</li><li>遇到不确定问题时更谨慎</li><li>学会某些任务格式，比如代码解释、数学推理、摘要</li><li>初步形成 reasoning trace 的风格</li></ul><p>比如 base model 可能知道 AdamW，但 SFT model 更可能用分点方式解释 Adam 和 AdamW 的区别。</p><p>这也是为什么 chat model、instruct model、reasoning model 往往都是从同一个 base model 派生出来，但行为差很多。</p><h2 id="3-SFT-的局限"><a href="#3-SFT-的局限" class="headerlink" title="3. SFT 的局限"></a>3. SFT 的局限</h2><p>SFT 本质上是 imitation learning。</p><p>数据是什么样，模型就往什么样学。</p><p>如果数据里回答很模板化，模型也会模板化。</p><p>如果数据里推理过程只是表面解释，模型会学会写“看起来像推理”的文本，但不一定真的更会解题。</p><p>如果数据里有错误，模型会跟着学。</p><p>更关键的是，SFT 不知道两个正确回答哪个更好。</p><p>比如一个回答很简洁，一个回答更完整；一个回答更安全，一个回答更直接。SFT 只能模仿目标答案，不能表达偏好排序。</p><p>所以 SFT 通常只是后训练的起点，后面还需要 DPO、PPO、GRPO、KTO 或 OPD。</p><h2 id="4-Full-fine-tuning-的成本"><a href="#4-Full-fine-tuning-的成本" class="headerlink" title="4. Full fine-tuning 的成本"></a>4. Full fine-tuning 的成本</h2><p>全参数微调会更新模型所有参数。</p><p>对于小模型，这很直接。对于几十亿、几百亿参数模型，成本很高：</p><ul><li>optimizer states 占显存</li><li>gradient 占显存</li><li>checkpoint 很大</li><li>多个任务需要存多份模型</li><li>训练和部署都更重</li></ul><p>Adam 优化器通常需要为每个参数维护一阶、二阶动量，所以显存压力不只是模型参数本身。</p><p>这就是 PEFT 出现的背景：不改全部参数，只训练小模块。</p><h2 id="5-PEFT-的基本想法"><a href="#5-PEFT-的基本想法" class="headerlink" title="5. PEFT 的基本想法"></a>5. PEFT 的基本想法</h2><p>PEFT 是 parameter-efficient fine-tuning。</p><p>核心想法是：</p><blockquote><p>冻结大部分预训练参数，只训练少量可学习参数，让模型适配新任务。</p></blockquote><p>这样做的好处是：</p><ul><li>训练显存低</li><li>存储成本低</li><li>多任务可以共用同一个 base model</li><li>adapter 可以按需加载</li><li>实验迭代更快</li></ul><p>但它也有代价。训练参数少意味着表达空间受限。如果任务和 base model 差距很大，PEFT 可能不如 full fine-tuning。</p><h2 id="6-LoRA：低秩更新"><a href="#6-LoRA：低秩更新" class="headerlink" title="6. LoRA：低秩更新"></a>6. LoRA：低秩更新</h2><p>LoRA 的核心想法是：不要直接训练原始权重矩阵 $W$，而是冻结 $W$，只学习一个低秩更新：</p><p>$$<br>W’ &#x3D; W + \Delta W<br>$$</p><p>其中：</p><p>$$<br>\Delta W &#x3D; BA<br>$$</p><p>如果 $W \in \mathbb{R}^{d \times k}$，那么可以设：</p><p>$$<br>B \in \mathbb{R}^{d \times r}, \quad A \in \mathbb{R}^{r \times k}, \quad r \ll \min(d,k)<br>$$</p><p>训练参数从 $dk$ 变成 $r(d+k)$。</p><p>直觉上，LoRA 假设任务适配所需的权重变化不需要覆盖完整高维空间，而可以落在一个低秩子空间里。</p><p>这不是说模型能力只剩低秩。Base model 的原始参数仍然在，LoRA 只是学习一个附加方向。</p><h2 id="7-LoRA-插在哪里"><a href="#7-LoRA-插在哪里" class="headerlink" title="7. LoRA 插在哪里"></a>7. LoRA 插在哪里</h2><p>LoRA 常插在 Transformer 的线性层上，比如：</p><ul><li>attention 的 $W_Q, W_K, W_V, W_O$</li><li>FFN 的 up projection &#x2F; down projection</li></ul><p>具体插哪里会影响效果和成本。</p><p>只插 attention 层，参数更少，但适配能力可能有限。</p><p>attention 和 FFN 都插，能力更强，但训练参数更多。</p><p>对很多任务来说，LoRA rank、target modules、learning rate、数据质量都会显著影响效果。</p><p>不要把 LoRA 理解成固定魔法。它是一个低成本适配工具，具体效果依赖配置。</p><h2 id="8-LoRA-为什么推理时方便"><a href="#8-LoRA-为什么推理时方便" class="headerlink" title="8. LoRA 为什么推理时方便"></a>8. LoRA 为什么推理时方便</h2><p>LoRA 的更新是：</p><p>$$<br>h &#x3D; Wx + BAx<br>$$</p><p>训练时可以把 $BA$ 当成旁路。</p><p>部署时，如果只服务一个 adapter，可以把 $BA$ 合并回 $W$：</p><p>$$<br>W_{\mathrm{merged}} &#x3D; W + BA<br>$$</p><p>这样推理时不一定增加额外延迟。</p><p>如果要服务多个 adapter，就可以保留 base model，按任务加载不同 LoRA 权重。</p><p>这也是 LoRA 在个人微调和多任务部署中很受欢迎的原因。</p><h2 id="9-Prefix-Tuning：给模型加可学习前缀"><a href="#9-Prefix-Tuning：给模型加可学习前缀" class="headerlink" title="9. Prefix Tuning：给模型加可学习前缀"></a>9. Prefix Tuning：给模型加可学习前缀</h2><p>Prefix tuning 不直接改模型权重，而是在每层 attention 里加入可学习 prefix。</p><p>可以理解成给模型提供一组虚拟的 key&#x2F;value tokens，让后续 token 在 attention 时能读到这些可学习信息。</p><p>它和手写 prompt 不一样。手写 prompt 是离散文本，prefix tuning 学的是连续向量。</p><p>直觉上：</p><blockquote><p>Prefix tuning 不是告诉模型“请你这样回答”，而是在模型内部提供一组可学习上下文。</p></blockquote><p>它的优势是训练参数少。</p><p>缺点是表达能力受限，而且会占用一定上下文或 attention 空间。</p><h2 id="10-Prompt-Tuning-和-P-Tuning"><a href="#10-Prompt-Tuning-和-P-Tuning" class="headerlink" title="10. Prompt Tuning 和 P-Tuning"></a>10. Prompt Tuning 和 P-Tuning</h2><p>Prompt tuning 学的是输入 embedding 前面的 soft prompt。</p><p>如果原输入是：</p><p>$$<br>[x_1, x_2, …, x_n]<br>$$</p><p>prompt tuning 会在前面拼上一组可学习向量：</p><p>$$<br>[p_1, p_2, …, p_m, x_1, x_2, …, x_n]<br>$$</p><p>P-Tuning 则进一步用更复杂的方式生成或组织这些 continuous prompts，比如使用 MLP &#x2F; LSTM 等 prompt encoder。</p><p>它们的共同点是：冻结模型主体，只训练 prompt-like 参数。</p><p>这类方法在早期很重要，但在当前 LLM 微调实践里，LoRA 通常更常见，因为 LoRA 对生成任务更灵活，工程生态也更成熟。</p><h2 id="11-LoRA、Prefix-Tuning、P-Tuning-怎么选"><a href="#11-LoRA、Prefix-Tuning、P-Tuning-怎么选" class="headerlink" title="11. LoRA、Prefix Tuning、P-Tuning 怎么选"></a>11. LoRA、Prefix Tuning、P-Tuning 怎么选</h2><p>可以粗略这样看。</p><p>LoRA 适合需要改模型行为、任务风格、领域适配的场景。它改的是线性层权重的低秩增量，表达能力相对强。</p><p>Prefix tuning 适合希望用少量参数控制模型行为，同时不动主体权重的场景。</p><p>Prompt tuning &#x2F; P-Tuning 更像学习软提示，参数少，但对大模型和复杂生成任务不一定总是最强。</p><p>如果是个人博客里的实践建议，我会优先写：</p><ul><li>小成本实验：LoRA &#x2F; QLoRA</li><li>需要多任务 adapter：LoRA</li><li>只想做轻量控制：prefix &#x2F; prompt tuning</li><li>追求最好效果且资源够：full fine-tuning 或更大规模 post-training</li></ul><h2 id="12-QLoRA：进一步省显存"><a href="#12-QLoRA：进一步省显存" class="headerlink" title="12. QLoRA：进一步省显存"></a>12. QLoRA：进一步省显存</h2><p>QLoRA 是 LoRA 的重要实践扩展。</p><p>它把 base model 量化，比如 4-bit 存储，同时仍然用 LoRA adapter 训练。</p><p>关键点是：base model 不参与梯度更新，只需要在前向&#x2F;反向中提供计算；可训练的是 LoRA 参数。</p><p>这样可以在更小显存上微调较大模型。</p><p>但量化也可能带来数值误差。QLoRA 的效果依赖量化格式、计算精度、rank、数据质量。</p><h2 id="13-SFT-数据比方法更重要"><a href="#13-SFT-数据比方法更重要" class="headerlink" title="13. SFT 数据比方法更重要"></a>13. SFT 数据比方法更重要</h2><p>SFT 和 PEFT 经常被讨论成训练技术，但真正决定结果的通常是数据。</p><p>高质量 SFT 数据要满足：</p><ul><li>指令清楚</li><li>回答准确</li><li>风格一致但不模板化</li><li>覆盖目标任务</li><li>没有大量幻觉</li><li>reasoning trace 不只是装样子</li></ul><p>如果数据质量差，LoRA 再省显存也没用。</p><p>如果数据太窄，模型会过拟合某种格式。</p><p>如果数据里充满“当然可以，下面是……”这种套话，模型会变得很像客服脚本。</p><p>所以 SFT 的核心不是把 loss 跑低，而是把模型行为拉到你想要的区域。</p><h2 id="14-SFT-和后续-RL-DPO-的关系"><a href="#14-SFT-和后续-RL-DPO-的关系" class="headerlink" title="14. SFT 和后续 RL &#x2F; DPO 的关系"></a>14. SFT 和后续 RL &#x2F; DPO 的关系</h2><p>SFT 给模型一个可控起点。</p><p>DPO &#x2F; KTO 进一步从偏好信号中学习什么回答更好。</p><p>PPO &#x2F; GRPO 进一步用 reward 或 verifier 优化结果。</p><p>OPD 则可以用 teacher 对 student 的 on-policy outputs 做 dense supervision。</p><p>如果 SFT 起点太差，后面 RL 可能要花很多成本纠正基础格式问题。</p><p>如果 SFT 起点太强但过度模板化，后面偏好优化可能很难恢复多样性。</p><p>所以 SFT 不是越多越好，而是要给后续训练留下空间。</p><h2 id="15-读-SFT-PEFT-论文时看什么"><a href="#15-读-SFT-PEFT-论文时看什么" class="headerlink" title="15. 读 SFT &#x2F; PEFT 论文时看什么"></a>15. 读 SFT &#x2F; PEFT 论文时看什么</h2><p>我会看这些问题：</p><ul><li>Base model 是什么</li><li>SFT 数据来自哪里</li><li>数据规模和质量如何</li><li>是否包含 reasoning traces</li><li>是 full fine-tuning 还是 PEFT</li><li>LoRA rank 是多少</li><li>LoRA 插在哪些模块</li><li>是否使用 QLoRA</li><li>是否只评估 benchmark，还是也看真实对话质量</li><li>后面有没有接 DPO&#x2F;RL&#x2F;OPD</li></ul><p>尤其要注意：很多报告里“用了 LoRA”不是主要贡献。LoRA 只是训练方式，真正重要的是数据、目标和评估。</p><h2 id="16-小结"><a href="#16-小结" class="headerlink" title="16. 小结"></a>16. 小结</h2><p>SFT 是后训练的入口。它让 base model 从“会续写”变成“会回答”。</p><p>PEFT 是低成本适配工具。LoRA、Prefix Tuning、P-Tuning 都是在减少可训练参数，但它们改模型的方式不同。</p><p>我的理解是：</p><blockquote><p>SFT 决定模型学什么行为，PEFT 决定用多少参数去学这个行为。</p></blockquote><p>后面讲 PPO、DPO、GRPO 时，要一直记住：这些算法通常不是从 raw base model 开始，而是在 SFT 模型基础上继续塑形。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Wei et al., <a href="https://arxiv.org/abs/2109.01652">Finetuned Language Models Are Zero-Shot Learners</a></li><li>Hu et al., <a href="https://arxiv.org/abs/2106.09685">LoRA: Low-Rank Adaptation of Large Language Models</a></li><li>Li and Liang, <a href="https://arxiv.org/abs/2101.00190">Prefix-Tuning: Optimizing Continuous Prompts for Generation</a></li><li>Liu et al., <a href="https://arxiv.org/abs/2110.07602">P-Tuning v2: Prompt Tuning Can Be Comparable to Fine-tuning Universally Across Scales and Tasks</a></li><li>Dettmers et al., <a href="https://arxiv.org/abs/2305.14314">QLoRA: Efficient Finetuning of Quantized LLMs</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>后训练笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>SFT</tag>
+      
+      <tag>后训练</tag>
+      
+      <tag>LoRA</tag>
+      
+      <tag>Prefix Tuning</tag>
+      
+      <tag>P-Tuning</tag>
+      
+      <tag>PEFT</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>后训练笔记 01：强化学习基础</title>
+    <link href="/2025/11/01/post-training-notes-01-rl-basics/"/>
+    <url>/2025/11/01/post-training-notes-01-rl-basics/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇先整理后训练里会用到的强化学习基础。</p><p>大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。</p><p>所以这里不用先背完整 RL 教材。先抓住一条主线：</p><blockquote><p>后训练里的 RL，本质上是在让模型生成的回答更容易得到高 reward，同时又不能偏离原模型太远。</p></blockquote><p>这句话里有三个关键词：policy、reward、reference。</p><h2 id="1-语言模型里的-policy-是什么"><a href="#1-语言模型里的-policy-是什么" class="headerlink" title="1. 语言模型里的 policy 是什么"></a>1. 语言模型里的 policy 是什么</h2><p>在 RL 里，policy 通常写成：</p><p>$$<br>\pi_\theta(a \mid s)<br>$$</p><p>它表示在状态 $s$ 下采取动作 $a$ 的概率。</p><p>放到语言模型里，可以这样对应：</p><ul><li>状态（state）：当前 prompt 加上已经生成的 tokens</li><li>动作（action）：下一个 token</li><li>policy：语言模型给下一个 token 的概率分布</li></ul><p>如果把完整回答看成一个 token 序列：</p><p>$$<br>y &#x3D; (y_1, y_2, …, y_T)<br>$$</p><p>那么模型生成这个回答的概率是：</p><p>$$<br>\pi_\theta(y \mid x) &#x3D; \prod_{t&#x3D;1}^{T} \pi_\theta(y_t \mid x, y_{&lt;t})<br>$$</p><p>其中 $x$ 是 prompt。</p><p>这也是为什么很多后训练算法会用 log probability：</p><p>$$<br>\log \pi_\theta(y \mid x) &#x3D; \sum_{t&#x3D;1}^{T} \log \pi_\theta(y_t \mid x, y_{&lt;t})<br>$$</p><p>因为整段 response 的概率是 token 概率连乘，直接乘容易数值很小，取 log 后就变成求和。</p><h2 id="2-Token-level-action-和-response-level-action"><a href="#2-Token-level-action-和-response-level-action" class="headerlink" title="2. Token-level action 和 response-level action"></a>2. Token-level action 和 response-level action</h2><p>理论上，LLM 每一步生成 token 都是一个 action。</p><p>但很多 reward 是 response-level 的。比如数学题最后答案对不对、代码是否通过测试、回答是否更符合人类偏好，这些通常是整段回答生成完之后才知道。</p><p>这就带来一个 credit assignment 问题：</p><blockquote><p>如果最终回答错了，到底是哪几个 token 造成的？</p></blockquote><p>PPO 里会尝试用 value model 和 advantage estimation，把整段 reward 分摊到 token-level 更新上。</p><p>GRPO 里则常见做法是对同一个 prompt 采样多个 responses，再用组内 reward 相对大小得到 advantage。</p><p>DPO 更进一步，不显式做在线 RL，而是直接比较 chosen response 和 rejected response 的 log probability。</p><p>这些算法看起来差很多，但都绕不开同一个问题：训练信号怎样从“整段回答好不好”传回到模型参数。</p><h2 id="3-Reward：后训练真正优化的目标"><a href="#3-Reward：后训练真正优化的目标" class="headerlink" title="3. Reward：后训练真正优化的目标"></a>3. Reward：后训练真正优化的目标</h2><p>Reward 可以来自很多地方。</p><p>在人类偏好场景里，reward 可能来自 reward model：</p><p>$$<br>r_\phi(x, y)<br>$$</p><p>它输入 prompt 和 response，输出一个标量分数。</p><p>在 reasoning &#x2F; coding 场景里，reward 经常是 verifiable reward：</p><ul><li>数学题最终答案是否匹配</li><li>代码是否通过单元测试</li><li>格式是否满足要求</li><li>工具调用是否成功</li></ul><p>这类方法常被叫做 RLVR，也就是 reinforcement learning from verifiable rewards。</p><p>RLVR 的优势是 reward 更客观，不需要每个样本都人工标注偏好。</p><p>但它也有明显局限：reward 很稀疏。一个数学题只有最终答案对&#x2F;错，模型并不知道中间哪一步推理值得奖励。</p><p>这也是为什么 reasoning model 训练里经常会关心：</p><ul><li>如何采样更多候选</li><li>如何过滤高质量 reasoning traces</li><li>如何避免只学会猜答案</li><li>如何让 reward 不只看最终答案</li></ul><h2 id="4-Return、value-和-advantage"><a href="#4-Return、value-和-advantage" class="headerlink" title="4. Return、value 和 advantage"></a>4. Return、value 和 advantage</h2><p>在一般 RL 里，return 是从当前时刻往后能拿到的累计 reward：</p><p>$$<br>G_t &#x3D; \sum_{k&#x3D;t}^{T} \gamma^{k-t} r_k<br>$$</p><p>LLM 后训练里，很多任务只有最终 reward，所以可以粗略理解为整段回答的得分。</p><p>Value function 估计的是某个状态下未来能拿到多少 reward：</p><p>$$<br>V^\pi(s) &#x3D; \mathbb{E}_{\pi}[G_t \mid s_t&#x3D;s]<br>$$</p><p>Advantage 衡量的是某个 action 比平均水平好多少：</p><p>$$<br>A_t &#x3D; G_t - V^\pi(s_t)<br>$$</p><p>这个量很重要。</p><p>如果一个回答得分是 0.8，不一定说明它很值得加强。也许这个 prompt 很简单，随便生成都能 0.8。</p><p>如果另一个回答得分是 0.6，也不一定差。也许这个 prompt 很难，大多数回答都是 0.1。</p><p>Advantage 想表达的是：相对于当前状态的预期表现，这个 action &#x2F; response 到底更好还是更差。</p><h2 id="5-Policy-gradient-的直觉"><a href="#5-Policy-gradient-的直觉" class="headerlink" title="5. Policy gradient 的直觉"></a>5. Policy gradient 的直觉</h2><p>Policy gradient 的经典形式可以写成：</p><p>$$<br>\nabla_\theta J(\theta) &#x3D; \mathbb{E}<em>{\pi</em>\theta}[\nabla_\theta \log \pi_\theta(a \mid s) A(s,a)]<br>$$</p><p>放到 LLM 里，可以粗略理解成：</p><blockquote><p>如果某个 response 的 advantage 为正，就提高它的生成概率；如果 advantage 为负，就降低它的生成概率。</p></blockquote><p>但这里有两个细节。</p><p>第一，提高的是整段 response 里 tokens 的 log probability，不是直接给最终答案加分。</p><p>第二，更新不能太大。语言模型是高维分布，一次更新如果把概率分布拉得太远，可能会破坏原来的语言能力。</p><p>这就引出 KL constraint。</p><h2 id="6-KL-constraint：为什么需要-reference-model"><a href="#6-KL-constraint：为什么需要-reference-model" class="headerlink" title="6. KL constraint：为什么需要 reference model"></a>6. KL constraint：为什么需要 reference model</h2><p>后训练里通常会保留一个 reference model，记作 $\pi_{\mathrm{ref}}$。</p><p>它通常是 SFT 后的模型，或者训练开始前的 policy snapshot。</p><p>更新 policy 时，会惩罚当前模型和 reference model 的差异：</p><p>$$<br>D_{KL}(\pi_\theta || \pi_{\mathrm{ref}})<br>$$</p><p>直觉上，KL constraint 在说：</p><blockquote><p>可以朝高 reward 方向走，但不要走到完全不像原来的模型。</p></blockquote><p>没有 KL 约束会有什么问题？</p><p>模型可能为了骗 reward model 生成奇怪模式。比如 reward model 偏好长回答，模型就越来越啰嗦；reward model 偏好自信语气，模型就更容易胡说；verifier 只看最终答案，模型可能学会投机格式。</p><p>所以后训练不是简单最大化 reward，而是：</p><p>$$<br>\max_\theta \mathbb{E}[r(x,y)] - \beta D_{KL}(\pi_\theta || \pi_{\mathrm{ref}})<br>$$</p><p>这里 $\beta$ 控制 reward 优化和保持原模型分布之间的平衡。</p><h2 id="7-On-policy-和-off-policy"><a href="#7-On-policy-和-off-policy" class="headerlink" title="7. On-policy 和 off-policy"></a>7. On-policy 和 off-policy</h2><p>On-policy 指训练数据来自当前 policy。</p><p>Off-policy 指训练数据来自旧 policy、其他模型，或者离线数据集。</p><p>LLM 后训练里，这个区别非常关键。</p><p>如果模型训练时看到的是自己当前会生成的回答，那训练分布和推理分布更接近。这是 on-policy 的优势。</p><p>但 on-policy 代价高，因为训练过程中要不断采样新 responses。</p><p>Off-policy 成本低，可以直接用已有数据训练。但如果数据分布和当前模型差很多，模型学到的更新可能不稳定。</p><p>这就是为什么 PPO &#x2F; GRPO &#x2F; OPD 都强调 on-policy 或接近 on-policy。它们希望模型在自己的生成分布上学习，而不是只模仿静态数据。</p><h2 id="8-RLHF、RLVR-和-preference-optimization"><a href="#8-RLHF、RLVR-和-preference-optimization" class="headerlink" title="8. RLHF、RLVR 和 preference optimization"></a>8. RLHF、RLVR 和 preference optimization</h2><p>这几个词容易混。</p><p>RLHF 通常指 reinforcement learning from human feedback。经典流程是：人类偏好数据 -&gt; reward model -&gt; PPO 优化 policy。</p><p>RLVR 是 reinforcement learning from verifiable rewards。它不一定需要人类偏好，而是用规则、答案、测试来给 reward。</p><p>Preference optimization 更宽，包括 DPO、IPO、KTO 等直接从偏好或二元反馈训练的算法。它们不一定显式训练 reward model，也不一定跑在线 RL。</p><p>可以这样记：</p><ul><li>RLHF：人类偏好先变 reward model，再做 RL</li><li>RLVR：可验证任务直接给 reward</li><li>DPO&#x2F;KTO：从偏好数据直接优化 policy，不显式训练 reward model</li><li>OPD：用 teacher 的 dense supervision 替代 sparse reward</li></ul><p>这些路线都属于后训练，但训练信号来源不一样。</p><h2 id="9-为什么-reasoning-model-更依赖-RL"><a href="#9-为什么-reasoning-model-更依赖-RL" class="headerlink" title="9. 为什么 reasoning model 更依赖 RL"></a>9. 为什么 reasoning model 更依赖 RL</h2><p>SFT 可以让模型学会解题格式，但它本质上是模仿。</p><p>如果 SFT 数据里有高质量 reasoning traces，模型会学到“像这样推理”。但它没有直接被奖励“答案正确”。</p><p>RLVR 可以直接优化最终正确率。比如同一个数学题，模型生成多个答案，只有正确答案拿到 reward。经过训练，模型会提高能得到正确答案的生成轨迹概率。</p><p>这也是 DeepSeek-R1 这类 reasoning model 重要的地方：它不是只靠人工写好的 CoT，而是通过可验证 reward 强化推理行为。</p><p>不过这也带来风险。</p><p>如果 reward 只看最终答案，模型可能学到短路策略。比如中间推理不可靠，但答案格式正确；或者生成更长 reasoning 来提高偶然命中率。</p><p>所以 reasoning RL 的关键不是“用了 RL”，而是 reward、采样、过滤、KL、长度控制一起设计。</p><h2 id="10-后训练里的几个常见失败模式"><a href="#10-后训练里的几个常见失败模式" class="headerlink" title="10. 后训练里的几个常见失败模式"></a>10. 后训练里的几个常见失败模式</h2><p>第一，reward hacking。</p><p>模型学会利用 reward 的漏洞，而不是真的变好。</p><p>第二，mode collapse。</p><p>模型输出变得单一，缺少多样性。</p><p>第三，length inflation。</p><p>模型生成越来越长，因为长回答更容易看起来努力，或者更容易覆盖答案。</p><p>第四，over-optimization。</p><p>训练集 reward 越来越高，但真实评估变差。</p><p>第五，distribution drift。</p><p>policy 离 reference model 太远，语言能力或安全边界受损。</p><p>这些问题后面讲 PPO、GRPO、OPD 时都会反复出现。</p><h2 id="11-读后训练论文时先看什么"><a href="#11-读后训练论文时先看什么" class="headerlink" title="11. 读后训练论文时先看什么"></a>11. 读后训练论文时先看什么</h2><p>我会先看这几个问题：</p><ul><li>训练信号来自哪里：人类偏好、reward model、verifier、teacher model？</li><li>数据是 on-policy 还是 off-policy？</li><li>reward 是 token-level、step-level，还是 response-level？</li><li>有没有 reference model 和 KL constraint？</li><li>是否需要 value model？</li><li>每个 prompt 采样多少 responses？</li><li>如何处理全对&#x2F;全错样本？</li><li>如何控制长度膨胀？</li><li>benchmark 提升是否只是来自更多采样或更长输出？</li></ul><p>这些问题比算法名字本身更重要。</p><h2 id="12-小结"><a href="#12-小结" class="headerlink" title="12. 小结"></a>12. 小结</h2><p>后训练里的 RL 可以压缩成一句话：</p><blockquote><p>让模型在自己的生成分布上尝试回答，用 reward 或偏好信号判断好坏，再提高好回答的概率，同时用 reference model 限制分布漂移。</p></blockquote><p>PPO、GRPO、DPO、KTO、OPD 的区别，主要在于训练信号怎么来、advantage 怎么算、是否需要在线采样、是否需要额外模型。</p><p>所以这一章先把 RL 语言打通。后面再看具体算法时，就不会只是在背缩写。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Schulman et al., <a href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization Algorithms</a></li><li>Ouyang et al., <a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a></li><li>Rafailov et al., <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization: Your Language Model is Secretly a Reward Model</a></li><li>Shao et al., <a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a></li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>后训练笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>强化学习</tag>
+      
+      <tag>RLHF</tag>
+      
+      <tag>后训练</tag>
+      
+      <tag>RLVR</tag>
+      
+      <tag>Policy Gradient</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>现代大模型笔记 06：多模态模型，图像、视频和音频怎么接进 LLM</title>
     <link href="/2025/10/11/modern-llm-notes-06-multimodal-models/"/>
     <url>/2025/10/11/modern-llm-notes-06-multimodal-models/</url>
@@ -158,11 +339,11 @@
       
       <tag>笔记</tag>
       
+      <tag>注意力机制</tag>
+      
       <tag>大模型</tag>
       
       <tag>长上下文</tag>
-      
-      <tag>注意力机制</tag>
       
       <tag>KV cache</tag>
       
@@ -230,15 +411,15 @@
       
       <tag>笔记</tag>
       
-      <tag>大模型</tag>
-      
       <tag>注意力机制</tag>
+      
+      <tag>Transformer</tag>
+      
+      <tag>大模型</tag>
       
       <tag>KV cache</tag>
       
       <tag>RoPE</tag>
-      
-      <tag>Transformer</tag>
       
     </tags>
     
@@ -298,6 +479,8 @@
       
       <tag>深度学习</tag>
       
+      <tag>笔记</tag>
+      
       <tag>CNN</tag>
       
       <tag>RNN</tag>
@@ -305,8 +488,6 @@
       <tag>LSTM</tag>
       
       <tag>ResNet</tag>
-      
-      <tag>笔记</tag>
       
     </tags>
     
@@ -335,13 +516,13 @@
       
       <tag>笔记</tag>
       
-      <tag>正则化</tag>
-      
       <tag>优化器</tag>
       
       <tag>Adam</tag>
       
       <tag>AdamW</tag>
+      
+      <tag>正则化</tag>
       
     </tags>
     
@@ -401,11 +582,11 @@
       
       <tag>深度学习</tag>
       
-      <tag>笔记</tag>
-      
       <tag>表示学习</tag>
       
       <tag>神经网络</tag>
+      
+      <tag>笔记</tag>
       
     </tags>
     
@@ -564,13 +745,13 @@
       
       <tag>笔记</tag>
       
+      <tag>正则化</tag>
+      
       <tag>机器学习</tag>
       
       <tag>损失函数</tag>
       
       <tag>优化</tag>
-      
-      <tag>正则化</tag>
       
     </tags>
     

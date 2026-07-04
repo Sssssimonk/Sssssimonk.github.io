@@ -1,0 +1,1105 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=light>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Siyu Chen">
+  <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
+  
+    <meta name="description" content="这一篇整理 SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。 PEFT 则是另一类问题：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。 这篇把两件事放一起看：  SFT 解决“训练什么行为”，PEFT 解决">
+<meta property="og:type" content="article">
+<meta property="og:title" content="后训练笔记 02：SFT 与 PEFT">
+<meta property="og:url" content="https://sssssimonk.github.io/2025/11/08/post-training-notes-02-sft-and-peft/index.html">
+<meta property="og:site_name" content="Siyu Chen">
+<meta property="og:description" content="这一篇整理 SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。 PEFT 则是另一类问题：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。 这篇把两件事放一起看：  SFT 解决“训练什么行为”，PEFT 解决">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-11-08T12:30:00.000Z">
+<meta property="article:modified_time" content="2025-11-08T12:30:00.000Z">
+<meta property="article:author" content="Siyu Chen">
+<meta property="article:tag" content="LoRA">
+<meta property="article:tag" content="P-Tuning">
+<meta property="article:tag" content="PEFT">
+<meta property="article:tag" content="Prefix Tuning">
+<meta property="article:tag" content="SFT">
+<meta property="article:tag" content="后训练">
+<meta property="article:tag" content="笔记">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>后训练笔记 02：SFT 与 PEFT - Siyu Chen</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"sssssimonk.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Siyu Chen" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 42vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Siyu Chen</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.35)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="后训练笔记 02：SFT 与 PEFT"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-11-08 20:30" pubdate>
+          2025-11-08
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          38 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="后训练笔记"
+        id="heading-d9d29db33a19a24c41b99f16038424a8" role="tab" data-toggle="collapse" href="#collapse-d9d29db33a19a24c41b99f16038424a8"
+        aria-expanded="true"
+      >
+        后训练笔记
+        <span class="list-group-count">(5)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d9d29db33a19a24c41b99f16038424a8"
+           role="tabpanel" aria-labelledby="heading-d9d29db33a19a24c41b99f16038424a8">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2025/11/29/post-training-notes-05-opd/" title="后训练笔记 05：OPD，On-Policy Distillation"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">后训练笔记 05：OPD，On-Policy Distillation</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/11/22/post-training-notes-04-grpo-variants-and-kto/" title="后训练笔记 04：GRPO 变体与 KTO"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">后训练笔记 04：GRPO 变体与 KTO</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/11/15/post-training-notes-03-ppo-dpo-grpo/" title="后训练笔记 03：PPO、DPO 与 GRPO"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">后训练笔记 03：PPO、DPO 与 GRPO</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/11/08/post-training-notes-02-sft-and-peft/" title="后训练笔记 02：SFT 与 PEFT"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">后训练笔记 02：SFT 与 PEFT</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/11/01/post-training-notes-01-rl-basics/" title="后训练笔记 01：强化学习基础"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">后训练笔记 01：强化学习基础</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">后训练笔记 02：SFT 与 PEFT</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>这一篇整理 SFT 和 PEFT。</p>
+<p>在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。</p>
+<p>PEFT 则是另一类问题：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。</p>
+<p>这篇把两件事放一起看：</p>
+<blockquote>
+<p>SFT 解决“训练什么行为”，PEFT 解决“用多低成本训练”。</p>
+</blockquote>
+<h2 id="1-Base-model-为什么不能直接用"><a href="#1-Base-model-为什么不能直接用" class="headerlink" title="1. Base model 为什么不能直接用"></a>1. Base model 为什么不能直接用</h2><p>Base model 的训练目标通常是 next token prediction：</p>
+<p>$$<br>\max_\theta \sum_t \log p_\theta(x_t \mid x_{&lt;t})<br>$$</p>
+<p>它学的是文本分布。</p>
+<p>如果给 base model 一个问题：</p>
+<blockquote>
+<p>请解释一下 LoRA 是什么。</p>
+</blockquote>
+<p>它可能回答，也可能继续补全网页文本，或者生成一段类似问答数据的续写。问题不一定是它“不知道”，而是它没有被训练成稳定的 instruction-following model。</p>
+<p>SFT 的目标就是把输入输出形式固定下来：</p>
+<p>$$<br>\max_\theta \log \pi_\theta(y \mid x)<br>$$</p>
+<p>其中 $x$ 是 instruction，$y$ 是高质量回答。</p>
+<h2 id="2-SFT-具体学到了什么"><a href="#2-SFT-具体学到了什么" class="headerlink" title="2. SFT 具体学到了什么"></a>2. SFT 具体学到了什么</h2><p>SFT 不只是“灌知识”。</p>
+<p>它主要学这些行为：</p>
+<ul>
+<li>遵循指令</li>
+<li>按对话格式回答</li>
+<li>输出更清晰的结构</li>
+<li>遇到不确定问题时更谨慎</li>
+<li>学会某些任务格式，比如代码解释、数学推理、摘要</li>
+<li>初步形成 reasoning trace 的风格</li>
+</ul>
+<p>比如 base model 可能知道 AdamW，但 SFT model 更可能用分点方式解释 Adam 和 AdamW 的区别。</p>
+<p>这也是为什么 chat model、instruct model、reasoning model 往往都是从同一个 base model 派生出来，但行为差很多。</p>
+<h2 id="3-SFT-的局限"><a href="#3-SFT-的局限" class="headerlink" title="3. SFT 的局限"></a>3. SFT 的局限</h2><p>SFT 本质上是 imitation learning。</p>
+<p>数据是什么样，模型就往什么样学。</p>
+<p>如果数据里回答很模板化，模型也会模板化。</p>
+<p>如果数据里推理过程只是表面解释，模型会学会写“看起来像推理”的文本，但不一定真的更会解题。</p>
+<p>如果数据里有错误，模型会跟着学。</p>
+<p>更关键的是，SFT 不知道两个正确回答哪个更好。</p>
+<p>比如一个回答很简洁，一个回答更完整；一个回答更安全，一个回答更直接。SFT 只能模仿目标答案，不能表达偏好排序。</p>
+<p>所以 SFT 通常只是后训练的起点，后面还需要 DPO、PPO、GRPO、KTO 或 OPD。</p>
+<h2 id="4-Full-fine-tuning-的成本"><a href="#4-Full-fine-tuning-的成本" class="headerlink" title="4. Full fine-tuning 的成本"></a>4. Full fine-tuning 的成本</h2><p>全参数微调会更新模型所有参数。</p>
+<p>对于小模型，这很直接。对于几十亿、几百亿参数模型，成本很高：</p>
+<ul>
+<li>optimizer states 占显存</li>
+<li>gradient 占显存</li>
+<li>checkpoint 很大</li>
+<li>多个任务需要存多份模型</li>
+<li>训练和部署都更重</li>
+</ul>
+<p>Adam 优化器通常需要为每个参数维护一阶、二阶动量，所以显存压力不只是模型参数本身。</p>
+<p>这就是 PEFT 出现的背景：不改全部参数，只训练小模块。</p>
+<h2 id="5-PEFT-的基本想法"><a href="#5-PEFT-的基本想法" class="headerlink" title="5. PEFT 的基本想法"></a>5. PEFT 的基本想法</h2><p>PEFT 是 parameter-efficient fine-tuning。</p>
+<p>核心想法是：</p>
+<blockquote>
+<p>冻结大部分预训练参数，只训练少量可学习参数，让模型适配新任务。</p>
+</blockquote>
+<p>这样做的好处是：</p>
+<ul>
+<li>训练显存低</li>
+<li>存储成本低</li>
+<li>多任务可以共用同一个 base model</li>
+<li>adapter 可以按需加载</li>
+<li>实验迭代更快</li>
+</ul>
+<p>但它也有代价。训练参数少意味着表达空间受限。如果任务和 base model 差距很大，PEFT 可能不如 full fine-tuning。</p>
+<h2 id="6-LoRA：低秩更新"><a href="#6-LoRA：低秩更新" class="headerlink" title="6. LoRA：低秩更新"></a>6. LoRA：低秩更新</h2><p>LoRA 的核心想法是：不要直接训练原始权重矩阵 $W$，而是冻结 $W$，只学习一个低秩更新：</p>
+<p>$$<br>W’ &#x3D; W + \Delta W<br>$$</p>
+<p>其中：</p>
+<p>$$<br>\Delta W &#x3D; BA<br>$$</p>
+<p>如果 $W \in \mathbb{R}^{d \times k}$，那么可以设：</p>
+<p>$$<br>B \in \mathbb{R}^{d \times r}, \quad A \in \mathbb{R}^{r \times k}, \quad r \ll \min(d,k)<br>$$</p>
+<p>训练参数从 $dk$ 变成 $r(d+k)$。</p>
+<p>直觉上，LoRA 假设任务适配所需的权重变化不需要覆盖完整高维空间，而可以落在一个低秩子空间里。</p>
+<p>这不是说模型能力只剩低秩。Base model 的原始参数仍然在，LoRA 只是学习一个附加方向。</p>
+<h2 id="7-LoRA-插在哪里"><a href="#7-LoRA-插在哪里" class="headerlink" title="7. LoRA 插在哪里"></a>7. LoRA 插在哪里</h2><p>LoRA 常插在 Transformer 的线性层上，比如：</p>
+<ul>
+<li>attention 的 $W_Q, W_K, W_V, W_O$</li>
+<li>FFN 的 up projection &#x2F; down projection</li>
+</ul>
+<p>具体插哪里会影响效果和成本。</p>
+<p>只插 attention 层，参数更少，但适配能力可能有限。</p>
+<p>attention 和 FFN 都插，能力更强，但训练参数更多。</p>
+<p>对很多任务来说，LoRA rank、target modules、learning rate、数据质量都会显著影响效果。</p>
+<p>不要把 LoRA 理解成固定魔法。它是一个低成本适配工具，具体效果依赖配置。</p>
+<h2 id="8-LoRA-为什么推理时方便"><a href="#8-LoRA-为什么推理时方便" class="headerlink" title="8. LoRA 为什么推理时方便"></a>8. LoRA 为什么推理时方便</h2><p>LoRA 的更新是：</p>
+<p>$$<br>h &#x3D; Wx + BAx<br>$$</p>
+<p>训练时可以把 $BA$ 当成旁路。</p>
+<p>部署时，如果只服务一个 adapter，可以把 $BA$ 合并回 $W$：</p>
+<p>$$<br>W_{\mathrm{merged}} &#x3D; W + BA<br>$$</p>
+<p>这样推理时不一定增加额外延迟。</p>
+<p>如果要服务多个 adapter，就可以保留 base model，按任务加载不同 LoRA 权重。</p>
+<p>这也是 LoRA 在个人微调和多任务部署中很受欢迎的原因。</p>
+<h2 id="9-Prefix-Tuning：给模型加可学习前缀"><a href="#9-Prefix-Tuning：给模型加可学习前缀" class="headerlink" title="9. Prefix Tuning：给模型加可学习前缀"></a>9. Prefix Tuning：给模型加可学习前缀</h2><p>Prefix tuning 不直接改模型权重，而是在每层 attention 里加入可学习 prefix。</p>
+<p>可以理解成给模型提供一组虚拟的 key&#x2F;value tokens，让后续 token 在 attention 时能读到这些可学习信息。</p>
+<p>它和手写 prompt 不一样。手写 prompt 是离散文本，prefix tuning 学的是连续向量。</p>
+<p>直觉上：</p>
+<blockquote>
+<p>Prefix tuning 不是告诉模型“请你这样回答”，而是在模型内部提供一组可学习上下文。</p>
+</blockquote>
+<p>它的优势是训练参数少。</p>
+<p>缺点是表达能力受限，而且会占用一定上下文或 attention 空间。</p>
+<h2 id="10-Prompt-Tuning-和-P-Tuning"><a href="#10-Prompt-Tuning-和-P-Tuning" class="headerlink" title="10. Prompt Tuning 和 P-Tuning"></a>10. Prompt Tuning 和 P-Tuning</h2><p>Prompt tuning 学的是输入 embedding 前面的 soft prompt。</p>
+<p>如果原输入是：</p>
+<p>$$<br>[x_1, x_2, …, x_n]<br>$$</p>
+<p>prompt tuning 会在前面拼上一组可学习向量：</p>
+<p>$$<br>[p_1, p_2, …, p_m, x_1, x_2, …, x_n]<br>$$</p>
+<p>P-Tuning 则进一步用更复杂的方式生成或组织这些 continuous prompts，比如使用 MLP &#x2F; LSTM 等 prompt encoder。</p>
+<p>它们的共同点是：冻结模型主体，只训练 prompt-like 参数。</p>
+<p>这类方法在早期很重要，但在当前 LLM 微调实践里，LoRA 通常更常见，因为 LoRA 对生成任务更灵活，工程生态也更成熟。</p>
+<h2 id="11-LoRA、Prefix-Tuning、P-Tuning-怎么选"><a href="#11-LoRA、Prefix-Tuning、P-Tuning-怎么选" class="headerlink" title="11. LoRA、Prefix Tuning、P-Tuning 怎么选"></a>11. LoRA、Prefix Tuning、P-Tuning 怎么选</h2><p>可以粗略这样看。</p>
+<p>LoRA 适合需要改模型行为、任务风格、领域适配的场景。它改的是线性层权重的低秩增量，表达能力相对强。</p>
+<p>Prefix tuning 适合希望用少量参数控制模型行为，同时不动主体权重的场景。</p>
+<p>Prompt tuning &#x2F; P-Tuning 更像学习软提示，参数少，但对大模型和复杂生成任务不一定总是最强。</p>
+<p>如果是个人博客里的实践建议，我会优先写：</p>
+<ul>
+<li>小成本实验：LoRA &#x2F; QLoRA</li>
+<li>需要多任务 adapter：LoRA</li>
+<li>只想做轻量控制：prefix &#x2F; prompt tuning</li>
+<li>追求最好效果且资源够：full fine-tuning 或更大规模 post-training</li>
+</ul>
+<h2 id="12-QLoRA：进一步省显存"><a href="#12-QLoRA：进一步省显存" class="headerlink" title="12. QLoRA：进一步省显存"></a>12. QLoRA：进一步省显存</h2><p>QLoRA 是 LoRA 的重要实践扩展。</p>
+<p>它把 base model 量化，比如 4-bit 存储，同时仍然用 LoRA adapter 训练。</p>
+<p>关键点是：base model 不参与梯度更新，只需要在前向&#x2F;反向中提供计算；可训练的是 LoRA 参数。</p>
+<p>这样可以在更小显存上微调较大模型。</p>
+<p>但量化也可能带来数值误差。QLoRA 的效果依赖量化格式、计算精度、rank、数据质量。</p>
+<h2 id="13-SFT-数据比方法更重要"><a href="#13-SFT-数据比方法更重要" class="headerlink" title="13. SFT 数据比方法更重要"></a>13. SFT 数据比方法更重要</h2><p>SFT 和 PEFT 经常被讨论成训练技术，但真正决定结果的通常是数据。</p>
+<p>高质量 SFT 数据要满足：</p>
+<ul>
+<li>指令清楚</li>
+<li>回答准确</li>
+<li>风格一致但不模板化</li>
+<li>覆盖目标任务</li>
+<li>没有大量幻觉</li>
+<li>reasoning trace 不只是装样子</li>
+</ul>
+<p>如果数据质量差，LoRA 再省显存也没用。</p>
+<p>如果数据太窄，模型会过拟合某种格式。</p>
+<p>如果数据里充满“当然可以，下面是……”这种套话，模型会变得很像客服脚本。</p>
+<p>所以 SFT 的核心不是把 loss 跑低，而是把模型行为拉到你想要的区域。</p>
+<h2 id="14-SFT-和后续-RL-DPO-的关系"><a href="#14-SFT-和后续-RL-DPO-的关系" class="headerlink" title="14. SFT 和后续 RL &#x2F; DPO 的关系"></a>14. SFT 和后续 RL &#x2F; DPO 的关系</h2><p>SFT 给模型一个可控起点。</p>
+<p>DPO &#x2F; KTO 进一步从偏好信号中学习什么回答更好。</p>
+<p>PPO &#x2F; GRPO 进一步用 reward 或 verifier 优化结果。</p>
+<p>OPD 则可以用 teacher 对 student 的 on-policy outputs 做 dense supervision。</p>
+<p>如果 SFT 起点太差，后面 RL 可能要花很多成本纠正基础格式问题。</p>
+<p>如果 SFT 起点太强但过度模板化，后面偏好优化可能很难恢复多样性。</p>
+<p>所以 SFT 不是越多越好，而是要给后续训练留下空间。</p>
+<h2 id="15-读-SFT-PEFT-论文时看什么"><a href="#15-读-SFT-PEFT-论文时看什么" class="headerlink" title="15. 读 SFT &#x2F; PEFT 论文时看什么"></a>15. 读 SFT &#x2F; PEFT 论文时看什么</h2><p>我会看这些问题：</p>
+<ul>
+<li>Base model 是什么</li>
+<li>SFT 数据来自哪里</li>
+<li>数据规模和质量如何</li>
+<li>是否包含 reasoning traces</li>
+<li>是 full fine-tuning 还是 PEFT</li>
+<li>LoRA rank 是多少</li>
+<li>LoRA 插在哪些模块</li>
+<li>是否使用 QLoRA</li>
+<li>是否只评估 benchmark，还是也看真实对话质量</li>
+<li>后面有没有接 DPO&#x2F;RL&#x2F;OPD</li>
+</ul>
+<p>尤其要注意：很多报告里“用了 LoRA”不是主要贡献。LoRA 只是训练方式，真正重要的是数据、目标和评估。</p>
+<h2 id="16-小结"><a href="#16-小结" class="headerlink" title="16. 小结"></a>16. 小结</h2><p>SFT 是后训练的入口。它让 base model 从“会续写”变成“会回答”。</p>
+<p>PEFT 是低成本适配工具。LoRA、Prefix Tuning、P-Tuning 都是在减少可训练参数，但它们改模型的方式不同。</p>
+<p>我的理解是：</p>
+<blockquote>
+<p>SFT 决定模型学什么行为，PEFT 决定用多少参数去学这个行为。</p>
+</blockquote>
+<p>后面讲 PPO、DPO、GRPO 时，要一直记住：这些算法通常不是从 raw base model 开始，而是在 SFT 模型基础上继续塑形。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>Wei et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2109.01652">Finetuned Language Models Are Zero-Shot Learners</a></li>
+<li>Hu et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2106.09685">LoRA: Low-Rank Adaptation of Large Language Models</a></li>
+<li>Li and Liang, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2101.00190">Prefix-Tuning: Optimizing Continuous Prompts for Generation</a></li>
+<li>Liu et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2110.07602">P-Tuning v2: Prompt Tuning Can Be Comparable to Fine-tuning Universally Across Scales and Tasks</a></li>
+<li>Dettmers et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.14314">QLoRA: Efficient Finetuning of Quantized LLMs</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%90%8E%E8%AE%AD%E7%BB%83%E7%AC%94%E8%AE%B0/" class="category-chain-item">后训练笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
+      
+        <a href="/tags/SFT/" class="print-no-link">#SFT</a>
+      
+        <a href="/tags/%E5%90%8E%E8%AE%AD%E7%BB%83/" class="print-no-link">#后训练</a>
+      
+        <a href="/tags/LoRA/" class="print-no-link">#LoRA</a>
+      
+        <a href="/tags/Prefix-Tuning/" class="print-no-link">#Prefix Tuning</a>
+      
+        <a href="/tags/P-Tuning/" class="print-no-link">#P-Tuning</a>
+      
+        <a href="/tags/PEFT/" class="print-no-link">#PEFT</a>
+      
+    </div>
+  
+</div>
+
+
+              
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/11/15/post-training-notes-03-ppo-dpo-grpo/" title="后训练笔记 03：PPO、DPO 与 GRPO">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">后训练笔记 03：PPO、DPO 与 GRPO</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/11/01/post-training-notes-01-rl-basics/" title="后训练笔记 01：强化学习基础">
+                        <span class="hidden-mobile">后训练笔记 01：强化学习基础</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© Siyu Chen</span> <span class="footer-separator"> · </span> <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <span class="footer-separator"> · </span> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
