@@ -402,6 +402,436 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2025/10/11/modern-llm-notes-06-multimodal-models/" target="_self">
+          现代大模型笔记 06：多模态模型，图像、视频和音频怎么接进 LLM
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/10/11/modern-llm-notes-06-multimodal-models/" target="_self">
+        <div>
+          这一篇整理多模态模型。 多模态模型经常被描述成“模型能看图、看视频、听音频”。但从结构上看，问题其实是：  怎么把不同模态的信息变成 LLM 能处理的 representation。  LLM 本来处理的是 token sequence。图像、视频、音频不是离散文本 token，所以要先经过编码、投影、对齐，再接入语言模型。 1. VLM 的基本结构一个典型 vision-language mod
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-10-11 20:30" pubdate>
+              2025-10-11
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
+            
+              <a href="/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/">#多模态</a>
+            
+              <a href="/tags/VLM/">#VLM</a>
+            
+              <a href="/tags/Qwen-VL/">#Qwen-VL</a>
+            
+              <a href="/tags/Omni/">#Omni</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2025/10/04/modern-llm-notes-05-post-training/" target="_self">
+          现代大模型笔记 05：Post-training，SFT、DPO、GRPO 到 RL 推理
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/10/04/modern-llm-notes-05-post-training/" target="_self">
+        <div>
+          这一篇整理 post-training。 Pretraining 让模型学会语言、知识和模式，但一个 pretrained base model 通常不是好用的助手。它可能会续写问题、模仿网页文本、输出不稳定格式，也不一定遵循用户指令。 Post-training 的目标是把 base model 变成更符合使用需求的模型。 可以先用一句话区分：  Pretraining 学“世界和语言的统计结构
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-10-04 20:00" pubdate>
+              2025-10-04
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
+            
+              <a href="/tags/Post-training/">#Post-training</a>
+            
+              <a href="/tags/SFT/">#SFT</a>
+            
+              <a href="/tags/DPO/">#DPO</a>
+            
+              <a href="/tags/GRPO/">#GRPO</a>
+            
+              <a href="/tags/RLHF/">#RLHF</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2025/09/27/modern-llm-notes-04-reasoning-models/" target="_self">
+          现代大模型笔记 04：Reasoning Model，从 CoT 到 DeepSeek-R1
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/27/modern-llm-notes-04-reasoning-models/" target="_self">
+        <div>
+          这一篇整理 reasoning model。 现在很多模型会区分 thinking mode 和 non-thinking mode，也会强调数学、代码、复杂推理能力。表面上看，这是“模型回答前多想一会”。但如果只这么理解，就太浅了。 Reasoning model 的变化至少包括三层：  推理时愿意花更多 token 和计算 训练时用更强的推理数据和偏好信号 后训练阶段用 RL 等方法强化可验证
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-09-27 21:30" pubdate>
+              2025-09-27
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
+            
+              <a href="/tags/Reasoning/">#Reasoning</a>
+            
+              <a href="/tags/CoT/">#CoT</a>
+            
+              <a href="/tags/DeepSeek-R1/">#DeepSeek-R1</a>
+            
+              <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">#强化学习</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
+          现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
+        <div>
+          这一篇整理长上下文。 很多模型现在都会宣传 32K、128K、1M context window。这个数字很吸引人，但它很容易被误解。 长上下文不是“把 max length 参数调大”。真正困难的地方有三类：  attention 计算量变大 KV cache 显存变大 上下文变长后，模型未必能稳定用好信息  所以这篇重点不是列方法，而是看长上下文到底在解决什么瓶颈。 1. Self-atten
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-09-20 21:00" pubdate>
+              2025-09-20
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
+            
+              <a href="/tags/%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87/">#长上下文</a>
+            
+              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
+            
+              <a href="/tags/KV-cache/">#KV cache</a>
+            
+              <a href="/tags/RoPE/">#RoPE</a>
+            
+              <a href="/tags/FlashAttention/">#FlashAttention</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2025/09/13/modern-llm-notes-02-moe/" target="_self">
+          现代大模型笔记 02：MoE，为什么大模型开始变稀疏
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/13/modern-llm-notes-02-moe/" target="_self">
+        <div>
+          这一篇整理 MoE，也就是 mixture of experts。 现在很多前沿开源模型都会强调两个数字：total parameters 和 activated parameters。比如一个模型可能有 235B 总参数，但每个 token 只激活 22B 参数。 第一次看到这个说法时很容易觉得矛盾：到底是 235B 模型，还是 22B 模型？ MoE 的关键就在这里。它不是让所有参数每次都参与
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-09-13 20:30" pubdate>
+              2025-09-13
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
+            
+              <a href="/tags/MoE/">#MoE</a>
+            
+              <a href="/tags/%E7%A8%80%E7%96%8F%E6%BF%80%E6%B4%BB/">#稀疏激活</a>
+            
+              <a href="/tags/DeepSeek/">#DeepSeek</a>
+            
+              <a href="/tags/Qwen/">#Qwen</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
+          现代大模型笔记 01：Transformer 之后到底变了什么
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
+        <div>
+          这一篇先把现代大模型的结构底座梳理出来。 很多技术报告会说模型基于 Transformer，但如果只停留在 2017 年原始 Transformer 的结构，很容易读不懂后面的细节。现在主流 LLM 的基本骨架还是 Transformer，但很多关键部件已经换过一轮：decoder-only、pre-norm、RMSNorm、SwiGLU、RoPE、GQA、KV cache、FlashAttent
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-09-06 20:00" pubdate>
+              2025-09-06
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
+            
+              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
+            
+              <a href="/tags/KV-cache/">#KV cache</a>
+            
+              <a href="/tags/RoPE/">#RoPE</a>
+            
+              <a href="/tags/Transformer/">#Transformer</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" target="_self">
           深度学习笔记 05：注意力机制与 Transformer
         </a>
@@ -520,8 +950,6 @@
             
               <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">#深度学习</a>
             
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
               <a href="/tags/CNN/">#CNN</a>
             
               <a href="/tags/RNN/">#RNN</a>
@@ -529,6 +957,8 @@
               <a href="/tags/LSTM/">#LSTM</a>
             
               <a href="/tags/ResNet/">#ResNet</a>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
           </div>
         
@@ -593,425 +1023,13 @@
             
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
+              <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/">#正则化</a>
+            
               <a href="/tags/%E4%BC%98%E5%8C%96%E5%99%A8/">#优化器</a>
             
               <a href="/tags/Adam/">#Adam</a>
             
               <a href="/tags/AdamW/">#AdamW</a>
-            
-              <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/">#正则化</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/" target="_self">
-          深度学习笔记 02：MLP、前向传播与反向传播
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/" target="_self">
-        <div>
-          这一篇整理最基础的神经网络：多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。 可以先抓住一句话：  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 1. 神经元（neuron）在做什么一个最简单的 n
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-08-10 20:30" pubdate>
-              2024-08-10
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">深度学习笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">#深度学习</a>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/MLP/">#MLP</a>
-            
-              <a href="/tags/%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD/">#反向传播</a>
-            
-              <a href="/tags/%E8%AE%A1%E7%AE%97%E5%9B%BE/">#计算图</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/08/03/deep-learning-notes-01-framework/" target="_self">
-          深度学习笔记 01：从特征工程到表示学习
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/03/deep-learning-notes-01-framework/" target="_self">
-        <div>
-          机器学习章节里，大部分模型都可以理解成：先把数据整理成特征，再用一个模型把特征映射到预测结果。 深度学习和传统机器学习最大的区别，不是“模型更复杂”这么简单，而是它把 feature learning 也放进了模型里。以前很多时候要人工设计特征，深度学习希望模型自己从原始数据中学出有用表示。 比如图像分类任务： 12345traditional ML:image -&gt; hand-crafte
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-08-03 20:00" pubdate>
-              2024-08-03
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">深度学习笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">#深度学习</a>
-            
-              <a href="/tags/%E8%A1%A8%E7%A4%BA%E5%AD%A6%E4%B9%A0/">#表示学习</a>
-            
-              <a href="/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">#神经网络</a>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" target="_self">
-          机器学习笔记 06：评估、验证与模型选择
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" target="_self">
-        <div>
-          这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？  不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-07-14 22:30" pubdate>
-              2024-07-14
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
-            
-              <a href="/tags/%E8%AF%84%E4%BC%B0/">#评估</a>
-            
-              <a href="/tags/%E4%BA%A4%E5%8F%89%E9%AA%8C%E8%AF%81/">#交叉验证</a>
-            
-              <a href="/tags/%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9/">#模型选择</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
-          机器学习笔记 05：无监督学习与降维
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
-        <div>
-          这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning）无监督学习只有输入 $x$，没有标签 $y$。 比如有一批用户行为数据：    用户 访问次数 平均停留时间
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-07-06 22:00" pubdate>
-              2024-07-06
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
-            
-              <a href="/tags/%E6%97%A0%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/">#无监督学习</a>
-            
-              <a href="/tags/%E8%81%9A%E7%B1%BB/">#聚类</a>
-            
-              <a href="/tags/PCA/">#PCA</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/29/ml-notes-04-tree-based-models/" target="_self">
-          机器学习笔记 04：树模型
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/29/ml-notes-04-tree-based-models/" target="_self">
-        <div>
-          这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 1. 决策树（decision tree）的基本想法Decision Tree 每一步都在问一个问题： 1这个 featu
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-29 21:30" pubdate>
-              2024-06-29
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
-            
-              <a href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/">#决策树</a>
-            
-              <a href="/tags/%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97/">#随机森林</a>
-            
-              <a href="/tags/XGBoost/">#XGBoost</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/22/ml-notes-03-linear-models-and-knn/" target="_self">
-          机器学习笔记 03：线性模型与 KNN
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/22/ml-notes-03-linear-models-and-knn/" target="_self">
-        <div>
-          这一篇整理监督学习里最基础的几类模型：linear regression、logistic regression 和 KNN。它们看起来简单，但很多后面的模型都能从这里找到影子：线性模型关心如何用特征加权得到预测，logistic regression 把线性打分变成概率，KNN 则完全依赖样本之间的距离。 1. 线性回归（linear regression）：用线性函数做预测Linear reg
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-22 21:00" pubdate>
-              2024-06-22
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
-            
-              <a href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/">#线性回归</a>
-            
-              <a href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/">#逻辑回归</a>
-            
-              <a href="/tags/KNN/">#KNN</a>
             
           </div>
         

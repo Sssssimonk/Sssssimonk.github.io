@@ -33,6 +33,220 @@
   
   
   <entry>
+    <title>现代大模型笔记 06：多模态模型，图像、视频和音频怎么接进 LLM</title>
+    <link href="/2025/10/11/modern-llm-notes-06-multimodal-models/"/>
+    <url>/2025/10/11/modern-llm-notes-06-multimodal-models/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇整理多模态模型。</p><p>多模态模型经常被描述成“模型能看图、看视频、听音频”。但从结构上看，问题其实是：</p><blockquote><p>怎么把不同模态的信息变成 LLM 能处理的 representation。</p></blockquote><p>LLM 本来处理的是 token sequence。图像、视频、音频不是离散文本 token，所以要先经过编码、投影、对齐，再接入语言模型。</p><h2 id="1-VLM-的基本结构"><a href="#1-VLM-的基本结构" class="headerlink" title="1. VLM 的基本结构"></a>1. VLM 的基本结构</h2><p>一个典型 vision-language model 可以拆成三块：</p><ul><li>Vision encoder</li><li>Projector &#x2F; adapter</li><li>LLM</li></ul><p>Vision encoder 把图片编码成视觉特征。</p><p>Projector 把视觉特征映射到 LLM 的 hidden dimension。</p><p>LLM 把视觉 token 和文本 token 放在一起处理，并生成回答。</p><p>粗略写成：</p><p>$$<br>z_v &#x3D; \mathrm{VisionEncoder}(I)<br>$$</p><p>$$<br>h_v &#x3D; \mathrm{Projector}(z_v)<br>$$</p><p>然后把 $h_v$ 和文本 embedding 拼接，送入 LLM。</p><p>这个结构很直接，但每一步都有细节。</p><h2 id="2-图像-token-是怎么来的"><a href="#2-图像-token-是怎么来的" class="headerlink" title="2. 图像 token 是怎么来的"></a>2. 图像 token 是怎么来的</h2><p>图像通常会被切成 patches。</p><p>ViT 的做法是把图片分成固定大小 patch，然后每个 patch 映射成一个向量。</p><p>如果一张图片被切成 $N$ 个 patches，就会得到 $N$ 个视觉 token。</p><p>问题是：图片分辨率越高，patch 数越多，视觉 token 越多。</p><p>视觉 token 多了以后，LLM 的上下文压力变大。</p><p>所以多模态模型经常要做 token compression 或 dynamic resolution。</p><p>这里的核心 trade-off 是：</p><ul><li>token 多，视觉细节保留更好，但计算更贵</li><li>token 少，推理更便宜，但细节可能丢失</li></ul><p>比如 OCR、图表理解、数学几何题，都需要细粒度视觉信息。普通场景描述可能不需要那么多 token。</p><h2 id="3-Projector-不只是维度对齐"><a href="#3-Projector-不只是维度对齐" class="headerlink" title="3. Projector 不只是维度对齐"></a>3. Projector 不只是维度对齐</h2><p>很多入门解释会说 projector 只是把 vision encoder 输出维度变成 LLM hidden size。</p><p>这不算错，但太简单。</p><p>Projector 还承担模态对齐作用。</p><p>Vision encoder 的表示空间来自图像预训练，LLM 的表示空间来自文本预训练。两者不是天然兼容。</p><p>Projector 要把视觉特征变成 LLM 能理解的“类 token 表示”。</p><p>如果 projector 太弱，视觉信息进了 LLM 也不好用。</p><p>如果 projector 太强或训练不稳定，又可能破坏语言模型原有能力。</p><p>所以多模态训练经常分阶段：</p><ol><li>先训练 projector，让视觉特征对齐文本空间</li><li>再做 instruction tuning，让模型学会多模态问答</li><li>后面再加入更复杂的 reasoning、OCR、video、agent 数据</li></ol><h2 id="4-拼接视觉-token-vs-cross-attention"><a href="#4-拼接视觉-token-vs-cross-attention" class="headerlink" title="4. 拼接视觉 token vs cross-attention"></a>4. 拼接视觉 token vs cross-attention</h2><p>视觉信息接入 LLM 有不同方式。</p><p>一种是直接把视觉 token 拼到文本 token 前面或中间，让 LLM self-attention 统一处理。</p><p>这种方式简单，符合 decoder-only LLM 的接口。</p><p>另一种是 cross-attention。语言 token 在某些层通过 cross-attention 去读取视觉特征。</p><p>直接拼接的好处是结构统一。</p><p>Cross-attention 的好处是视觉特征可以作为单独 memory，控制更灵活。</p><p>但两者都绕不开一个问题：视觉 token 太多时，attention 成本会很高。</p><p>所以现代 VLM 的关键不是“能不能接图像”，而是“怎么高效接入足够多的视觉信息”。</p><h2 id="5-多图输入更难在哪里"><a href="#5-多图输入更难在哪里" class="headerlink" title="5. 多图输入更难在哪里"></a>5. 多图输入更难在哪里</h2><p>单图问答已经不简单，多图更难。</p><p>多图任务需要模型区分不同图片，并在图片之间建立关系。</p><p>比如：</p><blockquote><p>图 1 是模型结构图，图 2 是实验结果表。请判断结构改动是否带来了稳定提升。</p></blockquote><p>这时模型不只是描述图像，而是要跨图对齐信息。</p><p>多图输入涉及：</p><ul><li>每张图的边界</li><li>图片顺序</li><li>跨图引用</li><li>视觉信息和文本问题的对应关系</li></ul><p>如果视觉 token 全部拼在一起，模型必须学会哪些 token 属于哪张图。</p><p>这就是为什么多模态位置编码和 image boundary token 很重要。</p><h2 id="6-视频：多了时间维度"><a href="#6-视频：多了时间维度" class="headerlink" title="6. 视频：多了时间维度"></a>6. 视频：多了时间维度</h2><p>视频不是图片列表这么简单。</p><p>视频有时间顺序、运动、事件持续、因果关系。</p><p>如果只抽几帧，可能丢掉关键动作。</p><p>如果抽很多帧，token 数会爆炸。</p><p>所以视频模型通常要处理三个问题：</p><ul><li>frame sampling：取哪些帧</li><li>temporal encoding：怎么表示时间顺序</li><li>long video understanding：怎么保留长时间信息</li></ul><p>举个例子。</p><p>如果视频里一个人先拿起杯子，再把杯子放进柜子，最后关上柜门。只看最后一帧，模型可能知道柜门关了，但不知道杯子被放进去了。</p><p>视频理解需要事件链，而不是静态描述。</p><h2 id="7-音频：连续信号怎么变-token"><a href="#7-音频：连续信号怎么变-token" class="headerlink" title="7. 音频：连续信号怎么变 token"></a>7. 音频：连续信号怎么变 token</h2><p>音频比图像更不一样。</p><p>文本是离散 token，音频是连续波形。</p><p>音频模型通常会先把波形变成特征，比如 spectrogram，或者用 audio encoder 得到表示。</p><p>如果要生成语音，还需要把文本或 hidden states 转成 speech tokens 或 codec tokens，再解码成波形。</p><p>Qwen3-Omni 这类模型会涉及 Thinker-Talker 结构。可以粗略理解为：</p><ul><li>Thinker 负责多模态理解和推理</li><li>Talker 负责生成自然语音</li></ul><p>这样做的原因是理解和语音生成不是同一个问题。理解需要语义、推理、对齐；语音生成还需要音色、节奏、流式延迟。</p><h2 id="8-Omni-model-难在哪里"><a href="#8-Omni-model-难在哪里" class="headerlink" title="8. Omni model 难在哪里"></a>8. Omni model 难在哪里</h2><p>Omni model 希望一个模型同时处理文本、图像、视频、音频，并且可能还要输出文本和语音。</p><p>这比 VLM 更难，因为不同模态的时间尺度和信息密度不同。</p><p>一张图片可以被压成几百个视觉 token。</p><p>一段音频可能每秒产生大量 acoustic tokens。</p><p>视频又同时包含空间和时间信息。</p><p>把这些东西统一到一个模型里，需要解决：</p><ul><li>模态表示统一</li><li>长上下文压力</li><li>训练数据混合</li><li>不同任务 loss 的平衡</li><li>实时交互延迟</li><li>输出模态控制</li></ul><p>所以 omni model 不是简单把 VLM、ASR、TTS 拼起来。真正难的是统一训练和统一推理。</p><h2 id="9-多模态-reasoning"><a href="#9-多模态-reasoning" class="headerlink" title="9. 多模态 reasoning"></a>9. 多模态 reasoning</h2><p>多模态模型最有价值的地方不是“描述图片”，而是跨模态 reasoning。</p><p>比如：</p><ul><li>看图表并推断趋势</li><li>看论文公式截图并解释推导</li><li>看 UI 截图并判断用户下一步该点哪里</li><li>看视频并找出事件因果</li><li>听语音并结合语气理解意图</li></ul><p>这些任务要求模型把视觉或音频证据和语言推理结合。</p><p>所以多模态 benchmark 也在从 captioning 走向 MMMU、MathVista、video QA、document understanding 等更复杂任务。</p><h2 id="10-幻觉问题更复杂"><a href="#10-幻觉问题更复杂" class="headerlink" title="10. 幻觉问题更复杂"></a>10. 幻觉问题更复杂</h2><p>文本模型会 hallucinate，多模态模型也会，而且更难检查。</p><p>比如模型可能说图片里有某个物体，但实际没有。</p><p>或者 OCR 把数字看错，后面推理全错。</p><p>或者视频里漏掉关键动作，却生成一个合理故事。</p><p>多模态 hallucination 的根源可能来自：</p><ul><li>视觉 encoder 没捕捉到细节</li><li>projector 对齐不好</li><li>LLM 依赖语言先验脑补</li><li>图像分辨率不够</li><li>训练数据里 caption 偏泛化</li></ul><p>所以多模态模型的回答要特别注意 evidence grounding。最好能让模型指出依据来自图像哪个区域、哪一帧、哪段音频。</p><h2 id="11-训练数据决定上限"><a href="#11-训练数据决定上限" class="headerlink" title="11. 训练数据决定上限"></a>11. 训练数据决定上限</h2><p>多模态模型很依赖数据。</p><p>图片-caption 数据可以教模型描述图片。</p><p>OCR 数据可以教模型读文字。</p><p>图表问答数据可以教模型理解可视化。</p><p>视频问答数据可以教模型时间推理。</p><p>音频对话数据可以教模型语音交互。</p><p>如果数据只覆盖普通图片描述，模型很难自动变成强视觉推理模型。</p><p>这和语言模型一样：结构提供可能性，数据决定能力落点。</p><h2 id="12-读多模态技术报告时看什么"><a href="#12-读多模态技术报告时看什么" class="headerlink" title="12. 读多模态技术报告时看什么"></a>12. 读多模态技术报告时看什么</h2><p>我会看这些问题：</p><ul><li>Vision encoder 是什么</li><li>视觉 token 数怎么控制</li><li>Projector 是线性层、MLP，还是更复杂结构</li><li>是否冻结 LLM 或 vision encoder</li><li>训练分几个阶段</li><li>支持单图、多图、视频、音频中的哪些输入</li><li>是否支持语音输出</li><li>benchmark 覆盖 caption、OCR、chart、math、video reasoning 吗</li><li>长视频或高分辨率图片怎么处理</li><li>有没有 grounding 或 hallucination 评估</li></ul><p>尤其要看“输入支持”和“能力支持”的区别。能输入视频，不等于能理解长视频事件。能输入音频，不等于能做自然低延迟语音对话。</p><h2 id="13-小结"><a href="#13-小结" class="headerlink" title="13. 小结"></a>13. 小结</h2><p>多模态模型的核心问题是模态对齐。</p><p>图像、视频、音频都要先变成 LLM 能处理的表示，然后再和文本 token 一起完成理解和生成。</p><p>VLM 的关键是视觉 token、projector 和视觉语言对齐。</p><p>视频模型多了时间维度。</p><p>音频模型多了连续信号、codec、实时生成的问题。</p><p>Omni model 则进一步要求一个系统统一处理多个模态的输入和输出。</p><p>所以我会把多模态看成现代大模型从“语言接口”走向“世界接口”的一步。但这一步不是靠一个接口参数实现的，而是结构、数据、训练阶段和系统延迟一起决定的。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Radford et al., <a href="https://arxiv.org/abs/2103.00020">Learning Transferable Visual Models From Natural Language Supervision</a></li><li>Liu et al., <a href="https://arxiv.org/abs/2304.08485">Visual Instruction Tuning</a></li><li>Bai et al., <a href="https://arxiv.org/abs/2511.21631">Qwen3-VL Technical Report</a></li><li>Xu et al., <a href="https://arxiv.org/abs/2509.17765">Qwen3-Omni Technical Report</a></li><li>OpenAI, <a href="https://openai.com/research/video-generation-models-as-world-simulators">Video generation models as world simulators</a></li><li>GLM-4.5 Team, <a href="https://arxiv.org/abs/2508.06471">GLM-4.5: Agentic, Reasoning, and Coding Foundation Models</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>现代大模型与前沿论文笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>大模型</tag>
+      
+      <tag>多模态</tag>
+      
+      <tag>VLM</tag>
+      
+      <tag>Qwen-VL</tag>
+      
+      <tag>Omni</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>现代大模型笔记 05：Post-training，SFT、DPO、GRPO 到 RL 推理</title>
+    <link href="/2025/10/04/modern-llm-notes-05-post-training/"/>
+    <url>/2025/10/04/modern-llm-notes-05-post-training/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇整理 post-training。</p><p>Pretraining 让模型学会语言、知识和模式，但一个 pretrained base model 通常不是好用的助手。它可能会续写问题、模仿网页文本、输出不稳定格式，也不一定遵循用户指令。</p><p>Post-training 的目标是把 base model 变成更符合使用需求的模型。</p><p>可以先用一句话区分：</p><blockquote><p>Pretraining 学“世界和语言的统计结构”，post-training 学“怎么作为一个模型产品来回答问题”。</p></blockquote><p>这句话不完全严谨，但很有用。</p><h2 id="1-Base-model-为什么不够用"><a href="#1-Base-model-为什么不够用" class="headerlink" title="1. Base model 为什么不够用"></a>1. Base model 为什么不够用</h2><p>Base model 的训练目标通常是 next token prediction：</p><p>$$<br>\max_\theta \sum_t \log p_\theta(x_t \mid x_{&lt;t})<br>$$</p><p>它看到的是大规模文本，目标是预测下一个 token。</p><p>所以当你问：</p><blockquote><p>请解释一下 AdamW 和 Adam 的区别。</p></blockquote><p>Base model 可能确实知道相关知识，但它未必会以你期待的方式回答。它可能继续补全一段网页，也可能生成多个问答样例，也可能格式混乱。</p><p>这不是知识缺失，而是行为没有对齐。</p><p>Post-training 就是在解决行为问题。</p><h2 id="2-SFT：先学会怎么回答"><a href="#2-SFT：先学会怎么回答" class="headerlink" title="2. SFT：先学会怎么回答"></a>2. SFT：先学会怎么回答</h2><p>SFT 是 supervised fine-tuning。</p><p>给模型一批指令和高质量回答，让它模仿这些回答。</p><p>训练目标仍然是 next token prediction，只不过数据变成了 instruction-response 格式：</p><p>$$<br>\max_\theta \log p_\theta(y \mid x)<br>$$</p><p>其中 $x$ 是用户指令，$y$ 是期望回答。</p><p>SFT 的作用很基础：</p><ul><li>学会遵循指令</li><li>学会问答格式</li><li>学会拒答边界</li><li>学会输出更清晰的结构</li><li>学会一些特定任务风格</li></ul><p>如果没有 SFT，模型可能有知识，但不好用。</p><h2 id="3-SFT-的局限"><a href="#3-SFT-的局限" class="headerlink" title="3. SFT 的局限"></a>3. SFT 的局限</h2><p>SFT 本质上是模仿。</p><p>它的问题是：数据里是什么样，模型就往什么样靠。</p><p>如果 SFT 数据质量一般，模型会学到平庸回答。</p><p>如果 SFT 数据太模板化，模型会变得啰嗦、套话。</p><p>如果 SFT 数据覆盖不到复杂场景，模型遇到新任务还是不稳。</p><p>更关键的是，很多问题没有唯一标准答案。</p><p>比如两个回答都正确，但一个更简洁，一个更详细；一个更安全，一个更有帮助。SFT 很难表达这种偏好排序。</p><p>这就引出了 preference learning。</p><h2 id="4-RLHF：从偏好里学习"><a href="#4-RLHF：从偏好里学习" class="headerlink" title="4. RLHF：从偏好里学习"></a>4. RLHF：从偏好里学习</h2><p>RLHF 的经典流程大概是：</p><ol><li>先训练一个 SFT model</li><li>对同一个 prompt 采样多个回答</li><li>人类标注哪个回答更好</li><li>训练 reward model</li><li>用 PPO 等 RL 方法优化 policy</li></ol><p>Reward model 学的是：</p><p>$$<br>r_\phi(x,y)<br>$$</p><p>也就是给定 prompt $x$ 和回答 $y$，判断这个回答有多好。</p><p>然后语言模型作为 policy，优化目标大概是让 reward 更高，同时不要偏离原模型太远。</p><p>通常会加 KL penalty：</p><p>$$<br>\max_\theta \mathbb{E}[r_\phi(x,y)] - \beta D_{KL}(\pi_\theta || \pi_{ref})<br>$$</p><p>这个 KL 项很重要。没有它，模型可能为了骗 reward model 走到奇怪分布。</p><h2 id="5-PPO：经典但复杂"><a href="#5-PPO：经典但复杂" class="headerlink" title="5. PPO：经典但复杂"></a>5. PPO：经典但复杂</h2><p>PPO 是 RLHF 里常见的算法。</p><p>它把语言模型看成 policy，生成回答就是 action sequence。</p><p>PPO 的优点是通用，能直接优化 reward。</p><p>但它也复杂：</p><ul><li>需要 reward model</li><li>需要采样</li><li>需要 value model 或 advantage estimation</li><li>训练不稳定</li><li>超参数敏感</li><li>成本高</li></ul><p>所以后来大家开始寻找更简单的 preference optimization 方法。</p><p>这里不能简单说 PPO 落后。它仍然很重要，尤其是在更复杂的 RL 场景里。但对于很多偏好对齐任务，DPO 这类方法更容易训练。</p><h2 id="6-DPO：把偏好优化变简单"><a href="#6-DPO：把偏好优化变简单" class="headerlink" title="6. DPO：把偏好优化变简单"></a>6. DPO：把偏好优化变简单</h2><p>DPO 的核心是：不显式训练 reward model，也不跑完整 RL，而是直接用偏好数据优化模型。</p><p>偏好数据通常是三元组：prompt、chosen response、rejected response。</p><p>DPO 让模型提高 chosen 的相对概率，降低 rejected 的相对概率，同时参考一个 reference model。</p><p>它的损失可以写成类似：</p><p>$$<br>\mathcal{L}<em>{DPO} &#x3D; -\log \sigma \left(\beta \log \frac{\pi</em>\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)} \right)<br>$$</p><p>其中 $y_w$ 是 preferred response，$y_l$ 是 rejected response。</p><p>直觉上，DPO 在说：</p><blockquote><p>相比 reference model，新模型应该更偏向好回答，而不是差回答。</p></blockquote><p>DPO 的优点是稳定、简单、成本低。</p><p>但它依赖偏好数据质量，也不一定适合所有需要复杂探索的任务。</p><h2 id="7-GRPO：为什么-reasoning-里会出现它"><a href="#7-GRPO：为什么-reasoning-里会出现它" class="headerlink" title="7. GRPO：为什么 reasoning 里会出现它"></a>7. GRPO：为什么 reasoning 里会出现它</h2><p>GRPO 是 DeepSeekMath 和 DeepSeek-R1 里提到的重要方法。</p><p>它可以看成 PPO 的一种变体，核心是省掉单独的 value model，用一组采样回答的相对奖励来估计 advantage。</p><p>对同一个问题，模型生成一组回答：</p><p>$$<br>{y_1, y_2, …, y_G}<br>$$</p><p>每个回答得到 reward。然后用组内平均和标准差做归一化，判断某个回答相对这一组是好还是坏。</p><p>直觉上：</p><blockquote><p>不一定要知道一个回答的绝对价值，只要知道它在同一组候选里相对更好还是更差。</p></blockquote><p>这对数学、代码这类可验证任务很自然。因为 reward 可以来自答案是否正确、测试是否通过。</p><p>GRPO 的优势是减少 value model 带来的额外显存和训练复杂度。</p><p>但它仍然是 RL，不是免费的。采样多个回答、计算 reward、控制 KL、保持训练稳定，都是成本。</p><h2 id="8-SFT、DPO、GRPO-的位置"><a href="#8-SFT、DPO、GRPO-的位置" class="headerlink" title="8. SFT、DPO、GRPO 的位置"></a>8. SFT、DPO、GRPO 的位置</h2><p>可以粗略这样理解：</p><ul><li>SFT：教模型怎么回答</li><li>DPO：教模型在两个回答里偏向更好的那个</li><li>GRPO&#x2F;RL：让模型通过奖励信号强化解决问题的策略</li></ul><p>SFT 更像 imitation。</p><p>DPO 更像 preference shaping。</p><p>RL 更像 outcome-driven optimization。</p><p>这三者不是互斥关系。很多现代模型会组合使用：先 SFT，再偏好优化，再针对 reasoning&#x2F;code 做 RL。</p><h2 id="9-Post-training-改的是能力还是行为"><a href="#9-Post-training-改的是能力还是行为" class="headerlink" title="9. Post-training 改的是能力还是行为"></a>9. Post-training 改的是能力还是行为</h2><p>这是一个容易混的点。</p><p>Post-training 有时主要改行为，比如让模型更礼貌、更清晰、更遵循指令。</p><p>但在 reasoning、coding 任务里，post-training 也可能显著提升能力。</p><p>原因是这些任务的“能力”很依赖解题策略。</p><p>Base model 可能已经有知识，但不会稳定地分解问题、检查答案、使用工具、运行测试。</p><p>通过 post-training，模型学到更有效的行为策略，于是表现看起来像能力提升。</p><p>所以能力和行为在 LLM 里不是完全分开的。</p><h2 id="10-Reward-hacking-和过优化"><a href="#10-Reward-hacking-和过优化" class="headerlink" title="10. Reward hacking 和过优化"></a>10. Reward hacking 和过优化</h2><p>只要有 reward，就有 reward hacking 风险。</p><p>如果 reward model 偏好长回答，模型可能变啰嗦。</p><p>如果 reward 偏好自信语气，模型可能更会胡说。</p><p>如果数学 reward 只看最终答案，模型可能生成错误推理但碰巧答案对。</p><p>如果代码 reward 只看公开测试，模型可能过拟合测试。</p><p>所以 post-training 的关键不是“把 reward 拉满”，而是设计和验证 reward 是否真的代表目标。</p><p>这也是为什么现代模型训练要大量 eval、红队、安全测试、人工审查。</p><h2 id="11-Post-training-和数据质量"><a href="#11-Post-training-和数据质量" class="headerlink" title="11. Post-training 和数据质量"></a>11. Post-training 和数据质量</h2><p>Post-training 对数据质量非常敏感。</p><p>一批高质量 SFT 数据可能比十倍低质量数据更有用。</p><p>偏好数据也一样。标注者是否一致、偏好标准是否清晰、chosen 和 rejected 差异是否有意义，都会影响训练。</p><p>对 reasoning model 来说，高质量 reasoning traces 更关键。</p><p>如果训练数据里充满表面步骤，模型会学会“写步骤”，但不一定学会“做推理”。</p><p>所以数据构造不是辅助工作，而是 post-training 的核心。</p><h2 id="12-为什么同一个-base-model-会有不同版本"><a href="#12-为什么同一个-base-model-会有不同版本" class="headerlink" title="12. 为什么同一个 base model 会有不同版本"></a>12. 为什么同一个 base model 会有不同版本</h2><p>一个 base model 可以派生出很多版本：</p><ul><li>instruct model</li><li>chat model</li><li>reasoning model</li><li>code model</li><li>tool-use model</li><li>domain-specific model</li></ul><p>它们底层知识可能相近，但 post-training 目标不同。</p><p>比如 code model 会更强调代码数据、测试反馈、仓库级任务。</p><p>Reasoning model 会更强调数学、逻辑、可验证 reward、长 reasoning trace。</p><p>Chat model 会更强调安全、有帮助、对话体验。</p><p>所以看到模型名时，要区分 base 和 post-trained variant。只比较参数量没有意义。</p><h2 id="13-读-post-training-报告时看什么"><a href="#13-读-post-training-报告时看什么" class="headerlink" title="13. 读 post-training 报告时看什么"></a>13. 读 post-training 报告时看什么</h2><p>我会看这些问题：</p><ul><li>Base model 是什么</li><li>SFT 数据规模和来源是什么</li><li>是否使用偏好数据</li><li>偏好优化用 PPO、DPO，还是其他方法</li><li>RL reward 是人工 reward model，还是规则验证</li><li>是否针对 reasoning&#x2F;code&#x2F;agent 做专门训练</li><li>是否蒸馏自更强模型</li><li>有没有控制 KL，reference model 是什么</li><li>eval 是否覆盖安全、幻觉、长上下文、代码、数学</li></ul><p>特别要警惕只展示 benchmark 分数但不讲训练细节的报告。Post-training 的细节往往决定模型实际行为。</p><h2 id="14-小结"><a href="#14-小结" class="headerlink" title="14. 小结"></a>14. 小结</h2><p>Post-training 是现代大模型从“会续写”变成“能使用”的关键阶段。</p><p>SFT 解决基本指令跟随。</p><p>RLHF&#x2F;PPO 让模型从偏好中优化，但复杂且不稳定。</p><p>DPO 把偏好学习变成更简单的目标。</p><p>GRPO 适合在可验证任务上做 group-based RL，尤其和 reasoning&#x2F;coding 结合紧密。</p><p>我会把 post-training 看成一套行为塑形系统。它不只是让模型更礼貌，而是在很多任务上改变模型解决问题的方式。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Ouyang et al., <a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a></li><li>Rafailov et al., <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization: Your Language Model is Secretly a Reward Model</a></li><li>Shao et al., <a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a></li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li><li>Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li><li>GLM-4.5 Team, <a href="https://arxiv.org/abs/2508.06471">GLM-4.5: Agentic, Reasoning, and Coding Foundation Models</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>现代大模型与前沿论文笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>大模型</tag>
+      
+      <tag>Post-training</tag>
+      
+      <tag>SFT</tag>
+      
+      <tag>DPO</tag>
+      
+      <tag>GRPO</tag>
+      
+      <tag>RLHF</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>现代大模型笔记 04：Reasoning Model，从 CoT 到 DeepSeek-R1</title>
+    <link href="/2025/09/27/modern-llm-notes-04-reasoning-models/"/>
+    <url>/2025/09/27/modern-llm-notes-04-reasoning-models/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇整理 reasoning model。</p><p>现在很多模型会区分 thinking mode 和 non-thinking mode，也会强调数学、代码、复杂推理能力。表面上看，这是“模型回答前多想一会”。但如果只这么理解，就太浅了。</p><p>Reasoning model 的变化至少包括三层：</p><ul><li>推理时愿意花更多 token 和计算</li><li>训练时用更强的推理数据和偏好信号</li><li>后训练阶段用 RL 等方法强化可验证任务上的表现</li></ul><p>所以这篇从 CoT 开始，逐步过渡到 DeepSeek-R1 这类模型。</p><h2 id="1-普通-next-token-prediction-的限制"><a href="#1-普通-next-token-prediction-的限制" class="headerlink" title="1. 普通 next token prediction 的限制"></a>1. 普通 next token prediction 的限制</h2><p>语言模型的基本目标是预测下一个 token：</p><p>$$<br>\max_\theta \sum_t \log p_\theta(x_t \mid x_{&lt;t})<br>$$</p><p>这个目标很强，能学到语法、知识、代码模式、常识关系。</p><p>但复杂推理不只是“最像下一个词”。很多题需要中间状态：</p><ul><li>先拆条件</li><li>再选择公式</li><li>再计算</li><li>再检查结果</li></ul><p>如果模型直接从问题跳到答案，中间任何一步错了都很难纠正。</p><p>所以 reasoning 的一个核心思路是：不要急着输出最终答案，先生成中间推理过程。</p><h2 id="2-Chain-of-thought-的作用"><a href="#2-Chain-of-thought-的作用" class="headerlink" title="2. Chain-of-thought 的作用"></a>2. Chain-of-thought 的作用</h2><p>Chain-of-thought（CoT）最早可以理解成一种 prompting 方法。</p><p>给模型几个带中间步骤的例子，模型在新问题上也更倾向于写出中间步骤。</p><p>比如简单问题：</p><blockquote><p>小明有 3 个苹果，又买了 5 个，吃掉 2 个，还剩几个？</p></blockquote><p>直接回答也能做。</p><p>但如果问题变成多条件、多变量、多约束，直接回答容易跳步。</p><p>CoT 的作用是把一次复杂映射拆成多步局部映射：</p><p>$$<br>\text{problem} \rightarrow \text{intermediate steps} \rightarrow \text{answer}<br>$$</p><p>这不是魔法。它更像给模型更多计算轨迹，让模型在输出空间里保留中间状态。</p><h2 id="3-CoT-为什么会提升能力"><a href="#3-CoT-为什么会提升能力" class="headerlink" title="3. CoT 为什么会提升能力"></a>3. CoT 为什么会提升能力</h2><p>我觉得可以从三个角度理解。</p><p>第一，token budget 变多了。</p><p>模型不是在一个 token 或一句话里压出答案，而是有更多 token 做中间计算。</p><p>第二，中间步骤提供了隐式 scratchpad。</p><p>模型可以把已经得到的结论写下来，后面继续引用。</p><p>第三，训练分布更匹配。</p><p>如果模型在训练或示例中见过大量“逐步解题”的文本，它就会学到这种生成模式。</p><p>但 CoT 也有问题。模型写出来的推理不一定忠实。有时它只是生成一个看起来合理的解释，而真正导致答案的内部机制未必和文本推理一致。</p><p>所以 CoT 提升表现，不等于 CoT 完全可解释。</p><h2 id="4-Test-time-compute：推理时多花计算"><a href="#4-Test-time-compute：推理时多花计算" class="headerlink" title="4. Test-time compute：推理时多花计算"></a>4. Test-time compute：推理时多花计算</h2><p>Reasoning model 的一个核心趋势是 test-time compute。</p><p>传统模型更强调训练阶段投入：预训练更多数据、更大参数。</p><p>Reasoning model 则强调推理阶段也可以多花计算。</p><p>比如：</p><ul><li>生成更长 reasoning trace</li><li>采样多个解法再选择</li><li>自我检查</li><li>用 verifier 打分</li><li>分解问题再逐步求解</li></ul><p>这背后的想法是：对于复杂任务，生成一个短答案太便宜，也太冒险。</p><p>如果一道数学题需要 20 步推导，模型只生成 2 行答案，省下的 token 可能就是错误来源。</p><h2 id="5-Thinking-mode-和-non-thinking-mode"><a href="#5-Thinking-mode-和-non-thinking-mode" class="headerlink" title="5. Thinking mode 和 non-thinking mode"></a>5. Thinking mode 和 non-thinking mode</h2><p>Qwen3 这类模型提出 thinking mode 和 non-thinking mode 的统一框架。</p><p>这很实际。</p><p>不是所有问题都需要长推理。</p><p>问“北京今天几点”这种问题，如果模型长篇 reasoning，反而浪费时间。</p><p>但问一道复杂证明题、代码 debug、实验设计，就需要更多推理 token。</p><p>所以 thinking mode 的关键不是“永远思考”，而是根据任务复杂度分配计算。</p><p>这和人也像。简单问题直接答，复杂问题先列步骤。</p><p>从系统角度看，这叫 latency-quality trade-off。更长思考可能提高质量，但一定增加延迟和成本。</p><h2 id="6-DeepSeek-R1-Zero：只靠-RL-能出现什么"><a href="#6-DeepSeek-R1-Zero：只靠-RL-能出现什么" class="headerlink" title="6. DeepSeek-R1-Zero：只靠 RL 能出现什么"></a>6. DeepSeek-R1-Zero：只靠 RL 能出现什么</h2><p>DeepSeek-R1 里最有意思的部分是 R1-Zero。</p><p>R1-Zero 不先做 supervised fine-tuning，而是直接对 base model 做大规模 RL，目标是增强 reasoning 能力。</p><p>报告里提到，模型在 RL 过程中自然出现了一些推理行为，比如更长的思考、更强的自我验证。</p><p>这个结果很重要，因为它说明 reasoning 行为不一定完全依赖人工标注的 CoT 数据，也可以通过可验证奖励被强化出来。</p><p>但 R1-Zero 也有问题，比如可读性差、语言混杂、输出格式不稳定。</p><p>这说明“能推理”和“能以人类喜欢的方式推理”不是一回事。</p><h2 id="7-DeepSeek-R1：cold-start-multi-stage-RL"><a href="#7-DeepSeek-R1：cold-start-multi-stage-RL" class="headerlink" title="7. DeepSeek-R1：cold-start + multi-stage RL"></a>7. DeepSeek-R1：cold-start + multi-stage RL</h2><p>DeepSeek-R1 在 R1-Zero 的基础上加入 cold-start data。</p><p>也就是先给模型一些高质量、可读性更好的推理样本，让模型有一个更好的起点，然后再做 RL。</p><p>后面再经过多阶段训练，把 reasoning 能力、通用问答能力、可读性等拉到更平衡的状态。</p><p>这体现了一个很重要的训练思路：</p><blockquote><p>RL 可以强化能力，但如果起点太乱，最终行为可能不好控制。</p></blockquote><p>SFT 提供格式和初始行为，RL 提供目标导向的能力强化。</p><p>两者不是互斥，而是互补。</p><h2 id="8-可验证奖励为什么关键"><a href="#8-可验证奖励为什么关键" class="headerlink" title="8. 可验证奖励为什么关键"></a>8. 可验证奖励为什么关键</h2><p>Reasoning RL 最适合数学、代码这类任务，因为它们容易验证。</p><p>数学题可以看最终答案对不对。</p><p>代码题可以跑测试。</p><p>这类 reward 比“这个回答好不好”更明确。</p><p>如果 reward 很模糊，RL 容易学到投机行为。比如生成看起来更自信、更长、更像标准答案的文本，但不一定更正确。</p><p>所以 reasoning model 的突破，很大程度来自可验证任务的 reward 设计。</p><p>这也解释了为什么数学和代码经常是 reasoning model 的核心 benchmark。</p><h2 id="9-Distillation：小模型学-reasoning"><a href="#9-Distillation：小模型学-reasoning" class="headerlink" title="9. Distillation：小模型学 reasoning"></a>9. Distillation：小模型学 reasoning</h2><p>DeepSeek-R1 还强调 distillation，把大 reasoning model 的能力蒸馏到较小模型上。</p><p>蒸馏的直觉是：大模型生成高质量 reasoning data，小模型用这些数据做 supervised training。</p><p>这说明一个现象：</p><blockquote><p>reasoning 能力的一部分可以通过行为模仿迁移。</p></blockquote><p>但蒸馏也有上限。</p><p>小模型可以学到大模型的解题风格和部分策略，但参数容量、基础知识、搜索深度都有限。它不可能在所有场景都复制大模型能力。</p><p>所以蒸馏模型适合低成本部署，但不能简单等同于原始 teacher model。</p><h2 id="10-Reasoning-不是更长越好"><a href="#10-Reasoning-不是更长越好" class="headerlink" title="10. Reasoning 不是更长越好"></a>10. Reasoning 不是更长越好</h2><p>一个常见误区是：thinking token 越多，答案越好。</p><p>实际不是。</p><p>过长 reasoning 可能带来：</p><ul><li>延迟变高</li><li>成本变高</li><li>中间步骤引入错误</li><li>模型绕远路</li><li>简单问题过度分析</li></ul><p>所以 thinking budget 很重要。</p><p>理想状态是：简单任务短思考，复杂任务长思考；模型知道什么时候该停。</p><p>这也是 Qwen3 把 thinking budget 作为机制来讲的原因。</p><h2 id="11-Reasoning-trace-是否可信"><a href="#11-Reasoning-trace-是否可信" class="headerlink" title="11. Reasoning trace 是否可信"></a>11. Reasoning trace 是否可信</h2><p>模型写出的 reasoning trace 可以帮助人检查，但不能完全等同于模型内部真实推理。</p><p>有时模型会先在内部形成答案，再生成一段看似合理的解释。</p><p>有时它会在文本推理中走错，但最后答案碰巧对。</p><p>有时它的中间推理看起来很漂亮，但关键假设是错的。</p><p>所以我更愿意把 reasoning trace 看成一种可检查的输出过程，而不是完整透明的内部机制。</p><p>它有用，但不能盲信。</p><h2 id="12-读-reasoning-model-报告时看什么"><a href="#12-读-reasoning-model-报告时看什么" class="headerlink" title="12. 读 reasoning model 报告时看什么"></a>12. 读 reasoning model 报告时看什么</h2><p>我会看这些问题：</p><ul><li>Base model 是什么</li><li>有没有 cold-start SFT</li><li>RL reward 怎么设计</li><li>任务是否可验证</li><li>是否使用 rejection sampling 或 verifier</li><li>thinking token 平均多长</li><li>是否支持非 thinking 模式</li><li>benchmark 提升来自训练、采样，还是更长输出</li><li>蒸馏模型和原模型差距多大</li></ul><p>尤其要看成本。一个 reasoning model 如果每题多花 10 倍 token，benchmark 提升就要放在成本背景下理解。</p><h2 id="13-小结"><a href="#13-小结" class="headerlink" title="13. 小结"></a>13. 小结</h2><p>Reasoning model 的本质不是“模型突然会思考”，而是：</p><blockquote><p>训练目标、数据构造、RL reward 和推理阶段计算分配共同改变了模型解决复杂问题的方式。</p></blockquote><p>CoT 给模型 scratchpad。</p><p>Test-time compute 让模型推理时多花计算。</p><p>RL 在可验证任务上强化正确行为。</p><p>Distillation 把昂贵推理模型的行为迁移到小模型。</p><p>这几件事合起来，才是现代 reasoning model 的主线。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Wei et al., <a href="https://arxiv.org/abs/2201.11903">Chain-of-Thought Prompting Elicits Reasoning in Large Language Models</a></li><li>Wang et al., <a href="https://arxiv.org/abs/2203.11171">Self-Consistency Improves Chain of Thought Reasoning in Language Models</a></li><li>Shao et al., <a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a></li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li><li>Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>现代大模型与前沿论文笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>大模型</tag>
+      
+      <tag>Reasoning</tag>
+      
+      <tag>CoT</tag>
+      
+      <tag>DeepSeek-R1</tag>
+      
+      <tag>强化学习</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码</title>
+    <link href="/2025/09/20/modern-llm-notes-03-long-context/"/>
+    <url>/2025/09/20/modern-llm-notes-03-long-context/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇整理长上下文。</p><p>很多模型现在都会宣传 32K、128K、1M context window。这个数字很吸引人，但它很容易被误解。</p><p>长上下文不是“把 max length 参数调大”。真正困难的地方有三类：</p><ul><li>attention 计算量变大</li><li>KV cache 显存变大</li><li>上下文变长后，模型未必能稳定用好信息</li></ul><p>所以这篇重点不是列方法，而是看长上下文到底在解决什么瓶颈。</p><h2 id="1-Self-attention-为什么贵"><a href="#1-Self-attention-为什么贵" class="headerlink" title="1. Self-attention 为什么贵"></a>1. Self-attention 为什么贵</h2><p>标准 self-attention 是：</p><p>$$<br>\mathrm{Attention}(Q,K,V)&#x3D;\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d}}\right)V<br>$$</p><p>如果 sequence length 是 $n$，那么 $QK^\top$ 是一个 $n \times n$ 的矩阵。</p><p>这意味着 attention 的时间和显存复杂度通常和 $n^2$ 有关。</p><p>当上下文从 4K 增加到 32K，长度变成 8 倍，attention matrix 的规模大约变成 64 倍。</p><p>这就是为什么长上下文不是线性加 token 那么简单。</p><p>当然，实际实现里有 FlashAttention、分块计算、并行策略等优化，不一定真的显式保存完整 attention matrix。但底层的两两 token 交互压力仍然存在。</p><h2 id="2-Prefill-和-decode-是两种成本"><a href="#2-Prefill-和-decode-是两种成本" class="headerlink" title="2. Prefill 和 decode 是两种成本"></a>2. Prefill 和 decode 是两种成本</h2><p>LLM 推理可以拆成两个阶段。</p><p>Prefill 阶段：模型一次性处理 prompt，把所有输入 token 的 hidden states 和 KV cache 算出来。</p><p>Decode 阶段：模型每次生成一个新 token，并复用前面的 KV cache。</p><p>这两个阶段的瓶颈不同。</p><p>长 prompt 会让 prefill 很贵，因为 prompt 内部 token 之间要做 attention。</p><p>长生成会让 decode 过程中 KV cache 越来越大，因为每一步都要关注过去所有 token。</p><p>所以同样是“长上下文”，有两种场景：</p><ul><li>读一个很长的文档，然后回答几个问题</li><li>持续进行很长的对话或生成很长的内容</li></ul><p>它们的系统瓶颈并不完全一样。</p><h2 id="3-KV-cache-为什么重要"><a href="#3-KV-cache-为什么重要" class="headerlink" title="3. KV cache 为什么重要"></a>3. KV cache 为什么重要</h2><p>自回归生成时，第 $t$ 步要用前面所有 token 的 key 和 value。</p><p>如果每一步都重新计算前面所有 token，成本会爆炸。</p><p>KV cache 的做法是把历史 token 的 key&#x2F;value 存下来。</p><p>这样第 $t$ 步只需要算新 token 的 query，然后和缓存里的 key&#x2F;value 做 attention。</p><p>但 cache 本身很占显存。</p><p>粗略看，KV cache 大小和这些因素成正比：</p><p>$$<br>\text{layers} \times \text{sequence length} \times \text{KV heads} \times \text{head dimension}<br>$$</p><p>所以 sequence length 越长，cache 越大。模型层数越多，cache 也越大。</p><p>这也是为什么 GQA、MQA、MLA 这类方法重要。它们都在不同程度上减少 key&#x2F;value 的存储或计算成本。</p><h2 id="4-MHA、MQA、GQA-与-MLA"><a href="#4-MHA、MQA、GQA-与-MLA" class="headerlink" title="4. MHA、MQA、GQA 与 MLA"></a>4. MHA、MQA、GQA 与 MLA</h2><p>标准 MHA 中，每个 query head 都有自己的 key&#x2F;value head。</p><p>MQA 让所有 query heads 共享一组 key&#x2F;value。</p><p>GQA 折中，让一组 query heads 共享一组 key&#x2F;value。</p><p>它们主要是在减少 KV cache。</p><p>DeepSeek 的 MLA 更进一步。MLA 把 key&#x2F;value 压到一个 latent 表示里，再在需要时恢复出用于 attention 的表示。它的目标也是降低 KV cache，但做法不是简单减少 KV heads，而是改变缓存内容的表示方式。</p><p>这里可以抓住一个直觉：</p><blockquote><p>长上下文推理里，缓存什么、缓存多少、怎么缓存，是和 attention 公式同样重要的问题。</p></blockquote><p>很多论文看起来在改 attention，实际是在改 inference memory footprint。</p><h2 id="5-FlashAttention-解决的不是同一个问题"><a href="#5-FlashAttention-解决的不是同一个问题" class="headerlink" title="5. FlashAttention 解决的不是同一个问题"></a>5. FlashAttention 解决的不是同一个问题</h2><p>FlashAttention 优化的是 attention 计算过程中的内存读写。</p><p>标准实现可能会把 $QK^\top$ 这样的中间矩阵写入 HBM，再读回来做 softmax 和乘 $V$。</p><p>FlashAttention 用 tiling 和 online softmax，把计算分块放进更快的 SRAM，减少 HBM 访问。</p><p>所以它不是让 attention 从 $O(n^2)$ 变成 $O(n)$，而是让同样的 exact attention 在 GPU 上跑得更高效、占用更少显存。</p><p>这点很关键。</p><p>如果一个方法宣称“更长上下文”，要看它是在：</p><ul><li>降低理论复杂度</li><li>降低实际显存占用</li><li>降低 KV cache</li><li>改善位置外推</li><li>提升长文本检索能力</li></ul><p>这些不是一回事。</p><h2 id="6-位置编码的外推问题"><a href="#6-位置编码的外推问题" class="headerlink" title="6. 位置编码的外推问题"></a>6. 位置编码的外推问题</h2><p>模型训练时如果只见过 4K 长度，直接推到 32K 可能出问题。</p><p>因为 position embedding 或 RoPE 的位置范围发生了变化。</p><p>RoPE 的好处是相对位置信息更自然，但它也有频率外推问题。位置很大时，旋转角度分布可能和训练时不一样。</p><p>所以会有 RoPE scaling、NTK-aware scaling、YaRN 等方法。</p><p>这些方法的目标不是让模型“突然理解长文档”，而是先解决位置编码在更长长度下不崩。</p><p>换句话说：</p><blockquote><p>位置外推解决的是模型能不能在更长坐标系里正常工作，不等于模型真的会做长程推理。</p></blockquote><p>这也是为什么有些模型标称 128K，但实际问很长文档里的细节时，表现并不稳定。</p><h2 id="7-Lost-in-the-middle"><a href="#7-Lost-in-the-middle" class="headerlink" title="7. Lost in the middle"></a>7. Lost in the middle</h2><p>长上下文还有一个能力问题：模型可能看得见，但用不好。</p><p>一种常见现象是 lost in the middle。信息放在开头或结尾时，模型更容易找到；信息放在中间时，模型容易漏掉。</p><p>这说明 context window 大小和 effective context length 不一样。</p><p>Context window 是系统允许输入多少 token。</p><p>Effective context length 是模型在任务中能可靠利用多少 token。</p><p>这两个数字差很多时，长上下文就更像“能塞进去”，而不是“能读明白”。</p><h2 id="8-长上下文任务的类型"><a href="#8-长上下文任务的类型" class="headerlink" title="8. 长上下文任务的类型"></a>8. 长上下文任务的类型</h2><p>我觉得长上下文至少要分三类看。</p><p>第一类是 retrieval-heavy 任务。</p><p>比如在长文档里找一个事实。这里关键是模型能不能定位证据。</p><p>第二类是 synthesis-heavy 任务。</p><p>比如总结一本书、多篇论文、一个项目代码库。这里关键不是找一句话，而是整合多个位置的信息。</p><p>第三类是 reasoning-heavy 任务。</p><p>比如给很长的实验日志，判断哪一步导致结果异常。这里需要模型在长上下文里做因果判断。</p><p>很多 benchmark 只测第一类，但真实使用里后两类更难。</p><h2 id="9-Context-compression"><a href="#9-Context-compression" class="headerlink" title="9. Context compression"></a>9. Context compression</h2><p>如果上下文太长，一种思路是压缩。</p><p>压缩可以发生在很多层面：</p><ul><li>文本层面：先摘要，再输入模型</li><li>检索层面：只取相关 chunks</li><li>表示层面：把多个 token 压成少量 memory tokens</li><li>KV 层面：压缩或丢弃部分 cache</li></ul><p>这些方法的风险是信息丢失。</p><p>压缩越强，成本越低，但越可能丢掉后面问题需要的细节。</p><p>所以长上下文和 RAG 不是完全替代关系。长上下文让模型能直接读更多内容，RAG 让系统先筛掉明显无关内容。实际系统里经常两者结合。</p><h2 id="10-Sparse-attention"><a href="#10-Sparse-attention" class="headerlink" title="10. Sparse attention"></a>10. Sparse attention</h2><p>Sparse attention 试图减少 token 两两交互。</p><p>不是每个 token 都关注所有 token，而是只关注局部窗口、全局 token，或者某种稀疏模式。</p><p>它的好处是复杂度更低。</p><p>问题是稀疏模式可能限制信息流。如果任务需要两个相距很远的位置直接交互，稀疏 attention 未必能很好处理。</p><p>所以 sparse attention 的关键问题是：稀疏模式是不是和任务结构匹配。</p><p>代码、文档、视频、对话的长程依赖形态不一样。一个固定稀疏模式很难对所有任务都最优。</p><h2 id="11-为什么-128K-不等于真正会用-128K"><a href="#11-为什么-128K-不等于真正会用-128K" class="headerlink" title="11. 为什么 128K 不等于真正会用 128K"></a>11. 为什么 128K 不等于真正会用 128K</h2><p>假设模型支持 128K context。</p><p>这至少包含三层含义：</p><p>第一，系统层面可以接收 128K token。</p><p>第二，模型结构和位置编码在 128K 下不会明显崩。</p><p>第三，模型在真实任务中能稳定利用 128K 里的关键信息。</p><p>很多时候宣传的是第一层或第二层，用户期待的是第三层。</p><p>这就是长上下文体验落差的来源。</p><p>所以读模型报告时，不能只看 max context length，还要看它怎么评估长上下文能力。Needle-in-a-haystack 只能说明模型能不能找针，不能完全说明它能不能理解一整份复杂材料。</p><h2 id="12-读长上下文论文时看什么"><a href="#12-读长上下文论文时看什么" class="headerlink" title="12. 读长上下文论文时看什么"></a>12. 读长上下文论文时看什么</h2><p>我会看这些问题：</p><ul><li>训练时最大长度是多少，推理时最大长度是多少</li><li>使用什么位置编码和 scaling 方法</li><li>attention 是 exact、sparse、linear，还是其他变体</li><li>KV cache 有没有压缩</li><li>prefill 和 decode 的吞吐分别如何</li><li>benchmark 是检索型，还是综合理解型</li><li>长度增加后性能下降曲线怎样</li><li>有没有和 RAG 或 compression 结合</li></ul><p>尤其要注意：有些方法提升的是“能跑更长”，有些方法提升的是“用得更好”。这两个目标相关，但不是同一个目标。</p><h2 id="13-小结"><a href="#13-小结" class="headerlink" title="13. 小结"></a>13. 小结</h2><p>长上下文的核心不是把窗口开大，而是同时处理三个问题：</p><ul><li>算得动</li><li>存得下</li><li>用得好</li></ul><p>FlashAttention、GQA、MLA 主要偏向算得动和存得下。</p><p>RoPE scaling、YaRN 主要解决位置外推。</p><p>长文本训练、检索式评估、context compression 更接近用得好的问题。</p><p>所以看一个长上下文模型时，我不会只看 32K、128K、1M 这些数字。真正要问的是：它在什么任务上证明了自己能稳定使用这么长的上下文。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Dao et al., <a href="https://arxiv.org/abs/2205.14135">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</a></li><li>Ainslie et al., <a href="https://arxiv.org/abs/2305.13245">GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints</a></li><li>Su et al., <a href="https://arxiv.org/abs/2104.09864">RoFormer: Enhanced Transformer with Rotary Position Embedding</a></li><li>Peng et al., <a href="https://arxiv.org/abs/2309.00071">YaRN: Efficient Context Window Extension of Large Language Models</a></li><li>Liu et al., <a href="https://arxiv.org/abs/2307.03172">Lost in the Middle: How Language Models Use Long Contexts</a></li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a></li><li>Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>现代大模型与前沿论文笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>大模型</tag>
+      
+      <tag>长上下文</tag>
+      
+      <tag>注意力机制</tag>
+      
+      <tag>KV cache</tag>
+      
+      <tag>RoPE</tag>
+      
+      <tag>FlashAttention</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>现代大模型笔记 02：MoE，为什么大模型开始变稀疏</title>
+    <link href="/2025/09/13/modern-llm-notes-02-moe/"/>
+    <url>/2025/09/13/modern-llm-notes-02-moe/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇整理 MoE，也就是 mixture of experts。</p><p>现在很多前沿开源模型都会强调两个数字：total parameters 和 activated parameters。比如一个模型可能有 235B 总参数，但每个 token 只激活 22B 参数。</p><p>第一次看到这个说法时很容易觉得矛盾：到底是 235B 模型，还是 22B 模型？</p><p>MoE 的关键就在这里。它不是让所有参数每次都参与计算，而是给每个 token 选择一小部分 expert 来算。</p><h2 id="1-Dense-model-的问题"><a href="#1-Dense-model-的问题" class="headerlink" title="1. Dense model 的问题"></a>1. Dense model 的问题</h2><p>普通 Transformer 是 dense model。</p><p>每个 token 经过每一层时，都会使用这一层的全部参数。</p><p>如果模型变大，计算量也跟着变大。一个 dense 70B 模型和一个 dense 7B 模型相比，容量更大，但每个 token 的计算成本也明显更高。</p><p>这带来一个很现实的问题：参数规模、训练成本、推理成本几乎绑在一起。</p><p>想要更强模型，就要更大参数；参数越大，每次推理越贵。</p><p>MoE 试图拆开这件事：</p><ul><li>总参数可以很大，用来提供更高容量</li><li>每个 token 只用一部分参数，用来控制计算成本</li></ul><p>也就是说，MoE 想要的是“大容量”和“低激活成本”同时存在。</p><h2 id="2-Expert-是什么"><a href="#2-Expert-是什么" class="headerlink" title="2. Expert 是什么"></a>2. Expert 是什么</h2><p>在很多 MoE Transformer 里，attention 层仍然是 shared 的，MoE 主要替换 FFN 层。</p><p>普通 FFN 是一个大的前馈网络：</p><p>$$<br>\mathrm{FFN}(x)<br>$$</p><p>MoE FFN 则有多个 expert：</p><p>$$<br>E_1(x), E_2(x), …, E_N(x)<br>$$</p><p>每个 expert 本质上可以理解成一个 FFN。区别是，不是每个 token 都跑所有 expert，而是由 router 选择其中几个。</p><p>如果使用 top-2 routing，那么 token $x$ 的输出大概是：</p><p>$$<br>y &#x3D; g_1(x)E_{i}(x) + g_2(x)E_{j}(x)<br>$$</p><p>这里 $E_i$ 和 $E_j$ 是被选中的两个 experts，$g_1$ 和 $g_2$ 是 router 给出的权重。</p><p>直觉上，模型在说：</p><blockquote><p>这个 token 更适合交给这些 expert 处理。</p></blockquote><h2 id="3-Router：MoE-的真正难点"><a href="#3-Router：MoE-的真正难点" class="headerlink" title="3. Router：MoE 的真正难点"></a>3. Router：MoE 的真正难点</h2><p>MoE 听起来像“多放几个专家，然后自动选择”。但真正难的是 router。</p><p>Router 通常会对每个 token 算一个分数：</p><p>$$<br>s &#x3D; xW_r<br>$$</p><p>再从所有 expert 里选 top-k。</p><p>问题是，如果 router 学得不好，所有 token 都挤向少数几个 expert，其他 expert 几乎不用。这样不仅浪费参数，还会导致某些 expert 负载爆炸。</p><p>所以 MoE 训练里经常要处理 load balancing。</p><p>Switch Transformer 里用了 auxiliary loss 来鼓励 token 更均匀地分配到不同 expert。DeepSeek-V3 则强调 auxiliary-loss-free 的 load balancing，试图减少辅助损失对模型主目标的干扰。</p><p>这里有一个技术取舍：</p><ul><li>加 auxiliary loss，路由更容易均衡，但可能影响语言建模目标</li><li>不加或弱化 auxiliary loss，主目标更干净，但路由稳定性更难保证</li></ul><p>MoE 的难点不是“有多个 expert”，而是“怎么让 expert 被合理使用”。</p><h2 id="4-总参数和激活参数"><a href="#4-总参数和激活参数" class="headerlink" title="4. 总参数和激活参数"></a>4. 总参数和激活参数</h2><p>MoE 报告里经常出现两个数字。</p><p>Total parameters 指模型所有参数，包括所有 experts。</p><p>Activated parameters 指处理一个 token 时实际参与计算的参数。</p><p>比如一个 MoE 模型有 64 个 experts，每次只选 2 个。那总参数可能很大，但每个 token 只走其中一小部分。</p><p>这就解释了为什么一个模型可以同时标注为 235B total parameters 和 22B activated parameters。</p><p>它的容量接近一个超大模型，但单 token 计算量更接近一个中等模型。</p><p>不过这句话不能简单理解成“235B 的效果，22B 的成本”。因为 MoE 还有通信、路由、负载均衡、batching 等额外问题。</p><h2 id="5-MoE-为什么适合大规模预训练"><a href="#5-MoE-为什么适合大规模预训练" class="headerlink" title="5. MoE 为什么适合大规模预训练"></a>5. MoE 为什么适合大规模预训练</h2><p>预训练阶段，模型会看到海量 token。不同 token 的统计特征差异很大：代码、数学、中文、英文、表格、对话、网页文本。</p><p>Dense model 对所有 token 使用同一组 FFN 参数。</p><p>MoE 则允许不同 token 走不同 expert。理论上，不同 expert 可以学到不同类型的模式。</p><p>比如某些 expert 可能更常处理代码 token，某些 expert 可能更常处理数学符号，某些 expert 更常处理自然语言。</p><p>这里要注意，我不会把 expert 理解成非常清晰的人类职业分工。它们不一定真的变成“数学专家”“代码专家”。更准确地说，expert 是被 router 动态选择的参数子空间。</p><p>这个区别很重要。技术报告里如果没有分析 expert specialization，就不要强行给每个 expert 贴人类标签。</p><h2 id="6-MoE-的通信成本"><a href="#6-MoE-的通信成本" class="headerlink" title="6. MoE 的通信成本"></a>6. MoE 的通信成本</h2><p>MoE 在单卡上很容易理解，但大模型训练通常跨很多 GPU。</p><p>如果 expert 分布在不同 GPU 上，token 被 router 分配后，就需要在 GPU 之间传输。</p><p>这会引入 all-to-all communication。</p><p>Dense model 的通信主要来自模型并行、数据并行、梯度同步等。MoE 额外增加了 token dispatch 和 combine 的通信。</p><p>这就是为什么 MoE 论文和技术报告会关心：</p><ul><li>expert parallelism</li><li>load balancing</li><li>token dropping</li><li>capacity factor</li><li>communication-computation overlap</li></ul><p>这些听起来像工程细节，但它们决定 MoE 能不能真的跑起来。</p><p>一个 routing 很漂亮但通信开销巨大的 MoE，在真实训练里可能并不划算。</p><h2 id="7-Capacity-factor-和-token-dropping"><a href="#7-Capacity-factor-和-token-dropping" class="headerlink" title="7. Capacity factor 和 token dropping"></a>7. Capacity factor 和 token dropping</h2><p>每个 expert 每个 batch 能处理的 token 数通常会有限制。</p><p>如果某个 expert 被分配了太多 token，超出的 token 可能被 drop，或者走 fallback 路径。</p><p>Capacity factor 控制每个 expert 的容量上限。</p><p>如果 capacity 太小，容易 drop token，训练信号受损。</p><p>如果 capacity 太大，显存和计算浪费增加。</p><p>所以 MoE 的训练不是简单调 learning rate。它多了一组系统参数，而且这些参数和硬件拓扑、batch size、sequence length 都有关。</p><h2 id="8-DeepSeekMoE-的思路"><a href="#8-DeepSeekMoE-的思路" class="headerlink" title="8. DeepSeekMoE 的思路"></a>8. DeepSeekMoE 的思路</h2><p>DeepSeek 系列技术报告里，MoE 是核心结构之一。</p><p>DeepSeek-V3 使用 671B total parameters，但每个 token 激活约 37B 参数。它还结合了 MLA、multi-token prediction、FP8 training 等工程优化。</p><p>这里值得注意的是：DeepSeek-V3 的强并不只是因为 MoE。</p><p>MoE 提供参数容量和计算效率，MLA 降低 KV cache 成本，FP8 降低训练成本，多 token prediction 尝试提高生成效率。</p><p>所以读 DeepSeek-V3 时，不要把结论压缩成“MoE 很强”。更准确的说法是：</p><blockquote><p>DeepSeek-V3 是一组结构、训练和系统优化叠加出来的结果，MoE 是其中负责参数容量扩展的一块。</p></blockquote><h2 id="9-Qwen3-MoE-的位置"><a href="#9-Qwen3-MoE-的位置" class="headerlink" title="9. Qwen3 MoE 的位置"></a>9. Qwen3 MoE 的位置</h2><p>Qwen3 技术报告里同时有 dense 和 MoE 模型。</p><p>这很有意思，因为它说明 dense 和 MoE 不是谁完全替代谁，而是面向不同规模和部署场景的选择。</p><p>小模型用 dense 可能更简单、更稳定、更容易部署。</p><p>大模型用 MoE 可以把总容量拉高，同时控制每 token 计算。</p><p>所以模型家族通常会同时提供 dense 和 MoE 版本，让用户在延迟、成本、能力之间选。</p><h2 id="10-MoE-不是免费午餐"><a href="#10-MoE-不是免费午餐" class="headerlink" title="10. MoE 不是免费午餐"></a>10. MoE 不是免费午餐</h2><p>MoE 最大的误区是：只看 activated parameters，然后以为成本就等于一个小 dense 模型。</p><p>实际不是。</p><p>MoE 至少有这些额外代价：</p><ul><li>Router 本身要计算</li><li>Token dispatch 需要通信</li><li>Expert 负载不均衡会降低硬件利用率</li><li>小 batch 推理时可能不如 dense 规整</li><li>训练稳定性更复杂</li><li>Serving 系统更难做</li></ul><p>这也是为什么 MoE 更像系统工程，而不只是模型结构。</p><p>如果部署环境很简单，dense model 可能反而更好。MoE 的优势通常要在足够大规模、足够好的并行系统里才能发挥。</p><h2 id="11-一个简单例子"><a href="#11-一个简单例子" class="headerlink" title="11. 一个简单例子"></a>11. 一个简单例子</h2><p>假设一个客服模型要处理三类问题：</p><ul><li>订单状态</li><li>退款政策</li><li>技术故障</li></ul><p>Dense model 会用同一套 FFN 参数处理所有问题。</p><p>MoE model 可能学到某些 token 更常走某些 expert。和订单相关的表达经常激活一组 expert，技术故障相关的表达激活另一组 expert。</p><p>但真实 LLM 里的分工不会这么干净。一个 token 的意义受上下文影响，同一个词在代码、数学、闲聊里可能完全不同。</p><p>所以 MoE 的 router 不是按关键词查表，而是根据 hidden state 做动态选择。</p><h2 id="12-读-MoE-模型报告时看什么"><a href="#12-读-MoE-模型报告时看什么" class="headerlink" title="12. 读 MoE 模型报告时看什么"></a>12. 读 MoE 模型报告时看什么</h2><p>我会重点看这些问题：</p><ul><li>总参数和激活参数分别是多少</li><li>每层都有 MoE，还是部分层有 MoE</li><li>每次 routing 选 top-1、top-2，还是更多 expert</li><li>有没有 shared expert</li><li>load balancing 怎么做</li><li>是否使用 auxiliary loss</li><li>expert 数量是多少</li><li>训练和推理时的通信开销怎么处理</li><li>benchmark 提升是来自 MoE 本身，还是同时叠加了数据、RL、上下文扩展</li></ul><p>这些问题比“用了 MoE”更重要。</p><h2 id="13-小结"><a href="#13-小结" class="headerlink" title="13. 小结"></a>13. 小结</h2><p>MoE 的核心思想很直接：</p><blockquote><p>用稀疏激活把总参数容量和单 token 计算成本拆开。</p></blockquote><p>但 MoE 的真实难点也很明确：</p><blockquote><p>参数变稀疏以后，训练和系统复杂度会显著上升。</p></blockquote><p>所以我会把 MoE 看成一种大规模模型扩展路线，而不是一个单纯提升模型能力的小技巧。</p><p>它适合的问题是：当 dense scaling 越来越贵时，能不能用更聪明的参数激活方式继续扩展模型容量。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Shazeer et al., <a href="https://arxiv.org/abs/1701.06538">Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer</a></li><li>Fedus et al., <a href="https://arxiv.org/abs/2101.03961">Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity</a></li><li>Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a></li><li>GLM-4.5 Team, <a href="https://arxiv.org/abs/2508.06471">GLM-4.5: Agentic, Reasoning, and Coding Foundation Models</a></li><li>Moonshot AI, <a href="https://arxiv.org/abs/2507.20534">Kimi K2: Open Agentic Intelligence</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>现代大模型与前沿论文笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>大模型</tag>
+      
+      <tag>MoE</tag>
+      
+      <tag>稀疏激活</tag>
+      
+      <tag>DeepSeek</tag>
+      
+      <tag>Qwen</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>现代大模型笔记 01：Transformer 之后到底变了什么</title>
+    <link href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/"/>
+    <url>/2025/09/06/modern-llm-notes-01-transformer-after-transformer/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇先把现代大模型的结构底座梳理出来。</p><p>很多技术报告会说模型基于 Transformer，但如果只停留在 2017 年原始 Transformer 的结构，很容易读不懂后面的细节。现在主流 LLM 的基本骨架还是 Transformer，但很多关键部件已经换过一轮：decoder-only、pre-norm、RMSNorm、SwiGLU、RoPE、GQA、KV cache、FlashAttention 等等。</p><p>这些改动单独看都不复杂，但合在一起，才构成现在 LLM block 的真实样子。</p><h2 id="1-从-encoder-decoder-到-decoder-only"><a href="#1-从-encoder-decoder-到-decoder-only" class="headerlink" title="1. 从 encoder-decoder 到 decoder-only"></a>1. 从 encoder-decoder 到 decoder-only</h2><p>原始 Transformer 是为机器翻译设计的，所以它有 encoder 和 decoder。</p><p>Encoder 负责读完整个输入句子，decoder 负责一步一步生成目标句子。</p><p>但现在很多通用语言模型，比如 GPT、LLaMA、Qwen、DeepSeek，主要采用 decoder-only 结构。它没有单独的 encoder，而是把所有任务都改写成 next token prediction：</p><p>$$<br>p(x_t \mid x_1, x_2, …, x_{t-1})<br>$$</p><p>也就是说，模型只需要学会一件事：给定前面的 token，预测下一个 token。</p><p>这个形式非常统一。翻译、问答、总结、代码生成、数学推理，都可以变成“前面是一段 prompt，后面继续生成答案”。</p><p>这里有一个重要区别：</p><ul><li>BERT 这类 encoder-only 模型更像是在理解一整段文本</li><li>GPT 这类 decoder-only 模型更像是在从左到右生成文本</li></ul><p>LLM 选择 decoder-only，不是因为 encoder 不好，而是因为自回归生成和大规模预训练的目标天然对齐。</p><h2 id="2-Causal-attention：只能看过去"><a href="#2-Causal-attention：只能看过去" class="headerlink" title="2. Causal attention：只能看过去"></a>2. Causal attention：只能看过去</h2><p>Decoder-only 模型使用 causal self-attention。</p><p>普通 self-attention 中，每个 token 可以看见所有 token。但语言生成时，当前位置不能偷看未来 token，否则 next token prediction 就变成了作弊。</p><p>所以 causal attention 会加一个 mask，让第 $t$ 个位置只能关注 $1$ 到 $t$ 的 token。</p><p>如果一句话是：</p><blockquote><p>The cat sits on the</p></blockquote><p>模型预测下一个词时，可以看见 “The cat sits on the”，但不能提前看见答案 “mat”。</p><p>这个 mask 看起来只是训练细节，但它决定了模型的能力形态：LLM 是一步一步生成的，不是一次性把完整答案算出来。</p><p>这也解释了为什么长回答里有时会出现前后不一致。模型每一步都基于已经生成的内容继续走，如果前面方向偏了，后面会被带偏。</p><h2 id="3-Pre-Norm：深层网络更容易训练"><a href="#3-Pre-Norm：深层网络更容易训练" class="headerlink" title="3. Pre-Norm：深层网络更容易训练"></a>3. Pre-Norm：深层网络更容易训练</h2><p>原始 Transformer 使用 Post-Norm，大概形式是：</p><p>$$<br>x_{l+1} &#x3D; \mathrm{LayerNorm}(x_l + F(x_l))<br>$$</p><p>现代 LLM 更常见的是 Pre-Norm：</p><p>$$<br>x_{l+1} &#x3D; x_l + F(\mathrm{Norm}(x_l))<br>$$</p><p>差别是 normalization 放在 residual branch 前面还是后面。</p><p>Pre-Norm 的好处是深层模型训练更稳定。直觉上，residual path 更像一条“干净的高速通道”，梯度可以更直接地往前传，不会每层都被 normalization 包住。</p><p>这件事在小模型里可能没那么明显，但模型层数变深后，训练稳定性会变成核心问题。很多现代结构的变化，本质上都不是为了让单层表达力变强，而是为了让几百亿、几千亿参数模型真的能训起来。</p><h2 id="4-RMSNorm：少算一点，但保留关键尺度控制"><a href="#4-RMSNorm：少算一点，但保留关键尺度控制" class="headerlink" title="4. RMSNorm：少算一点，但保留关键尺度控制"></a>4. RMSNorm：少算一点，但保留关键尺度控制</h2><p>LayerNorm 会减均值、除标准差：</p><p>$$<br>\mathrm{LayerNorm}(x) &#x3D; \frac{x-\mu}{\sqrt{\sigma^2+\epsilon}} \odot g + b<br>$$</p><p>RMSNorm 去掉了减均值，只保留 root mean square 的尺度归一化：</p><p>$$<br>\mathrm{RMSNorm}(x) &#x3D; \frac{x}{\sqrt{\frac{1}{d}\sum_i x_i^2+\epsilon}} \odot g<br>$$</p><p>它关心的是向量整体尺度，而不是每一维相对均值的位置。</p><p>这有两个好处。</p><p>第一，计算更简单。对超大模型来说，每个 block 里省一点，整体就能省很多。</p><p>第二，它保留了最关键的稳定性作用：控制 activation 的尺度。</p><p>我觉得这里可以这样记：现代 LLM 里很多设计不是追求数学形式最完整，而是在“足够稳定”和“足够便宜”之间找平衡。</p><h2 id="5-FFN-从-ReLU-走向-SwiGLU"><a href="#5-FFN-从-ReLU-走向-SwiGLU" class="headerlink" title="5. FFN 从 ReLU 走向 SwiGLU"></a>5. FFN 从 ReLU 走向 SwiGLU</h2><p>Transformer block 里除了 attention，还有一个 feed-forward network。</p><p>原始 Transformer 用的是：</p><p>$$<br>\mathrm{FFN}(x) &#x3D; \max(0, xW_1+b_1)W_2+b_2<br>$$</p><p>现代 LLM 常用 SwiGLU 这类 gated FFN：</p><p>$$<br>\mathrm{SwiGLU}(x) &#x3D; \mathrm{Swish}(xW_1) \odot (xW_2)<br>$$</p><p>再接一个输出投影。</p><p>Gating 的直觉是：模型不只是对特征做非线性变换，还学会“哪些通道该打开，哪些通道该压下去”。</p><p>如果把 FFN 看成每个 token 独立做一次特征加工，那么 SwiGLU 相当于给这次加工加了一个动态开关。</p><p>很多模型报告不会花很大篇幅讲 FFN，但它非常重要。Transformer 里 attention 负责 token 之间的信息混合，FFN 负责每个 token 内部的特征变换。只看 attention，会低估 FFN 对模型容量的贡献。</p><h2 id="6-RoPE：把位置信息放进旋转里"><a href="#6-RoPE：把位置信息放进旋转里" class="headerlink" title="6. RoPE：把位置信息放进旋转里"></a>6. RoPE：把位置信息放进旋转里</h2><p>Self-attention 本身不包含顺序信息。对 attention 来说，如果不加位置编码，”A B C” 和 “C B A” 只是 token 集合不同排列，很难知道谁在前谁在后。</p><p>原始 Transformer 用 absolute positional encoding，把位置向量加到 token embedding 上。</p><p>现代 LLM 常用 RoPE，也就是 rotary position embedding。它不是简单把位置向量加进去，而是在 query 和 key 上做旋转，使 attention score 自然带上相对位置信息。</p><p>可以粗略理解成：</p><p>$$<br>q_m^\top k_n \rightarrow \text{a function of token content and relative distance } (m-n)<br>$$</p><p>RoPE 的关键好处是相对位置关系更自然，也更适合做一定程度的位置外推。</p><p>但这里不能过度神化 RoPE。RoPE scaling 可以帮助模型扩展 context length，但不等于模型自动学会利用超长上下文。位置能编码是一回事，模型能不能从 100K token 里稳定找出关键证据，是另一回事。</p><h2 id="7-Multi-head-attention-到-MQA-GQA"><a href="#7-Multi-head-attention-到-MQA-GQA" class="headerlink" title="7. Multi-head attention 到 MQA &#x2F; GQA"></a>7. Multi-head attention 到 MQA &#x2F; GQA</h2><p>标准 multi-head attention 里，每个 head 都有自己的 $Q, K, V$：</p><p>$$<br>\mathrm{Attention}(Q,K,V)&#x3D;\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d}}\right)V<br>$$</p><p>多头的作用是让模型从不同子空间看 token 之间的关系。</p><p>但推理时有一个很大的成本：KV cache。</p><p>生成第 $t$ 个 token 时，前面所有 token 的 key 和 value 都要保留下来。context 越长，KV cache 越大。</p><p>MQA（multi-query attention）让多个 query heads 共享一组 key&#x2F;value。GQA（grouped-query attention）则折中一下，让一组 query heads 共享一组 key&#x2F;value。</p><p>直觉上：</p><ul><li>MHA：每个注意力头都有自己的 K&#x2F;V，效果强但 cache 大</li><li>MQA：所有头共享 K&#x2F;V，cache 小但可能损失表达力</li><li>GQA：分组共享 K&#x2F;V，在效果和成本之间折中</li></ul><p>这类设计说明一个现实问题：现代 LLM 的结构不只是为了训练 loss，也要考虑 serving 成本。</p><p>一个模型如果 benchmark 很强但推理时 KV cache 爆炸，线上使用会很痛苦。</p><h2 id="8-KV-cache：生成式模型的核心工程问题"><a href="#8-KV-cache：生成式模型的核心工程问题" class="headerlink" title="8. KV cache：生成式模型的核心工程问题"></a>8. KV cache：生成式模型的核心工程问题</h2><p>自回归生成时，如果每生成一个 token 都重新计算前面所有 token 的 K&#x2F;V，成本会非常高。</p><p>KV cache 的做法是：前面 token 的 key 和 value 已经算过，就缓存起来，后面直接复用。</p><p>第一个 token 生成时，模型处理整个 prompt。</p><p>之后每一步生成新 token 时，只需要为新 token 计算新的 query、key、value，然后让 query 去关注缓存中的所有 K&#x2F;V。</p><p>这让推理快很多，但代价是显存占用会随着 sequence length 线性增长。</p><p>所以长上下文模型的一个核心瓶颈不是参数量，而是 cache。</p><p>这也解释了为什么 DeepSeek 的 MLA、Qwen 的 GQA、各种 KV compression 都很重要。它们不是论文里的小优化，而是直接影响模型能不能便宜地跑长上下文。</p><h2 id="9-FlashAttention：不是近似-attention"><a href="#9-FlashAttention：不是近似-attention" class="headerlink" title="9. FlashAttention：不是近似 attention"></a>9. FlashAttention：不是近似 attention</h2><p>FlashAttention 容易被误解成某种近似 attention。其实它算的是 exact attention，主要优化的是内存访问。</p><p>标准 attention 会显式构造很大的 attention matrix：</p><p>$$<br>QK^\top<br>$$</p><p>当 sequence length 很长时，这个矩阵非常大。</p><p>FlashAttention 的核心思路是 tiling：把计算分块搬到 GPU SRAM 里做，减少高带宽显存 HBM 的读写次数。</p><p>所以它解决的是一个工程瓶颈：不是 FLOPs 看起来多少，而是数据在 GPU 内存层级之间搬来搬去有多贵。</p><p>这一点很重要。读现代论文时，不能只看数学复杂度，也要看硬件实际执行。一个理论上复杂度低的方法，如果 GPU 上跑不快，未必有实际价值。</p><h2 id="10-一个现代-LLM-block-大概长什么样"><a href="#10-一个现代-LLM-block-大概长什么样" class="headerlink" title="10. 一个现代 LLM block 大概长什么样"></a>10. 一个现代 LLM block 大概长什么样</h2><p>把这些东西合起来，一个现代 decoder-only LLM block 可以粗略写成：</p><p>$$<br>x’ &#x3D; x + \mathrm{Attention}(\mathrm{RMSNorm}(x))<br>$$</p><p>$$<br>y &#x3D; x’ + \mathrm{SwiGLU}(\mathrm{RMSNorm}(x’))<br>$$</p><p>attention 里面可能包含 RoPE、GQA、KV cache、FlashAttention 等实现细节。</p><p>所以“基于 Transformer”这句话背后，其实已经包含很多工程化选择。</p><h2 id="11-读技术报告时可以看什么"><a href="#11-读技术报告时可以看什么" class="headerlink" title="11. 读技术报告时可以看什么"></a>11. 读技术报告时可以看什么</h2><p>看到一篇新模型技术报告，我会先扫这些点：</p><ul><li>是 decoder-only、encoder-decoder，还是 mixture 架构</li><li>用什么 normalization：LayerNorm、RMSNorm，pre-norm 还是 post-norm</li><li>FFN 用什么：普通 FFN、SwiGLU，还是 MoE FFN</li><li>attention 用什么：MHA、MQA、GQA、MLA、sparse attention</li><li>位置编码用什么：RoPE、ALiBi、RoPE scaling、YaRN</li><li>context length 是多少，怎么扩展出来的</li><li>KV cache 成本有没有特殊优化</li></ul><p>这些点比“参数量多大”更能说明模型到底做了什么。</p><p>参数量只是结果，结构选择才是模型训练和部署时真正要付出的成本。</p><h2 id="12-小结"><a href="#12-小结" class="headerlink" title="12. 小结"></a>12. 小结</h2><p>现代 LLM 没有抛弃 Transformer，而是在 Transformer 的关键部件上做了系统性替换。</p><p>我的理解可以压缩成一句话：</p><blockquote><p>Transformer 提供了大模型的基本计算图，现代 LLM 的创新很多是在稳定训练、提高吞吐、降低推理成本、扩展上下文这几个方向上补工程和结构细节。</p></blockquote><p>所以读后面的 MoE、长上下文、reasoning model、多模态模型时，不要只看最外层的概念。很多真正影响模型能力和成本的东西，藏在 block 级别的设计里。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Vaswani et al., <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></li><li>Shazeer, <a href="https://arxiv.org/abs/2002.05202">GLU Variants Improve Transformer</a></li><li>Su et al., <a href="https://arxiv.org/abs/2104.09864">RoFormer: Enhanced Transformer with Rotary Position Embedding</a></li><li>Dao et al., <a href="https://arxiv.org/abs/2205.14135">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</a></li><li>Ainslie et al., <a href="https://arxiv.org/abs/2305.13245">GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints</a></li><li>Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>现代大模型与前沿论文笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>笔记</tag>
+      
+      <tag>大模型</tag>
+      
+      <tag>注意力机制</tag>
+      
+      <tag>KV cache</tag>
+      
+      <tag>RoPE</tag>
+      
+      <tag>Transformer</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>深度学习笔记 05：注意力机制与 Transformer</title>
     <link href="/2024/08/31/deep-learning-notes-05-attention-transformer/"/>
     <url>/2024/08/31/deep-learning-notes-05-attention-transformer/</url>
@@ -84,8 +298,6 @@
       
       <tag>深度学习</tag>
       
-      <tag>笔记</tag>
-      
       <tag>CNN</tag>
       
       <tag>RNN</tag>
@@ -93,6 +305,8 @@
       <tag>LSTM</tag>
       
       <tag>ResNet</tag>
+      
+      <tag>笔记</tag>
       
     </tags>
     
@@ -121,13 +335,13 @@
       
       <tag>笔记</tag>
       
+      <tag>正则化</tag>
+      
       <tag>优化器</tag>
       
       <tag>Adam</tag>
       
       <tag>AdamW</tag>
-      
-      <tag>正则化</tag>
       
     </tags>
     
@@ -187,11 +401,11 @@
       
       <tag>深度学习</tag>
       
+      <tag>笔记</tag>
+      
       <tag>表示学习</tag>
       
       <tag>神经网络</tag>
-      
-      <tag>笔记</tag>
       
     </tags>
     
@@ -350,13 +564,13 @@
       
       <tag>笔记</tag>
       
-      <tag>正则化</tag>
-      
       <tag>机器学习</tag>
       
       <tag>损失函数</tag>
       
       <tag>优化</tag>
+      
+      <tag>正则化</tag>
       
     </tags>
     
