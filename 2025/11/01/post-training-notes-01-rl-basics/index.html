@@ -546,7 +546,7 @@
 <p>如果另一个回答得分是 0.6，也不一定差。也许这个 prompt 很难，大多数回答都是 0.1。</p>
 <p>Advantage 想表达的是：相对于当前状态的预期表现，这个 action &#x2F; response 到底更好还是更差。</p>
 <h2 id="5-Policy-gradient-的直觉"><a href="#5-Policy-gradient-的直觉" class="headerlink" title="5. Policy gradient 的直觉"></a>5. Policy gradient 的直觉</h2><p>Policy gradient 的经典形式可以写成：</p>
-<p>$$<br>\nabla_\theta J(\theta) &#x3D; \mathbb{E}<em>{\pi</em>\theta}[\nabla_\theta \log \pi_\theta(a \mid s) A(s,a)]<br>$$</p>
+<p>$$<br>\nabla_\theta J(\theta) &#x3D; \underset{\pi_\theta}{\mathbb{E}}[\nabla_\theta \log \pi_\theta(a \mid s) A(s,a)]<br>$$</p>
 <p>放到 LLM 里，可以粗略理解成：</p>
 <blockquote>
 <p>如果某个 response 的 advantage 为正，就提高它的生成概率；如果 advantage 为负，就降低它的生成概率。</p>
