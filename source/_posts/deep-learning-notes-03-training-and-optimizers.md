@@ -260,19 +260,13 @@ $$
 AdamW 的做法是把 weight decay 从 gradient update 里解耦出来：
 
 $$
-\theta_{t+1}
-=
-\theta_t
-- \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\epsilon}
-- \eta\lambda\theta_t
+\theta_{t+1} = \theta_t - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\epsilon} - \eta\lambda\theta_t
 $$
 
 也可以理解成：
 
-```text
-adam update: use gradient statistics to update parameters
-weight decay: separately shrink weights
-```
+- Adam update: use gradient statistics to update parameters
+- Weight decay: separately shrink weights
 
 这就是 AdamW 的核心变化：weight decay 不再被 Adam 的自适应梯度缩放影响。
 
