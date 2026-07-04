@@ -1,14 +1,14 @@
 ---
-title: "ML Notes 01: 机器学习的基本框架"
-date: 2026-07-03 20:00:00
-updated: 2026-07-03 20:00:00
+title: "机器学习笔记 01：机器学习的基本框架"
+date: 2024-06-08 20:00:00
+updated: 2024-06-08 20:00:00
 categories:
-  - Machine Learning Notes
+  - 机器学习笔记
 tags:
-  - Machine Learning
-  - Supervised Learning
-  - Generalization
-  - Notes
+  - 机器学习
+  - 监督学习
+  - 泛化
+  - 笔记
 math: true
 category_bar: true
 ---
@@ -53,7 +53,7 @@ $$
 
 这个循环就是训练的核心：模型先预测，loss 衡量预测错了多少，optimizer 根据 loss 更新参数，然后模型再预测。
 
-## 2. Supervised Learning 和 Unsupervised Learning
+## 2. 监督学习（supervised learning）和无监督学习（unsupervised learning）
 
 机器学习通常先按有没有 label 来分。
 
@@ -85,7 +85,7 @@ Regression 预测连续值，比如房价、温度、点击率。Classification 
 
 所以 test set 的意义不是“再训练一次”，而是模拟模型未来遇到没见过数据时的表现。
 
-## 4. Loss Function 在做什么
+## 4. 损失函数（loss function）在做什么
 
 训练模型前，第一步是定义什么叫“错”。这个定义就是 loss function。
 
@@ -124,7 +124,7 @@ $$
 
 这也是为什么后面会有 regularization、cross validation、early stopping、model selection 等一整套方法。它们都在服务同一个目标：让模型不仅会做训练题，也能做新题。
 
-## 6. 一个完整 ML pipeline
+## 6. 一个完整的机器学习流程（ML pipeline）
 
 从工程角度看，一个机器学习流程通常不是“选个模型训练一下”这么简单。
 
@@ -164,7 +164,7 @@ data collection
 
 后面看具体算法时，也尽量从这些问题出发，而不是只背每个模型的定义。
 
-## References
+## 参考资料
 
 - [Stanford CS229: Machine Learning](https://cs229.stanford.edu/)
 - [MIT 6.036 Introduction to Machine Learning](https://ocw.mit.edu/courses/6-036-introduction-to-machine-learning-fall-2020/)

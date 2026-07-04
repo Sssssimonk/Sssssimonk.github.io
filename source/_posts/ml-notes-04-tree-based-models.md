@@ -1,22 +1,22 @@
 ---
-title: "ML Notes 04: Tree-based Models"
-date: 2026-07-03 21:30:00
-updated: 2026-07-03 21:30:00
+title: "机器学习笔记 04：树模型"
+date: 2024-06-29 21:30:00
+updated: 2024-06-29 21:30:00
 categories:
-  - Machine Learning Notes
+  - 机器学习笔记
 tags:
-  - Machine Learning
-  - Decision Tree
-  - Random Forest
+  - 机器学习
+  - 决策树
+  - 随机森林
   - XGBoost
-  - Notes
+  - 笔记
 math: true
 category_bar: true
 ---
 
 这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。
 
-## 1. Decision Tree 的基本想法
+## 1. 决策树（decision tree）的基本想法
 
 Decision Tree 每一步都在问一个问题：
 
@@ -58,7 +58,7 @@ Decision Tree 每一步都在问一个问题：
 
 Decision Tree 的 splitting metric，本质上就是量化“split 前后到底变纯了多少”。
 
-## 3. Entropy
+## 3. 熵（entropy）
 
 Entropy 衡量不确定性：
 
@@ -80,7 +80,7 @@ $$
 
 Entropy 越低，节点越纯。
 
-## 4. Information Gain
+## 4. 信息增益（information gain）
 
 Information Gain 衡量 split 后 entropy 降低了多少：
 
@@ -96,7 +96,7 @@ ID3 使用 information gain 来选 split。
 
 一个直觉例子：用“是否经常访问网站”切用户，如果切完后高访问用户大多购买、低访问用户大多不购买，那么 information gain 就高。如果切完后两边还是正负混杂，那这个 feature 没什么用。
 
-## 5. Gain Ratio
+## 5. 增益率（gain ratio）
 
 Information Gain 有一个问题：它偏好取值很多的特征。
 
@@ -110,7 +110,7 @@ $$
 
 C4.5 使用 gain ratio。直觉上，它不只看 split 后纯不纯，也看这个 split 是不是把数据切得过于碎。
 
-## 6. Gini Index
+## 6. 基尼指数（Gini index）
 
 CART 分类树常用 Gini Index：
 
@@ -146,7 +146,7 @@ CART 是二叉树，每次 split 生成两个子节点。分类时常用 Gini，
 
 比如预测房价时，按“是否靠近地铁”切分后，如果靠近地铁的一组房价普遍更高，不靠近的一组更低，那么这个 split 就能降低每个子节点内部的误差。
 
-## 8. Pruning：为什么树需要剪枝
+## 8. 剪枝（pruning）：为什么树需要剪枝
 
 单棵树很容易 overfit。如果不限制深度，它可以不断 split，直到叶子节点里只剩很少样本，甚至每个叶子只对应一个训练样本。
 
@@ -167,7 +167,7 @@ Pruning 分两类：
 
 简单说，剪枝就是不让树把训练集记得太细。
 
-## 9. Random Forest：多棵树投票
+## 9. 随机森林（random forest）：多棵树投票
 
 Random Forest 属于 Bagging 方法。它训练很多棵 decision tree，然后让它们投票或取平均。
 
@@ -182,7 +182,7 @@ Random Forest 的随机性主要来自两点：
 
 一个直觉例子：一个人判断可能很偏，但如果很多个相对独立的人投票，最终结果通常更稳定。Random Forest 也是类似的思路。
 
-## 10. Boosting、GBDT 和 XGBoost
+## 10. 提升方法（boosting）、GBDT 和 XGBoost
 
 Boosting 和 Random Forest 不一样。Random Forest 里多棵树大致是并行、独立训练的；Boosting 是一棵接一棵训练，后面的树重点修正前面模型的错误。
 
@@ -218,7 +218,7 @@ XGBoost 可以看作更工程化、更正则化、更高效的 gradient boosting
 
 Random Forest 更偏降低 variance，Boosting 更偏逐步降低 bias，但这只是粗略理解，实际效果还和参数、数据、噪声有关。
 
-## References
+## 参考资料
 
 - [scikit-learn User Guide: Decision Trees](https://scikit-learn.org/stable/modules/tree.html)
 - [scikit-learn User Guide: Ensemble Methods](https://scikit-learn.org/stable/modules/ensemble.html)
