@@ -1,5 +1,5 @@
 ---
-title: "机器学习笔记 03：线性模型与 KNN"
+title: "机器学习笔记 03：有监督学习"
 date: 2024-06-22 21:00:00
 updated: 2024-06-22 21:00:00
 categories:
@@ -14,7 +14,6 @@ math: true
 category_bar: true
 ---
 
-这一篇整理监督学习里最基础的几类模型：linear regression、logistic regression 和 KNN。它们看起来简单，但很多后面的模型都能从这里找到影子：线性模型关心如何用特征加权得到预测，logistic regression 把线性打分变成概率，KNN 则完全依赖样本之间的距离。
 
 ## 1. 线性回归（linear regression）：用线性函数做预测
 
@@ -114,26 +113,6 @@ $$
 
 虽然 logistic regression 名字里有 regression，但它本质上是在做分类概率建模。
 
-## 5. 生成模型（generative model）和判别模型（discriminative model）
-
-这个分类经常在面试里出现。
-
-**Discriminative model** 直接学习 $P(y|x)$ 或者 decision boundary。它关心的是给定输入 $x$ 后，标签 $y$ 是什么。
-
-**Generative model** 学习联合分布 $P(x,y)$，也可以理解成学习不同类别的数据是怎么生成的。常见写法是：
-
-$$
-P(y|x)=\frac{P(x|y)P(y)}{P(x)}
-$$
-
-Naive Bayes 是典型 generative model，logistic regression 是典型 discriminative model。
-
-一个简单例子：判断一封邮件是不是垃圾邮件。
-
-- Naive Bayes 会估计“垃圾邮件中出现 free、win、prize 这些词的概率”。
-- Logistic regression 更像是直接学习这些词对“垃圾邮件概率”的加权影响。
-
-简单记法：generative model 更关心数据从哪里来，discriminative model 更关心边界在哪里。
 
 ## 6. KNN：没有显式训练过程的模型
 
@@ -214,6 +193,4 @@ Linear model 不是“不强”，而是依赖特征表达。如果 feature engi
 ## 参考资料
 
 - [Stanford CS229: Machine Learning](https://cs229.stanford.edu/)
-- [scikit-learn User Guide: Linear Models](https://scikit-learn.org/stable/modules/linear_model.html)
-- [scikit-learn User Guide: Nearest Neighbors](https://scikit-learn.org/stable/modules/neighbors.html)
 - [An Introduction to Statistical Learning](https://www.statlearning.com/)

@@ -6,8 +6,6 @@ categories:
   - 机器学习笔记
 tags:
   - 机器学习
-  - 监督学习
-  - 泛化
   - 笔记
 math: true
 category_bar: true
@@ -31,43 +29,51 @@ $$
 
 其中，$x$ 是输入特征，$\hat{y}$ 是模型预测，$f_\theta$ 是模型，$\theta$ 是模型参数。
 
-如果是房价预测，$x$ 可以是面积、地段、楼层、房龄，$y$ 是真实房价。如果是邮件分类，$x$ 可以是邮件文本的特征表示，$y$ 是是否垃圾邮件。如果是推荐系统，$x$ 可以是用户、物品和上下文特征，$y$ 可以是点击、购买或停留时长。
+![机器学习架构](/img/ml1_overview.png)
+
+个人认为machine learning就是从数据中学到pattern/model 这个model可以对未来的数据进行推测，得到一个结果。（简单的说可以当成一个prediction model）
 
 所以机器学习不是直接“学一个答案”，而是学习一个从输入到输出的映射关系。
 
-一个很小的例子：
+Machine Learning的流程通常分为以下几步
 
-| 样本 | 面积 $x_1$ | 房龄 $x_2$ | 真实房价 $y$ |
-|---|---:|---:|---:|
-| A | 80 | 5 | 500 |
-| B | 60 | 15 | 320 |
-| C | 100 | 2 | 720 |
+**ML的基本流程：**
 
-模型可能会先学一个很简单的函数：
+1. 数据预处理
+2. 模型训练
+3. 模型评估
+
+![机器学习流水线](/img/ml1_pipeline.png)
+
+可以看到根据是否有样本label可以分为supervised learning和unsupervised learning，并且可以继续细分为regression，classification（在某种情况下可以互相切换，比如regression拟合出的线就可以用来分类），clustering，再加上强化学习就组成我们广义下定义的机器学习。
+
+机器学习训练可以粗略理解成最小化 empirical risk：
 
 $$
-\hat{y} = w_1x_1 + w_2x_2 + b
+\theta^* = \arg\min_\theta \frac{1}{n}\sum_{i=1}^{n} L(f_\theta(x_i), y_i)
 $$
 
-训练过程就是不断调整 $w_1$、$w_2$ 和 $b$，让预测房价 $\hat{y}$ 尽量接近真实房价 $y$。
+在所有可能的参数 $\theta$ 中，找到一组参数，让模型在训练数据上的平均 loss 尽可能小。
 
-这个循环就是训练的核心：模型先预测，loss 衡量预测错了多少，optimizer 根据 loss 更新参数，然后模型再预测。
 
-## 2. 监督学习（supervised learning）和无监督学习（unsupervised learning）
+
+## 2. 机器学习方向的分类
 
 机器学习通常先按有没有 label 来分。
 
-**Supervised Learning** 有明确的输入和目标输出。模型看到的是 $(x, y)$，目标是学会从 $x$ 预测 $y$。常见任务包括 regression 和 classification。
+**Supervised Learning** 有明确的输入和目标输出。模型看到的是 $(x, y)$，目标是学会从 $x$ 预测 $y$。常见任务包括 **regression** 和 **classification**。
 
 Regression 预测连续值，比如房价、温度、点击率。Classification 预测类别，比如垃圾邮件识别、疾病诊断、图片分类。
 
-**Unsupervised Learning** 没有明确的 label。模型只看到 $x$，目标是发现数据内部结构。常见任务包括 clustering、dimensionality reduction 和 density estimation。
+**Unsupervised Learning** 没有明确的 label。模型只看到 $x$，目标是发现数据内部结构。常见任务包括聚类 clustering、dimensionality reduction 降维。
 
-比如 KMeans 会尝试把样本分成若干簇，PCA 会尝试找到数据中方差最大的方向。这类方法不直接回答“这个样本属于哪个真实标签”，而是帮助整理数据结构。
 
-简单说，supervised learning 更像是在学一个带答案的映射函数；unsupervised learning 更像是在没有标准答案的情况下整理数据的内在结构。
+简单说，supervised learning 更像是在学一个带答案的映射函数，尝试让数据分布向真实的数据分布靠近。而unsupervised learning 更像是在没有标准答案的情况下整理数据的内在结构，找到数据的规律，将数据变成有信息的内容为我们所用。
 
-## 3. 数据集划分为什么重要
+**Reinforcement learning**
+相比较其他的领域，强化学习定义模型agent是在一个environment中进行交互，根据当前的状态state决定action，然后根据action获得environment反馈的reward。
+
+## 3. 数据集的划分
 
 机器学习里经常会把数据分成：
 
@@ -79,94 +85,97 @@ Regression 预测连续值，比如房价、温度、点击率。Classification 
 
 不能只看 training set 表现，因为模型可以通过记住训练样本获得很低的 training loss，但这不代表它真的学到了规律。
 
-这就是 overfitting 的核心问题：模型在训练集上表现很好，但在新数据上表现很差。
 
-比如一个垃圾邮件分类器，如果它只是记住了训练集中出现过的垃圾邮件地址，那么训练集 accuracy 可能很高。但新垃圾邮件换了发件人和措辞后，它就可能失效。真正有用的模型应该学习“垃圾邮件通常有哪些模式”，而不是背下训练样本。
+![过拟合与欠拟合](/img/ml1_overfitting.png)
 
-所以 test set 的意义不是“再训练一次”，而是模拟模型未来遇到没见过数据时的表现。
+核心问题：模型在训练集上表现很好，但在新数据上表现很差。
+所以我们希望找到模型在过拟合欠拟合之间的完美balance状态。
 
-## 4. 损失函数（loss function）在做什么
+比如一个垃圾邮件分类器，如果它只是记住了训练集中出现过的垃圾邮件地址，那么训练集 accuracy 可能很高。但新垃圾邮件换了发件人和措辞后，它就可能失效。真正有用的模型应该学习“垃圾邮件通常有哪些模式”（我们称之为泛化性），而不是背下训练样本。
+
+**Bias-Variance Tradeoff**
+
+| 问题 | 现象 | 直觉 |
+|---|---|---|
+| High bias | train/test 都差 | 模型太简单 |
+| High variance | train 好，test 差 | 模型太依赖训练集 |
+
+
+## 4. 损失函数（loss function）
 
 训练模型前，第一步是定义什么叫“错”。这个定义就是 loss function。
 
 对于回归任务，常用 Mean Squared Error：
 
 $$
-J(\theta) = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+L(\theta) = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
 $$
 
 其中，$y_i$ 是真实值，$\hat{y}_i$ 是预测值。预测和真实值差得越远，loss 越大。
 
 比如真实房价是 500，模型预测 450，误差是 50；如果预测 300，误差是 200。MSE 会让第二种错误受到更大的惩罚，因为它离真实值更远。
 
-对于分类任务，常用 Cross Entropy。它关心的是模型有没有把概率分配给正确类别。
+对于分类任务，一般会用binary entropy loss（二分类任务上），或是cross entropy。
 
-直觉上，loss function 规定了模型应该为什么事情付出代价。MSE 惩罚数值误差，cross entropy 惩罚正确类别概率太低，hinge loss 则强调分类边界要有 margin。
+代码实现为：
+```python
 
-因此，不同 loss 不是公式长得不同而已，而是在表达不同的训练目标。
+def mean_squared_error(y_true, y_pred):
+    return np.mean((y_true - y_pred)**2)
 
-## 5. 模型训练的本质
-
-机器学习训练可以粗略理解成最小化 empirical risk：
-
-$$
-\theta^* = \arg\min_\theta \frac{1}{n}\sum_{i=1}^{n} L(f_\theta(x_i), y_i)
-$$
-
-这句话的意思是：在所有可能的参数 $\theta$ 中，找到一组参数，让模型在训练数据上的平均 loss 尽可能小。
-
-但关键问题在于：真正关心的不是训练数据上的 loss，而是未来数据上的 loss。训练数据只是总体数据分布的一个样本。
-
-所以机器学习一直在处理一个张力：
-
-- 训练集上 loss 要足够低，否则模型没有学到东西。
-- 模型不能只适应训练集，否则泛化能力差。
-
-这也是为什么后面会有 regularization、cross validation、early stopping、model selection 等一整套方法。它们都在服务同一个目标：让模型不仅会做训练题，也能做新题。
-
-## 6. 一个完整的机器学习流程（ML pipeline）
-
-从工程角度看，一个机器学习流程通常不是“选个模型训练一下”这么简单。
-
-一个典型流程是：
-
-```text
-data collection
--> data cleaning
--> feature engineering
--> train / validation / test split
--> model training
--> model selection
--> evaluation
--> deployment or analysis
+def binary_cross_entropy(y_true, y_pred):
+    return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 ```
 
-每一步都可能决定最终效果。比如在房价预测里，如果房屋面积单位有的用平方米、有的用平方英尺，而清洗阶段没有统一单位，后面再复杂的模型也会被错误数据带偏。
 
-数据清洗会影响输入质量，feature engineering 会影响模型能看到什么信息，数据划分会影响评估是否可靠，评价指标会影响最后选哪个模型。
 
-在实际项目里，模型算法本身经常不是唯一瓶颈。数据质量、特征设计、评估方式、线上线下分布差异，往往同样重要。
+不同视角下的机器学习分类：
+### 1. 监督学习 vs 无监督学习
+- **监督学习**：训练数据包含输入和对应的标签（目标值）。算法学习从输入到输出的映射，用于对新数据进行预测。  
+  *例子*：KNN 分类/回归、线性回归、决策树、神经网络。  
+  *KNN 的位置*：因为有标签，KNN 属于监督学习。  
+- **无监督学习**：数据只有输入，没有标签。目标是从中挖掘结构，如聚类、降维、密度估计。  
+  *例子*：K-means、PCA、自编码器。  
+  *注意*：KNN 本身需标签，但也可作为无监督算法的组件（如用近邻构建相似图），不过通常它被看作监督方法。
 
-## 7. 小结
+### 2. 参数模型 vs 非参数模型
+- **参数模型**：假设数据分布具有固定的参数形式，训练时用数据估计有限个参数；预测时仅依赖这些参数，不再需要原始训练数据。模型复杂度通常事先固定。  
+  *优点*：计算快，能对小数据做合理推断；*缺点*：若假设与真实不符，效果受限。  
+  *例子*：线性回归（参数：权重和偏置）、逻辑回归、朴素贝叶斯。  
+- **非参数模型**：不对函数形式做强烈假设，模型复杂度可随数据量增长。常见形式是“记住”训练样本，预测时再用某种相似度决定输出。  
+  *优点*：灵活，可拟合复杂边界；*缺点*：需要大量数据，预测慢，易受维度灾难和噪声影响。  
+  *KNN 的位置*：典型的非参数模型，预测时需要访问全体训练样本。  
+- 与“基于实例的学习”“懒惰学习”的关系：非参数模型常通过存储实例来实现，所以 KNN 也是**基于实例的**和**懒惰的**（训练只存数据，计算推迟到预测时）。相反，像决策树虽然非参数，但会提前构建树结构，属于急切学习。
 
-一句话概括机器学习的基础框架：
+### 3. 判别模型 vs 生成模型
+- **判别模型**：直接学习决策边界或条件概率 $P(y|x)$，关注“给定输入，哪个类别最可能”。  
+  *例子*：KNN、逻辑回归、支持向量机、神经网络。  
+- **生成模型**：学习数据的联合分布 $P(x, y)$，然后通过贝叶斯定理得到 $P(y|x)$。它能生成新样本，展示数据的底层结构。  
+  *例子*：朴素贝叶斯、高斯混合模型、隐马尔可夫模型、生成对抗网络（GAN）。  
+  *KNN 的位置*：KNN 直接根据邻居的标签投票，不建模数据是如何生成的，因此是判别模型。
 
-> 机器学习是先定义一个可学习的函数空间，再用 loss function 指定目标，通过 optimization 找到一组参数，最后用 validation/test data 判断它是否真的泛化。
+### 4. 分类 vs 回归（按任务类型）
+这只是输出类型的不同，不是算法内在的类别，但很多算法两者都能做。
+- **分类**：预测离散标签（如猫/狗）。KNN 可用多数投票。
+- **回归**：预测连续值（如房价）。KNN 可用近邻标签的均值或加权平均。
+- *扩展*：还有聚类（无监督分组）、排序、检测等任务，但 KNN 主要应用于分类和回归。
 
-这个框架比记算法名字更重要。KNN、决策树、逻辑回归、XGBoost、神经网络看起来差别很大，但都绕不开几个问题：
+### 5. 基于距离 vs 基于记忆（常用描述类别）
+这些不是严格的学术划分，但常用来刻画算法特性：
+- **基于距离的算法**：依赖样本间的距离度量（如欧氏距离）来做出决策。KNN 是最典型的一个，其他如径向基网络、距离加权回归。  
+- **基于记忆的学习**：直接存储训练实例，预测时才利用记忆进行推理。几乎等同于懒惰学习。KNN 完全符合，因为它不作抽象，只“回忆”相似样本。
+- 
 
-- 输入特征是什么？
-- 目标变量是什么？
-- 模型假设是什么？
-- loss 如何定义？
-- 参数如何学习？
-- 如何判断模型不是在过拟合？
+## 5. 小结
 
-后面看具体算法时，也尽量从这些问题出发，而不是只背每个模型的定义。
+
+
+> 机器学习是先定义一个可学习的函数空间，再用 loss function 指定目标，通过 optimization 找到一组参数，最后用 validation/test data 判断模型训练的效果，是否真的泛化。
+
 
 ## 参考资料
 
+- ucsd dsc40A,40B等课程
+- Andrew Ng: Maching Learning/Deep Learning on Coursera
 - [Stanford CS229: Machine Learning](https://cs229.stanford.edu/)
-- [MIT 6.036 Introduction to Machine Learning](https://ocw.mit.edu/courses/6-036-introduction-to-machine-learning-fall-2020/)
-- [scikit-learn User Guide](https://scikit-learn.org/stable/user_guide.html)
 - [An Introduction to Statistical Learning](https://www.statlearning.com/)

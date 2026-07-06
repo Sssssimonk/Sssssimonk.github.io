@@ -1,5 +1,5 @@
 ---
-title: "后训练笔记 04：GRPO 变体与 KTO"
+title: "后训练笔记 04：GRPO变体与DPO变体"
 date: 2025-11-22 21:30:00
 updated: 2025-11-22 21:30:00
 categories:
@@ -16,9 +16,9 @@ math: true
 category_bar: true
 ---
 
-这一篇整理 GRPO 的变体，以及 KTO。
+这一篇整理 GRPO 的变体，以及DPO的变体。
 
-这里需要先区分一下：KTO 不是 GRPO 的变体。它更像 DPO 同一类的 direct alignment 方法。之所以放在这一篇，是因为它属于“PPO/GRPO 之外的后训练目标改造”，而且经常和 DPO、IPO、ORPO 放在一起比较。
+
 
 所以这一篇分成两条线：
 
@@ -27,7 +27,7 @@ category_bar: true
 
 ## 1. GRPO 的基本问题
 
-GRPO 的基础想法很清楚：同一个 prompt 采样多个 responses，用组内 reward 相对值估计 advantage。
+GRPO 的基础想法很清楚：同一个prompt采样多个 responses，用组内 reward 相对值估计 advantage。
 
 但真实训练里会遇到几个问题。
 

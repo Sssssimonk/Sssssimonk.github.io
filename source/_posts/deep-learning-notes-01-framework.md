@@ -6,7 +6,6 @@ categories:
   - 深度学习笔记
 tags:
   - 深度学习
-  - 表示学习
   - 神经网络
   - 笔记
 math: true
@@ -217,4 +216,3 @@ End-to-end learning 减少了手工设计特征的负担，但也带来数据、
 - [Deep Learning Book](https://www.deeplearningbook.org/)
 - [Dive into Deep Learning](https://d2l.ai/)
 - [Stanford CS231n: Convolutional Neural Networks for Visual Recognition](https://cs231n.github.io/)
-- [MIT 6.S191: Introduction to Deep Learning](https://introtodeeplearning.com/)

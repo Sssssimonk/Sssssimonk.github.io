@@ -176,7 +176,7 @@ PR Curve 的横轴是 recall，纵轴是 precision。
 
 训练集表现不能代表泛化能力，所以需要 validation。
 
-### 留出法验证（holdout validation）
+### holdout validation
 
 最常见方式是 train / validation / test split。
 
@@ -188,7 +188,7 @@ test set: final evaluation
 
 test set 不应该频繁用来调模型。如果每次调参都看 test score，test set 也会被间接过拟合。
 
-### K 折交叉验证（K-fold cross validation）
+### K-fold cross validation）
 
 K-fold cross validation 把数据分成 $K$ 份，每次用其中一份做 validation，其余做 training，最后平均结果。
 
