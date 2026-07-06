@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.9k 字
+          2.6k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          24 分钟
+          22 分钟
         
       </span>
     
@@ -657,14 +657,6 @@ function）的作用</h2>
 0。深层网络里这会导致前面层学得很慢。</p>
 <p>ReLU 的优点是正半轴梯度稳定，计算简单。但 ReLU 也可能出现 dead
 neuron：如果某个 neuron 长期输出 0，它对应参数可能很难更新。</p>
-<h2 id="几个点">9. 几个点</h2>
-<p>MLP 是理解深度网络的基础。CNN、RNN、Transformer
-虽然结构不同，但仍然离不开 forward、loss、backprop 和 optimizer。</p>
-<p>Forward pass 负责算当前预测，backpropagation 负责算参数该怎么改。</p>
-<p>Backpropagation 本质是 chain rule 在计算图上的高效实现。</p>
-<p>Activation function
-不是装饰。没有非线性，多层网络会退化成线性模型。</p>
-<p>自动求导让训练变得方便，但理解计算图和梯度传播仍然很重要，否则调试训练问题时会很被动。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.deeplearningbook.org/">Deep Learning Book:

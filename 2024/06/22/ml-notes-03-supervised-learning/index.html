@@ -19,28 +19,26 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理 post-training。 Pretraining 让模型学会语言、知识和模式，但一个 pretrained base model 通常不是好用的助手。它可能会续写问题、模仿网页文本、输出不稳定格式，也不一定遵循用户指令。 Post-training 的目标是把 base model 变成更符合使用需求的模型。 可以先用一句话区分：  Pretraining 学“世界和语言的统计结构">
+    <meta name="description" content="1. 线性回归（linear regression）：用线性函数做预测 Linear regression 用来预测连续值。最简单的一维形式是： ŷ &#x3D; wx + b 多维特征时写成： ŷ &#x3D; w1x1 + w2x2 + ... + wdxd + b 比如房价预测中，x1 是面积，x2 是房龄，x3 是距离地铁的距离。模型会学习每个特征对应的权重 wi。如果 w1 很大，说明面积对预测房价影响">
 <meta property="og:type" content="article">
-<meta property="og:title" content="现代大模型笔记 05：Post-training，SFT、DPO、GRPO 到 RL 推理">
-<meta property="og:url" content="https://sssssimonk.github.io/2025/10/04/modern-llm-notes-05-post-training/index.html">
+<meta property="og:title" content="机器学习笔记 03：有监督学习">
+<meta property="og:url" content="https://sssssimonk.github.io/2024/06/22/ml-notes-03-supervised-learning/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理 post-training。 Pretraining 让模型学会语言、知识和模式，但一个 pretrained base model 通常不是好用的助手。它可能会续写问题、模仿网页文本、输出不稳定格式，也不一定遵循用户指令。 Post-training 的目标是把 base model 变成更符合使用需求的模型。 可以先用一句话区分：  Pretraining 学“世界和语言的统计结构">
+<meta property="og:description" content="1. 线性回归（linear regression）：用线性函数做预测 Linear regression 用来预测连续值。最简单的一维形式是： ŷ &#x3D; wx + b 多维特征时写成： ŷ &#x3D; w1x1 + w2x2 + ... + wdxd + b 比如房价预测中，x1 是面积，x2 是房龄，x3 是距离地铁的距离。模型会学习每个特征对应的权重 wi。如果 w1 很大，说明面积对预测房价影响">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-10-04T12:00:00.000Z">
-<meta property="article:modified_time" content="2025-10-04T12:00:00.000Z">
+<meta property="article:published_time" content="2024-06-22T13:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-22T13:00:00.000Z">
 <meta property="article:author" content="Siyu Chen">
-<meta property="article:tag" content="DPO">
-<meta property="article:tag" content="GRPO">
-<meta property="article:tag" content="Post-training">
-<meta property="article:tag" content="RLHF">
-<meta property="article:tag" content="SFT">
-<meta property="article:tag" content="大模型">
+<meta property="article:tag" content="KNN">
+<meta property="article:tag" content="机器学习">
 <meta property="article:tag" content="笔记">
+<meta property="article:tag" content="线性回归">
+<meta property="article:tag" content="逻辑回归">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>现代大模型笔记 05：Post-training，SFT、DPO、GRPO 到 RL 推理 - Siyu Chen</title>
+  <title>机器学习笔记 03：有监督学习 - Siyu Chen</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -314,7 +312,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="现代大模型笔记 05：Post-training，SFT、DPO、GRPO 到 RL 推理"></span>
+            <span id="subtitle" data-typed-text="机器学习笔记 03：有监督学习"></span>
           
         </div>
 
@@ -325,8 +323,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2025-10-04 20:00" pubdate>
-          2025-10-04
+        <time datetime="2024-06-22 21:00" pubdate>
+          2024-06-22
         </time>
       </span>
     
@@ -337,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.4k 字
+          2.9k 字
         
       </span>
     
@@ -348,7 +346,7 @@
         
         
         
-          37 分钟
+          25 分钟
         
       </span>
     
@@ -395,17 +393,17 @@
     
     <div class="category row nomargin-x">
       <a class="category-item 
-          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="现代大模型与前沿论文笔记"
-        id="heading-d5d4b0e5be425c5b92b0c0fc312f0977" role="tab" data-toggle="collapse" href="#collapse-d5d4b0e5be425c5b92b0c0fc312f0977"
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="机器学习笔记"
+        id="heading-9c962f7faf0e1e50316d9067d785ce2f" role="tab" data-toggle="collapse" href="#collapse-9c962f7faf0e1e50316d9067d785ce2f"
         aria-expanded="true"
       >
-        现代大模型与前沿论文笔记
+        机器学习笔记
         <span class="list-group-count">(6)</span>
         <i class="iconfont icon-arrowright"></i>
       </a>
       
-      <div class="category-collapse collapse show" id="collapse-d5d4b0e5be425c5b92b0c0fc312f0977"
-           role="tabpanel" aria-labelledby="heading-d5d4b0e5be425c5b92b0c0fc312f0977">
+      <div class="category-collapse collapse show" id="collapse-9c962f7faf0e1e50316d9067d785ce2f"
+           role="tabpanel" aria-labelledby="heading-9c962f7faf0e1e50316d9067d785ce2f">
         
         
           
@@ -414,55 +412,55 @@
     
       
       
-        <a href="/2025/10/11/modern-llm-notes-06-multimodal-models/" title="现代大模型笔记 06：多模态模型，图像、视频和音频怎么接进 LLM"
+        <a href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" title="机器学习笔记 06：评估、验证与模型选择"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">现代大模型笔记 06：多模态模型，图像、视频和音频怎么接进 LLM</span>
+          <span class="category-post">机器学习笔记 06：评估、验证与模型选择</span>
         </a>
       
     
       
       
-        <a href="/2025/10/04/modern-llm-notes-05-post-training/" title="现代大模型笔记 05：Post-training，SFT、DPO、GRPO 到 RL 推理"
+        <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="机器学习笔记 05：无监督学习与降维"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">机器学习笔记 05：无监督学习与降维</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/06/29/ml-notes-04-tree-based-models/" title="机器学习笔记 04：树模型"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">机器学习笔记 04：树模型</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2024/06/22/ml-notes-03-supervised-learning/" title="机器学习笔记 03：有监督学习"
            class="list-group-item list-group-item-action
            active">
-          <span class="category-post">现代大模型笔记 05：Post-training，SFT、DPO、GRPO 到 RL 推理</span>
+          <span class="category-post">机器学习笔记 03：有监督学习</span>
         </a>
       
     
       
       
-        <a href="/2025/09/27/modern-llm-notes-04-reasoning-models/" title="现代大模型笔记 04：Reasoning Model，从 CoT 到 DeepSeek-R1"
+        <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" title="机器学习笔记 02：损失函数、优化与正则化"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">现代大模型笔记 04：Reasoning Model，从 CoT 到 DeepSeek-R1</span>
+          <span class="category-post">机器学习笔记 02：损失函数、优化与正则化</span>
         </a>
       
     
       
       
-        <a href="/2025/09/20/modern-llm-notes-03-long-context/" title="现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码"
+        <a href="/2024/06/08/ml-notes-01-machine-learning-framework/" title="机器学习笔记 01：机器学习的基本框架"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码</span>
-        </a>
-      
-    
-      
-      
-        <a href="/2025/09/13/modern-llm-notes-02-moe/" title="现代大模型笔记 02：MoE，为什么大模型开始变稀疏"
-           class="list-group-item list-group-item-action
-           ">
-          <span class="category-post">现代大模型笔记 02：MoE，为什么大模型开始变稀疏</span>
-        </a>
-      
-    
-      
-      
-        <a href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" title="现代大模型笔记 01：Transformer 之后到底变了什么"
-           class="list-group-item list-group-item-action
-           ">
-          <span class="category-post">现代大模型笔记 01：Transformer 之后到底变了什么</span>
+          <span class="category-post">机器学习笔记 01：机器学习的基本框架</span>
         </a>
       
     
@@ -484,242 +482,196 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">现代大模型笔记 05：Post-training，SFT、DPO、GRPO 到 RL 推理</h1>
+            <h1 id="seo-header">机器学习笔记 03：有监督学习</h1>
             
             
               <div class="markdown-body">
                 
-                <p>这一篇整理 post-training。</p>
-<p>Pretraining 让模型学会语言、知识和模式，但一个 pretrained base model
-通常不是好用的助手。它可能会续写问题、模仿网页文本、输出不稳定格式，也不一定遵循用户指令。</p>
-<p>Post-training 的目标是把 base model 变成更符合使用需求的模型。</p>
-<p>可以先用一句话区分：</p>
-<blockquote>
-<p>Pretraining 学“世界和语言的统计结构”，post-training
-学“怎么作为一个模型产品来回答问题”。</p>
-</blockquote>
-<p>这句话不完全严谨，但很有用。</p>
-<h2 id="base-model-为什么不够用">1. Base model 为什么不够用</h2>
-<p>Base model 的训练目标通常是 next token prediction：</p>
+                <h2 id="线性回归linear-regression用线性函数做预测">1. 线性回归（linear
+regression）：用线性函数做预测</h2>
+<p>Linear regression 用来预测连续值。最简单的一维形式是：</p>
 <p><span
-class="math display">max<sub><em>θ</em></sub>∑<sub><em>t</em></sub>log <em>p</em><sub><em>θ</em></sub>(<em>x</em><sub><em>t</em></sub>∣<em>x</em><sub> &lt; <em>t</em></sub>)</span></p>
-<p>它看到的是大规模文本，目标是预测下一个 token。</p>
-<p>所以当你问：</p>
-<blockquote>
-<p>请解释一下 AdamW 和 Adam 的区别。</p>
-</blockquote>
-<p>Base model
-可能确实知道相关知识，但它未必会以你期待的方式回答。它可能继续补全一段网页，也可能生成多个问答样例，也可能格式混乱。</p>
-<p>这不是知识缺失，而是行为没有对齐。</p>
-<p>Post-training 就是在解决行为问题。</p>
-<h2 id="sft先学会怎么回答">2. SFT：先学会怎么回答</h2>
-<p>SFT 是 supervised fine-tuning。</p>
-<p>给模型一批指令和高质量回答，让它模仿这些回答。</p>
-<p>训练目标仍然是 next token prediction，只不过数据变成了
-instruction-response 格式：</p>
+class="math display"><em>ŷ</em> = <em>w</em><em>x</em> + <em>b</em></span></p>
+<p>多维特征时写成：</p>
 <p><span
-class="math display">max<sub><em>θ</em></sub>log <em>p</em><sub><em>θ</em></sub>(<em>y</em>∣<em>x</em>)</span></p>
-<p>其中 <span class="math inline"><em>x</em></span> 是用户指令，<span
-class="math inline"><em>y</em></span> 是期望回答。</p>
-<p>SFT 的作用很基础：</p>
-<ul>
-<li>学会遵循指令</li>
-<li>学会问答格式</li>
-<li>学会拒答边界</li>
-<li>学会输出更清晰的结构</li>
-<li>学会一些特定任务风格</li>
-</ul>
-<p>如果没有 SFT，模型可能有知识，但不好用。</p>
-<h2 id="sft-的局限">3. SFT 的局限</h2>
-<p>SFT 本质上是模仿。</p>
-<p>它的问题是：数据里是什么样，模型就往什么样靠。</p>
-<p>如果 SFT 数据质量一般，模型会学到平庸回答。</p>
-<p>如果 SFT 数据太模板化，模型会变得啰嗦、套话。</p>
-<p>如果 SFT 数据覆盖不到复杂场景，模型遇到新任务还是不稳。</p>
-<p>更关键的是，很多问题没有唯一标准答案。</p>
-<p>比如两个回答都正确，但一个更简洁，一个更详细；一个更安全，一个更有帮助。SFT
-很难表达这种偏好排序。</p>
-<p>这就引出了 preference learning。</p>
-<h2 id="rlhf从偏好里学习">4. RLHF：从偏好里学习</h2>
-<p>RLHF 的经典流程大概是：</p>
-<ol type="1">
-<li>先训练一个 SFT model</li>
-<li>对同一个 prompt 采样多个回答</li>
-<li>人类标注哪个回答更好</li>
-<li>训练 reward model</li>
-<li>用 PPO 等 RL 方法优化 policy</li>
-</ol>
-<p>Reward model 学的是：</p>
-<p><span
-class="math display"><em>r</em><sub><em>ϕ</em></sub>(<em>x</em>,<em>y</em>)</span></p>
-<p>也就是给定 prompt <span class="math inline"><em>x</em></span> 和回答
-<span class="math inline"><em>y</em></span>，判断这个回答有多好。</p>
-<p>然后语言模型作为 policy，优化目标大概是让 reward
-更高，同时不要偏离原模型太远。</p>
-<p>通常会加 KL penalty：</p>
-<p><span
-class="math display">max<sub><em>θ</em></sub>𝔼[<em>r</em><sub><em>ϕ</em></sub>(<em>x</em>,<em>y</em>)] − <em>β</em><em>D</em><sub><em>K</em><em>L</em></sub>(<em>π</em><sub><em>θ</em></sub>||<em>π</em><sub><em>r</em><em>e</em><em>f</em></sub>)</span></p>
-<p>这个 KL 项很重要。没有它，模型可能为了骗 reward model
-走到奇怪分布。</p>
-<h2 id="ppo经典但复杂">5. PPO：经典但复杂</h2>
-<p>PPO 是 RLHF 里常见的算法。</p>
-<p>它把语言模型看成 policy，生成回答就是 action sequence。</p>
-<p>PPO 的优点是通用，能直接优化 reward。</p>
-<p>但它也复杂：</p>
-<ul>
-<li>需要 reward model</li>
-<li>需要采样</li>
-<li>需要 value model 或 advantage estimation</li>
-<li>训练不稳定</li>
-<li>超参数敏感</li>
-<li>成本高</li>
-</ul>
-<p>所以后来大家开始寻找更简单的 preference optimization 方法。</p>
-<p>这里不能简单说 PPO 落后。它仍然很重要，尤其是在更复杂的 RL
-场景里。但对于很多偏好对齐任务，DPO 这类方法更容易训练。</p>
-<h2 id="dpo把偏好优化变简单">6. DPO：把偏好优化变简单</h2>
-<p>DPO 的核心是：不显式训练 reward model，也不跑完整
-RL，而是直接用偏好数据优化模型。</p>
-<p>偏好数据通常是三元组：prompt、chosen response、rejected
-response。</p>
-<p>DPO 让模型提高 chosen 的相对概率，降低 rejected
-的相对概率，同时参考一个 reference model。</p>
-<p>它的损失可以写成类似：</p>
+class="math display"><em>ŷ</em> = <em>w</em><sub>1</sub><em>x</em><sub>1</sub> + <em>w</em><sub>2</sub><em>x</em><sub>2</sub> + ... + <em>w</em><sub><em>d</em></sub><em>x</em><sub><em>d</em></sub> + <em>b</em></span></p>
+<p>比如房价预测中，<span
+class="math inline"><em>x</em><sub>1</sub></span> 是面积，<span
+class="math inline"><em>x</em><sub>2</sub></span> 是房龄，<span
+class="math inline"><em>x</em><sub>3</sub></span>
+是距离地铁的距离。模型会学习每个特征对应的权重 <span
+class="math inline"><em>w</em><sub><em>i</em></sub></span>。如果 <span
+class="math inline"><em>w</em><sub>1</sub></span>
+很大，说明面积对预测房价影响更大；如果 <span
+class="math inline"><em>w</em><sub>2</sub></span>
+是负数，说明房龄增加可能让房价下降。</p>
+<p>Linear regression 常用 MSE 作为 loss：</p>
 <p><span class="math display">$$
-\mathcal{L}_{DPO} = -\log \sigma \left(\beta \log
-\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \beta \log
-\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)} \right)
+J(w,b)=\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2
 $$</span></p>
-<p>其中 <span class="math inline"><em>y</em><sub><em>w</em></sub></span>
-是 preferred response，<span
-class="math inline"><em>y</em><sub><em>l</em></sub></span> 是 rejected
-response。</p>
-<p>直觉上，DPO 在说：</p>
-<blockquote>
-<p>相比 reference model，新模型应该更偏向好回答，而不是差回答。</p>
-</blockquote>
-<p>DPO 的优点是稳定、简单、成本低。</p>
-<p>但它依赖偏好数据质量，也不一定适合所有需要复杂探索的任务。</p>
-<h2 id="grpo为什么-reasoning-里会出现它">7. GRPO：为什么 reasoning
-里会出现它</h2>
-<p>GRPO 是 DeepSeekMath 和 DeepSeek-R1 里提到的重要方法。</p>
-<p>它可以看成 PPO 的一种变体，核心是省掉单独的 value
-model，用一组采样回答的相对奖励来估计 advantage。</p>
-<p>对同一个问题，模型生成一组回答：</p>
+<p>训练目标就是找到一组 <span
+class="math inline"><em>w</em>, <em>b</em></span>，让预测值和真实值之间的平方误差尽量小。</p>
+<p>一个小例子：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">面积</th>
+<th style="text-align: right;">真实房价</th>
+<th style="text-align: right;">模型预测</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">300</td>
+<td style="text-align: right;">320</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">450</td>
+<td style="text-align: right;">430</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">600</td>
+<td style="text-align: right;">610</td>
+</tr>
+</tbody>
+</table>
+<p>如果模型预测整体偏高，更新参数时就会降低某些权重或
+bias；如果预测整体偏低，就会反过来调大。具体怎么改，由 loss 对参数的
+gradient 决定。</p>
+<h2 id="线性模型的假设">2. 线性模型的假设</h2>
+<p>Linear model 最大的假设是：特征和目标之间可以用线性关系近似。</p>
+<p>这不代表真实世界一定是线性的，而是说在当前特征空间里，线性函数已经足够表达主要趋势。比如房价和面积大致正相关，这种关系线性模型就能抓住。但如果目标和特征之间存在复杂的非线性关系，普通线性模型就会
+underfit。</p>
+<p>一个典型例子是广告点击率。用户年龄对点击率的影响可能不是单调线性的：太年轻和太年长的用户都可能低，中间某个年龄段高。直接用年龄做线性特征可能不够，需要特征变换、交叉特征，或者换更强的模型。</p>
+<p>线性模型的优点是简单、稳定、可解释。缺点是表达能力有限，对 feature
+engineering 比较依赖。</p>
+<h2
+id="逻辑回归logistic-regression名字叫-regression但做分类classification">3.
+逻辑回归（logistic regression）：名字叫
+regression，但做分类（classification）</h2>
+<p>Logistic regression 通常用于二分类。它先计算一个线性打分：</p>
 <p><span
-class="math display">{<em>y</em><sub>1</sub>, <em>y</em><sub>2</sub>, ..., <em>y</em><sub><em>G</em></sub>}</span></p>
-<p>每个回答得到
-reward。然后用组内平均和标准差做归一化，判断某个回答相对这一组是好还是坏。</p>
-<p>直觉上：</p>
-<blockquote>
-<p>不一定要知道一个回答的绝对价值，只要知道它在同一组候选里相对更好还是更差。</p>
-</blockquote>
-<p>这对数学、代码这类可验证任务很自然。因为 reward
-可以来自答案是否正确、测试是否通过。</p>
-<p>GRPO 的优势是减少 value model 带来的额外显存和训练复杂度。</p>
-<p>但它仍然是 RL，不是免费的。采样多个回答、计算 reward、控制
-KL、保持训练稳定，都是成本。</p>
-<h2 id="sftdpogrpo-的位置">8. SFT、DPO、GRPO 的位置</h2>
-<p>可以粗略这样理解：</p>
-<ul>
-<li>SFT：教模型怎么回答</li>
-<li>DPO：教模型在两个回答里偏向更好的那个</li>
-<li>GRPO/RL：让模型通过奖励信号强化解决问题的策略</li>
-</ul>
-<p>SFT 更像 imitation。</p>
-<p>DPO 更像 preference shaping。</p>
-<p>RL 更像 outcome-driven optimization。</p>
-<p>这三者不是互斥关系。很多现代模型会组合使用：先
-SFT，再偏好优化，再针对 reasoning/code 做 RL。</p>
-<h2 id="post-training-改的是能力还是行为">9. Post-training
-改的是能力还是行为</h2>
-<p>这是一个容易混的点。</p>
-<p>Post-training
-有时主要改行为，比如让模型更礼貌、更清晰、更遵循指令。</p>
-<p>但在 reasoning、coding 任务里，post-training 也可能显著提升能力。</p>
-<p>原因是这些任务的“能力”很依赖解题策略。</p>
-<p>Base model
-可能已经有知识，但不会稳定地分解问题、检查答案、使用工具、运行测试。</p>
-<p>通过
-post-training，模型学到更有效的行为策略，于是表现看起来像能力提升。</p>
-<p>所以能力和行为在 LLM 里不是完全分开的。</p>
-<h2 id="reward-hacking-和过优化">10. Reward hacking 和过优化</h2>
-<p>只要有 reward，就有 reward hacking 风险。</p>
-<p>如果 reward model 偏好长回答，模型可能变啰嗦。</p>
-<p>如果 reward 偏好自信语气，模型可能更会胡说。</p>
-<p>如果数学 reward 只看最终答案，模型可能生成错误推理但碰巧答案对。</p>
-<p>如果代码 reward 只看公开测试，模型可能过拟合测试。</p>
-<p>所以 post-training 的关键不是“把 reward 拉满”，而是设计和验证 reward
-是否真的代表目标。</p>
-<p>这也是为什么现代模型训练要大量 eval、红队、安全测试、人工审查。</p>
-<h2 id="post-training-和数据质量">11. Post-training 和数据质量</h2>
-<p>Post-training 对数据质量非常敏感。</p>
-<p>一批高质量 SFT 数据可能比十倍低质量数据更有用。</p>
-<p>偏好数据也一样。标注者是否一致、偏好标准是否清晰、chosen 和 rejected
-差异是否有意义，都会影响训练。</p>
-<p>对 reasoning model 来说，高质量 reasoning traces 更关键。</p>
-<p>如果训练数据里充满表面步骤，模型会学会“写步骤”，但不一定学会“做推理”。</p>
-<p>所以数据构造不是辅助工作，而是 post-training 的核心。</p>
-<h2 id="为什么同一个-base-model-会有不同版本">12. 为什么同一个 base
-model 会有不同版本</h2>
-<p>一个 base model 可以派生出很多版本：</p>
-<ul>
-<li>instruct model</li>
-<li>chat model</li>
-<li>reasoning model</li>
-<li>code model</li>
-<li>tool-use model</li>
-<li>domain-specific model</li>
-</ul>
-<p>它们底层知识可能相近，但 post-training 目标不同。</p>
-<p>比如 code model 会更强调代码数据、测试反馈、仓库级任务。</p>
-<p>Reasoning model 会更强调数学、逻辑、可验证 reward、长 reasoning
-trace。</p>
-<p>Chat model 会更强调安全、有帮助、对话体验。</p>
-<p>所以看到模型名时，要区分 base 和 post-trained
-variant。只比较参数量没有意义。</p>
-<h2 id="读-post-training-报告时看什么">13. 读 post-training
-报告时看什么</h2>
-<p>我会看这些问题：</p>
-<ul>
-<li>Base model 是什么</li>
-<li>SFT 数据规模和来源是什么</li>
-<li>是否使用偏好数据</li>
-<li>偏好优化用 PPO、DPO，还是其他方法</li>
-<li>RL reward 是人工 reward model，还是规则验证</li>
-<li>是否针对 reasoning/code/agent 做专门训练</li>
-<li>是否蒸馏自更强模型</li>
-<li>有没有控制 KL，reference model 是什么</li>
-<li>eval 是否覆盖安全、幻觉、长上下文、代码、数学</li>
-</ul>
-<p>特别要警惕只展示 benchmark 分数但不讲训练细节的报告。Post-training
-的细节往往决定模型实际行为。</p>
-<h2 id="小结">14. 小结</h2>
-<p>Post-training 是现代大模型从“会续写”变成“能使用”的关键阶段。</p>
-<p>SFT 解决基本指令跟随。</p>
-<p>RLHF/PPO 让模型从偏好中优化，但复杂且不稳定。</p>
-<p>DPO 把偏好学习变成更简单的目标。</p>
-<p>GRPO 适合在可验证任务上做 group-based RL，尤其和 reasoning/coding
-结合紧密。</p>
-<p>我会把 post-training
-看成一套行为塑形系统。它不只是让模型更礼貌，而是在很多任务上改变模型解决问题的方式。</p>
+class="math display"><em>z</em> = <em>w</em><sup><em>T</em></sup><em>x</em> + <em>b</em></span></p>
+<p>然后用 sigmoid 把这个打分压到 <span
+class="math inline">[0,1]</span>：</p>
+<p><span class="math display">$$
+\sigma(z)=\frac{1}{1+e^{-z}}
+$$</span></p>
+<p>输出可以理解成正类概率：</p>
+<p><span
+class="math display"><em>P</em>(<em>y</em>=1|<em>x</em>) = <em>σ</em>(<em>w</em><sup><em>T</em></sup><em>x</em>+<em>b</em>)</span></p>
+<p>比如垃圾邮件分类中，如果输出 <span
+class="math inline">0.92</span>，可以理解为模型认为这封邮件是垃圾邮件的概率很高。如果输出
+<span class="math inline">0.08</span>，则更倾向于正常邮件。</p>
+<p>最后再通过 threshold 得到类别：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">if P(y = 1 | x) &gt;= 0.5:<br>    predict 1<br>else:<br>    predict 0<br></code></pre></td></tr></table></figure>
+<p>threshold 不一定非要是 0.5。比如疾病筛查里更怕漏诊，可以把 threshold
+调低，让模型更容易预测为阳性，从而提高 recall。</p>
+<h2 id="为什么逻辑回归logistic-regression适合分类">4.
+为什么逻辑回归（logistic regression）适合分类</h2>
+<p>Linear regression 直接输出连续值，不适合表示概率。Logistic regression
+的 sigmoid 输出天然在 <span class="math inline">[0,1]</span>
+范围内，所以可以解释为概率。</p>
+<p>二分类常用 Binary Cross Entropy：</p>
+<p><span
+class="math display"><em>L</em>(<em>y</em>,<em>ŷ</em>) =  − [<em>y</em>log(<em>ŷ</em>)+(1−<em>y</em>)log(1−<em>ŷ</em>)]</span></p>
+<p>如果真实标签是 1，但模型只给正确类别 0.1 的概率，loss 会很大；如果给
+0.9，loss 就很小。</p>
+<p>这也是 logistic regression 和 linear regression 的关键区别：</p>
+<table>
+
+<thead>
+<tr class="header">
+<th>模型</th>
+<th>输出</th>
+<th>常见任务</th>
+<th>常见 loss</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Linear Regression</td>
+<td>连续值</td>
+<td>Regression</td>
+<td>MSE</td>
+</tr>
+<tr class="even">
+<td>Logistic Regression</td>
+<td>概率</td>
+<td>Binary Classification</td>
+<td>Binary Cross Entropy</td>
+</tr>
+</tbody>
+</table>
+<p>虽然 logistic regression 名字里有
+regression，但它本质上是在做分类概率建模。</p>
+<h2 id="knn没有显式训练过程的模型">6. KNN：没有显式训练过程的模型</h2>
+<p>KNN 全称是 K-Nearest
+Neighbors。它的思想很直接：要预测一个新样本，就看训练集中离它最近的
+<span class="math inline"><em>K</em></span> 个样本，然后让它们投票。</p>
+<p>分类任务里，流程是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">for a new sample:<br>    compute distance to all training samples<br>    choose K nearest samples<br>    count their labels<br>    return the majority label<br></code></pre></td></tr></table></figure>
+<p>比如 <span class="math inline"><em>K</em> = 5</span>，最近的 5
+个邻居里有 3 个是类别 A，2 个是类别 B，那么新样本预测为 A。</p>
+<p>KNN 是 non-parametric model。它没有像 linear regression
+那样显式学出一组 <span
+class="math inline"><em>w</em>, <em>b</em></span>。训练阶段基本就是存下训练数据，预测阶段才真正计算距离。</p>
+<p>这也带来一个问题：训练很快，但预测可能很慢。数据量很大时，每预测一个样本都要和大量训练样本算距离。</p>
+<h2 id="距离和相似度很关键">7. 距离和相似度很关键</h2>
+<p>KNN 的效果很依赖距离度量。常见距离包括 Euclidean distance、Manhattan
+distance、cosine similarity 等。</p>
+<p>Euclidean distance：</p>
+<p><span class="math display">$$
+d(x,z)=\sqrt{\sum_i (x_i-z_i)^2}
+$$</span></p>
+<p>Cosine similarity：</p>
+<p><span class="math display">$$
+\cos(\theta)=\frac{x \cdot z}{\|x\|\|z\|}
+$$</span></p>
+<p>如果特征 scale 差异很大，KNN 会被大尺度特征主导。比如一个特征是年龄
+<span class="math inline">[0,100]</span>，另一个特征是收入 <span
+class="math inline">[0,100000]</span>，不做 normalization
+时，收入几乎会决定距离。</p>
+<p>所以 KNN 前通常需要做 feature scaling。</p>
+<h2 id="点积dot-product和余弦相似度cosine-similarity">8. 点积（dot
+product）和余弦相似度（cosine similarity）</h2>
+<p>这部分和推荐系统、embedding retrieval、RAG 都有关。</p>
+<p>Dot product 是：</p>
+<p><span
+class="math display"><em>x</em> ⋅ <em>z</em> = ∑<sub><em>i</em></sub><em>x</em><sub><em>i</em></sub><em>z</em><sub><em>i</em></sub></span></p>
+<p>Cosine similarity 是归一化后的方向相似度：</p>
+<p><span class="math display">$$
+\frac{x \cdot z}{\|x\|\|z\|}
+$$</span></p>
+<p>差别在于：dot product 同时受方向和向量长度影响；cosine similarity
+主要看方向。</p>
+<p>如果 embedding 已经归一化，也就是 <span
+class="math inline">∥<em>x</em>∥ = ∥<em>z</em>∥ = 1</span>，那么：</p>
+<p><span
+class="math display"><em>x</em> ⋅ <em>z</em> = cos (<em>θ</em>)</span></p>
+<p>推荐系统里有时会保留 embedding
+norm，因为热门物品可能被训练出更大的向量长度，dot product 会把这种
+popularity signal 也算进去。检索场景里如果只关心语义方向，则常用 cosine
+similarity 或 normalized embedding dot product。</p>
+<h2 id="几个点">9. 几个点</h2>
+<p>Logistic regression 做分类，但它的 decision boundary
+仍然是线性的。sigmoid 只是把线性打分转成概率，并没有让边界变复杂。</p>
+<p>KNN 对特征 scale 很敏感。写 KNN 前先想
+normalization，不然距离可能没有意义。</p>
+<p>KNN 的 <span class="math inline"><em>K</em></span>
+太小容易受噪声影响，<span class="math inline"><em>K</em></span>
+太大又可能把局部结构抹平。</p>
+<p>Linear model 不是“不强”，而是依赖特征表达。如果 feature engineering
+做得好，线性模型在很多工业场景里仍然很有用。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li>Ouyang et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2203.02155">Training
-language models to follow instructions with human feedback</a></li>
-<li>Rafailov et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.18290">Direct
-Preference Optimization: Your Language Model is Secretly a Reward
-Model</a></li>
-<li>Shao et al., <a
-target="_blank" rel="noopener" href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits
-of Mathematical Reasoning in Open Language Models</a></li>
-<li>DeepSeek-AI, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2501.12948">DeepSeek-R1:
-Incentivizing Reasoning Capability in LLMs via Reinforcement
+<li><a target="_blank" rel="noopener" href="https://cs229.stanford.edu/">Stanford CS229: Machine
 Learning</a></li>
-<li>Qwen Team, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2505.09388">Qwen3
-Technical Report</a></li>
-<li>GLM-4.5 Team, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2508.06471">GLM-4.5:
-Agentic, Reasoning, and Coding Foundation Models</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.statlearning.com/">An Introduction to
+Statistical Learning</a></li>
 </ul>
 
                 
@@ -739,7 +691,7 @@ Agentic, Reasoning, and Coding Foundation Models</a></li>
     
       <span class="category-chain">
         
-  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
+  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
   
   
 
@@ -756,17 +708,13 @@ Agentic, Reasoning, and Coding Foundation Models</a></li>
       
         <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
       
-        <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/" class="print-no-link">#大模型</a>
+        <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
-        <a href="/tags/Post-training/" class="print-no-link">#Post-training</a>
+        <a href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="print-no-link">#线性回归</a>
       
-        <a href="/tags/SFT/" class="print-no-link">#SFT</a>
+        <a href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/" class="print-no-link">#逻辑回归</a>
       
-        <a href="/tags/DPO/" class="print-no-link">#DPO</a>
-      
-        <a href="/tags/GRPO/" class="print-no-link">#GRPO</a>
-      
-        <a href="/tags/RLHF/" class="print-no-link">#RLHF</a>
+        <a href="/tags/KNN/" class="print-no-link">#KNN</a>
       
     </div>
   
@@ -780,9 +728,9 @@ Agentic, Reasoning, and Coding Foundation Models</a></li>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/10/11/modern-llm-notes-06-multimodal-models/" title="现代大模型笔记 06：多模态模型，图像、视频和音频怎么接进 LLM">
+                      <a href="/2024/06/29/ml-notes-04-tree-based-models/" title="机器学习笔记 04：树模型">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">现代大模型笔记 06：多模态模型，图像、视频和音频怎么接进 LLM</span>
+                        <span class="hidden-mobile">机器学习笔记 04：树模型</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -790,8 +738,8 @@ Agentic, Reasoning, and Coding Foundation Models</a></li>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2025/09/27/modern-llm-notes-04-reasoning-models/" title="现代大模型笔记 04：Reasoning Model，从 CoT 到 DeepSeek-R1">
-                        <span class="hidden-mobile">现代大模型笔记 04：Reasoning Model，从 CoT 到 DeepSeek-R1</span>
+                      <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" title="机器学习笔记 02：损失函数、优化与正则化">
+                        <span class="hidden-mobile">机器学习笔记 02：损失函数、优化与正则化</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

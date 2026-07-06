@@ -439,10 +439,10 @@
     
       
       
-        <a href="/2024/06/22/ml-notes-03-linear-models-and-knn/" title="机器学习笔记 03：线性模型与 KNN"
+        <a href="/2024/06/22/ml-notes-03-supervised-learning/" title="机器学习笔记 03：有监督学习"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">机器学习笔记 03：线性模型与 KNN</span>
+          <span class="category-post">机器学习笔记 03：有监督学习</span>
         </a>
       
     
@@ -651,14 +651,12 @@ curve 更能反映实际使用体验。</p>
 <h2 id="验证validation怎么可靠地估计泛化能力">7.
 验证（validation）：怎么可靠地估计泛化能力</h2>
 <p>训练集表现不能代表泛化能力，所以需要 validation。</p>
-<h3 id="留出法验证holdout-validation">留出法验证（holdout
-validation）</h3>
+<h3 id="holdout-validation">holdout validation</h3>
 <p>最常见方式是 train / validation / test split。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">training set: train model parameters<br>validation set: tune hyperparameters and choose models<br>test set: final evaluation<br></code></pre></td></tr></table></figure>
 <p>test set 不应该频繁用来调模型。如果每次调参都看 test score，test set
 也会被间接过拟合。</p>
-<h3 id="k-折交叉验证k-fold-cross-validation">K 折交叉验证（K-fold cross
-validation）</h3>
+<h3 id="k-fold-cross-validation">K-fold cross validation）</h3>
 <p>K-fold cross validation 把数据分成 <span
 class="math inline"><em>K</em></span> 份，每次用其中一份做
 validation，其余做 training，最后平均结果。</p>

@@ -337,150 +337,6 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
-          现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
-        <div>
-          这一篇整理长上下文。 很多模型现在都会宣传 32K、128K、1M context window。这个数字很吸引人，但它很容易被误解。 长上下文不是“把 max length 参数调大”。真正困难的地方有三类：  attention 计算量变大 KV cache 显存变大 上下文变长后，模型未必能稳定用好信息  所以这篇重点不是列方法，而是看长上下文到底在解决什么瓶颈。 1. Self-atten
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-09-20 21:00" pubdate>
-              2025-09-20
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
-            
-              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
-            
-              <a href="/tags/RoPE/">#RoPE</a>
-            
-              <a href="/tags/KV-cache/">#KV cache</a>
-            
-              <a href="/tags/%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87/">#长上下文</a>
-            
-              <a href="/tags/FlashAttention/">#FlashAttention</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2025/09/13/modern-llm-notes-02-moe/" target="_self">
-          现代大模型笔记 02：MoE，为什么大模型开始变稀疏
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/13/modern-llm-notes-02-moe/" target="_self">
-        <div>
-          这一篇整理 MoE，也就是 mixture of experts。 现在很多前沿开源模型都会强调两个数字：total parameters 和 activated parameters。比如一个模型可能有 235B 总参数，但每个 token 只激活 22B 参数。 第一次看到这个说法时很容易觉得矛盾：到底是 235B 模型，还是 22B 模型？ MoE 的关键就在这里。它不是让所有参数每次都参与
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-09-13 20:30" pubdate>
-              2025-09-13
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
-            
-              <a href="/tags/MoE/">#MoE</a>
-            
-              <a href="/tags/%E7%A8%80%E7%96%8F%E6%BF%80%E6%B4%BB/">#稀疏激活</a>
-            
-              <a href="/tags/DeepSeek/">#DeepSeek</a>
-            
-              <a href="/tags/Qwen/">#Qwen</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
         <a href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
           现代大模型笔记 01：Transformer 之后到底变了什么
         </a>
@@ -489,7 +345,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
         <div>
-          这一篇先把现代大模型的结构底座梳理出来。 很多技术报告会说模型基于 Transformer，但如果只停留在 2017 年原始 Transformer 的结构，很容易读不懂后面的细节。现在主流 LLM 的基本骨架还是 Transformer，但很多关键部件已经换过一轮：decoder-only、pre-norm、RMSNorm、SwiGLU、RoPE、GQA、KV cache、FlashAttent
+          1. 从 encoder-decoder 到 decoder-only 原始 Transformer是seq2seq架构，Encoder 负责读完整个输入句子，decoder 负责一步一步生成目标句子。 但现在很多通用语言模型，比如 GPT、LLaMA、Qwen、DeepSeek，主要采用 decoder-only 结构。它没有单独的 encoder，而是把所有任务都改写成 next token
         </div>
       </a>
 
@@ -881,8 +737,6 @@
             
               <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">#深度学习</a>
             
-              <a href="/tags/%E8%A1%A8%E7%A4%BA%E5%AD%A6%E4%B9%A0/">#表示学习</a>
-            
               <a href="/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">#神经网络</a>
             
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
@@ -1024,6 +878,144 @@
               <a href="/tags/%E8%81%9A%E7%B1%BB/">#聚类</a>
             
               <a href="/tags/PCA/">#PCA</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/06/29/ml-notes-04-tree-based-models/" target="_self">
+          机器学习笔记 04：树模型
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/29/ml-notes-04-tree-based-models/" target="_self">
+        <div>
+          这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 1. 决策树（decision tree）的基本想法 Decision Tree 每一步都在问一个问题：  这个 feat
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-29 21:30" pubdate>
+              2024-06-29
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
+            
+              <a href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/">#决策树</a>
+            
+              <a href="/tags/%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97/">#随机森林</a>
+            
+              <a href="/tags/XGBoost/">#XGBoost</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/06/22/ml-notes-03-supervised-learning/" target="_self">
+          机器学习笔记 03：有监督学习
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/22/ml-notes-03-supervised-learning/" target="_self">
+        <div>
+          1. 线性回归（linear regression）：用线性函数做预测 Linear regression 用来预测连续值。最简单的一维形式是： ŷ = wx + b 多维特征时写成： ŷ = w1x1 + w2x2 + ... + wdxd + b 比如房价预测中，x1 是面积，x2 是房龄，x3 是距离地铁的距离。模型会学习每个特征对应的权重 wi。如果 w1 很大，说明面积对预测房价影响
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-22 21:00" pubdate>
+              2024-06-22
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
+            
+              <a href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/">#线性回归</a>
+            
+              <a href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/">#逻辑回归</a>
+            
+              <a href="/tags/KNN/">#KNN</a>
             
           </div>
         
