@@ -16,17 +16,14 @@ category_bar: true
 
 上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。
 
-训练过程可以先抓住一条主线：
-
 > Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。
-
-这几个概念连起来，基本就是传统机器学习和深度学习训练的共同底层逻辑。
 
 ## 1. 损失函数（loss function）：先定义什么叫错
 
 模型训练不是凭感觉调整参数，而是先把“预测错了多少”变成一个可以计算的数值。这个数值就是 loss。
 
 不同任务会使用不同 loss，因为它们对“错误”的定义不同。
+
 
 ### MSE：回归任务里最常见的 loss
 
@@ -35,6 +32,8 @@ Mean Squared Error 常用于回归任务：
 $$
 J(\theta) = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
 $$
+
+其中，$y_i$ 是真实值，$\hat{y}_i$ 是预测值。预测和真实值差得越远，loss 越大。
 
 它惩罚预测值和真实值之间的平方误差。因为误差被平方，大误差会受到更大惩罚。
 
@@ -82,12 +81,16 @@ $$
 实现时一般会对 logits 做数值稳定处理，例如先减去最大值：
 
 ```python
-import numpy as np
-
 def softmax(logits):
     logits = logits - np.max(logits, axis=1, keepdims=True)
     exp_logits = np.exp(logits)
     return exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
+
+def mean_squared_error(y_true, y_pred):
+    return np.mean((y_true - y_pred)**2)
+
+def binary_cross_entropy(y_true, y_pred):
+    return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 
 def cross_entropy(y_pred, y_true):
     eps = 1e-12
@@ -179,7 +182,11 @@ Early stopping 是一种很实用的防过拟合方法。
 Early stopping 的优点是简单有效，缺点是它会把“什么时候停止训练”也变成一个需要调的超参数。
 
 **dropout**：
-在训练过程中，每次前向传播时以一定概率随机“丢弃”一部分神经元（即将输出置零），反向传播不更新被丢弃神经元的权重。测试时不丢弃，但将所有权重乘以保留概率以保证尺度一致。直觉上，dropout 强迫网络不能过度依赖某些特定的神经元或特征组合，相当于每次训练一个不同的子网络，最终预测时近似于大量子网络的集成，从而显著降低过拟合风险。优点是实现简单、效果突出，已成为深度网络标配；缺点是需要额外调整丢弃率（dropout rate）这个超参数，且训练收敛速度可能略微变慢。
+在训练过程中，每次前向传播时以一定概率随机“丢弃”一部分神经元（即将输出置零），反向传播不更新被丢弃神经元的权重。
+测试时不丢弃，但将所有权重乘以保留概率以保证尺度一致。
+
+直觉上，dropout 强迫网络不能过度依赖某些特定的神经元或特征组合，相当于每次训练一个不同的子网络，最终预测时近似于大量子网络的集成，从而显著降低过拟合风险。
+
 
 ```python
 

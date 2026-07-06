@@ -7,8 +7,6 @@ categories:
 tags:
   - 深度学习
   - 优化器
-  - Adam
-  - AdamW
   - 正则化
   - 笔记
 math: true
