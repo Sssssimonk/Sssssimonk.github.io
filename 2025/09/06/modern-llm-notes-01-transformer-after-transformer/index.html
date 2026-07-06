@@ -19,13 +19,14 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="1. 从 encoder-decoder 到 decoder-only 原始 Transformer是seq2seq架构，Encoder 负责读完整个输入句子，decoder 负责一步一步生成目标句子。 但现在很多通用语言模型，比如 GPT、LLaMA、Qwen、DeepSeek，主要采用 decoder-only 结构。它没有单独的 encoder，而是把所有任务都改写成 next token">
+    <meta name="description" content="transformer架构图  一切的一切，就从这个”变形金刚“开始的 1. 从 encoder-decoder 到 decoder-only 原始 Transformer是seq2seq架构，Encoder 负责读完整个输入句子，decoder 负责一步一步生成目标句子。 但现在很多通用语言模型，比如 GPT、LLaMA、Qwen、DeepSeek，主要采用 decoder-only 结构。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="现代大模型笔记 01：Transformer 之后到底变了什么">
 <meta property="og:url" content="https://sssssimonk.github.io/2025/09/06/modern-llm-notes-01-transformer-after-transformer/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="1. 从 encoder-decoder 到 decoder-only 原始 Transformer是seq2seq架构，Encoder 负责读完整个输入句子，decoder 负责一步一步生成目标句子。 但现在很多通用语言模型，比如 GPT、LLaMA、Qwen、DeepSeek，主要采用 decoder-only 结构。它没有单独的 encoder，而是把所有任务都改写成 next token">
+<meta property="og:description" content="transformer架构图  一切的一切，就从这个”变形金刚“开始的 1. 从 encoder-decoder 到 decoder-only 原始 Transformer是seq2seq架构，Encoder 负责读完整个输入句子，decoder 负责一步一步生成目标句子。 但现在很多通用语言模型，比如 GPT、LLaMA、Qwen、DeepSeek，主要采用 decoder-only 结构。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://sssssimonk.github.io/img/transformer_architecture.png">
 <meta property="article:published_time" content="2025-09-06T12:00:00.000Z">
 <meta property="article:modified_time" content="2025-09-06T12:00:00.000Z">
 <meta property="article:author" content="Siyu Chen">
@@ -36,6 +37,7 @@
 <meta property="article:tag" content="注意力机制">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://sssssimonk.github.io/img/transformer_architecture.png">
   
   
   
@@ -336,7 +338,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.4k 字
+          3k 字
         
       </span>
     
@@ -347,7 +349,7 @@
         
         
         
-          29 分钟
+          26 分钟
         
       </span>
     
@@ -399,7 +401,7 @@
         aria-expanded="true"
       >
         现代大模型与前沿论文笔记
-        <span class="list-group-count">(4)</span>
+        <span class="list-group-count">(3)</span>
         <i class="iconfont icon-arrowright"></i>
       </a>
       
@@ -426,15 +428,6 @@
            class="list-group-item list-group-item-action
            ">
           <span class="category-post">现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码</span>
-        </a>
-      
-    
-      
-      
-        <a href="/2025/09/13/modern-llm-notes-02-moe/" title="现代大模型笔记 02：MoE，为什么大模型开始变稀疏"
-           class="list-group-item list-group-item-action
-           ">
-          <span class="category-post">现代大模型笔记 02：MoE，为什么大模型开始变稀疏</span>
         </a>
       
     
@@ -470,7 +463,12 @@
             
               <div class="markdown-body">
                 
-                <h2 id="从-encoder-decoder-到-decoder-only">1. 从 encoder-decoder 到
+                <figure>
+<img src="/img/transformer_architecture.png" srcset="/img/loading.gif" lazyload alt="transformer架构图" />
+<figcaption aria-hidden="true">transformer架构图</figcaption>
+</figure>
+<p>一切的一切，就从这个”变形金刚“开始的</p>
+<h2 id="从-encoder-decoder-到-decoder-only">1. 从 encoder-decoder 到
 decoder-only</h2>
 <p>原始 Transformer是seq2seq架构，Encoder 负责读完整个输入句子，decoder
 负责一步一步生成目标句子。</p>
@@ -490,7 +488,6 @@ prompt，后面继续生成答案”。</p>
 </ul>
 <p>LLM 选择 decoder-only，不是因为 encoder
 不好，而是因为自回归生成和大规模预训练的目标天然对齐，并且比起seq2seq更容易训练。</p>
-<h2 id="causal-attention只能看过去">2. Causal attention：只能看过去</h2>
 <p>Decoder-only 模型使用 causal self-attention。</p>
 <p>普通 self-attention 中，每个 token 可以看见所有
 token。但语言生成时，当前位置不能偷看未来 token，否则 next token
@@ -508,7 +505,7 @@ the”，但不能提前看见答案 “mat”。</p>
 <p>这个 mask 看起来只是训练细节，但它决定了模型的能力形态：LLM
 是一步一步生成的，不是一次性把完整答案算出来。</p>
 <p>这也解释了为什么长回答里有时会出现前后不一致。模型每一步都基于已经生成的内容继续走，如果前面方向偏了，后面会被带偏。</p>
-<h2 id="normalization">3. Normalization</h2>
+<h2 id="normalization">Normalization</h2>
 <p><strong>Pre-Norm：深层网络更容易训练</strong></p>
 <p>原始 Transformer 使用 Post-Norm，大概形式是：</p>
 <p><span
@@ -537,8 +534,8 @@ $$</span></p>
 <p>第一，计算更简单。对超大模型来说，每个 block
 里省一点，整体就能省很多。</p>
 <p>第二，它保留了最关键的稳定性作用：控制 activation 的尺度。</p>
-<h2 id="activation-function从-relu-走向-swiglu">5. Activation
-function：从 ReLU 走向 SwiGLU</h2>
+<h2 id="activation-function从-relu-走向-swiglu">Activation function：从
+ReLU 走向 SwiGLU</h2>
 <p>Transformer block 里除了 attention，还有一个 feed-forward
 network。</p>
 <p>原始 Transformer 用的是：</p>
@@ -553,7 +550,7 @@ class="math display">SwiGLU(<em>x</em>) = Swish(<em>x</em><em>W</em><sub>1</
 <p>如果把 FFN 看成每个 token 独立做一次特征加工，那么 SwiGLU
 相当于给这次加工加了一个动态开关。</p>
 <p>不过现在一般都转变成MoE了。</p>
-<h2 id="rope把位置信息放进旋转里">6. RoPE：把位置信息放进旋转里</h2>
+<h2 id="rope把位置信息给我转起来">RoPE：把位置信息给我转起来</h2>
 <p>Self-attention 本身不包含顺序信息。对 attention
 来说，如果不加位置编码，“A B C” 和 “C B A” 只是 token
 集合不同排列，很难知道谁在前谁在后。</p>
@@ -572,8 +569,9 @@ function of token content and relative distance
 <p>RoPE scaling 可以帮助模型扩展 context
 length，但不等于模型自动学会利用超长上下文。位置能编码是一回事，模型能不能从
 100K token 里稳定找出关键证据，是另一回事。</p>
-<h2 id="multi-head-attention-到-mqa-gqa">7. Multi-head attention 到 MQA
-/ GQA</h2>
+<h2
+id="注意力机制的变革multi-head-attention-到-mqa-gqa">注意力机制的变革：Multi-head
+attention 到 MQA / GQA</h2>
 <p>标准 multi-head attention 里，每个 head 都有自己的 <span
 class="math inline"><em>Q</em>, <em>K</em>, <em>V</em></span>：</p>
 <p><span class="math display">$$
@@ -593,26 +591,6 @@ key/value。GQA（grouped-query attention）则折中一下，让一组 query he
 <li>MQA：所有头共享 K/V，cache 小但可能损失表达力</li>
 <li>GQA：分组共享 K/V，在效果和成本之间折中</li>
 </ul>
-<h2 id="一个现代-llm-block-大概长什么样">10. 一个现代 LLM block
-大概长什么样</h2>
-<p>把这些东西合起来，一个现代 decoder-only LLM block 可以粗略写成：</p>
-<p><span
-class="math display"><em>x</em>′ = <em>x</em> + Attention(RMSNorm(<em>x</em>))</span></p>
-<p><span
-class="math display"><em>y</em> = <em>x</em>′ + SwiGLU(RMSNorm(<em>x</em>′))</span></p>
-<p>attention 里面可能包含 RoPE、GQA、KV cache、FlashAttention
-等实现细节。</p>
-<h2 id="小结">12. 小结</h2>
-<p>现代 LLM 没有抛弃 Transformer，而是在 Transformer
-的关键部件上做了系统性替换。</p>
-<p>我的理解可以压缩成一句话：</p>
-<blockquote>
-<p>Transformer 提供了大模型的基本计算图，现代 LLM
-的创新很多是在稳定训练、提高吞吐、降低推理成本、扩展上下文这几个方向上补工程和结构细节。</p>
-</blockquote>
-<p>所以读后面的 MoE、长上下文、reasoning
-model、多模态模型时，不要只看最外层的概念。很多真正影响模型能力和成本的东西，藏在
-block 级别的设计里。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
 <li>Vaswani et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1706.03762">Attention
@@ -689,9 +667,9 @@ Technical Report</a></li>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/09/13/modern-llm-notes-02-moe/" title="现代大模型笔记 02：MoE，为什么大模型开始变稀疏">
+                      <a href="/2025/09/20/modern-llm-notes-03-long-context/" title="现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">现代大模型笔记 02：MoE，为什么大模型开始变稀疏</span>
+                        <span class="hidden-mobile">现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     

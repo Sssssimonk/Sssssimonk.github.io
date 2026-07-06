@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.5k 字
+          2.5k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          30 分钟
+          22 分钟
         
       </span>
     
@@ -599,68 +599,6 @@ class="math display"><em>F</em><em>F</em><em>N</em>(<em>x</em>) = <em>W</em>
 的表示做非线性变换。</p>
 <p>Residual connection 让深层网络更容易训练，LayerNorm
 让表示尺度更稳定。</p>
-<h2 id="编码器encoder和解码器decoder">9.
-编码器（encoder）和解码器（decoder）</h2>
-<p>原始 Transformer 有 encoder 和 decoder。</p>
-<p>Encoder 读入输入序列，生成上下文表示。机器翻译里，encoder
-读源语言句子。</p>
-<p>Decoder 生成输出序列。它有 masked self-attention，保证生成第 <span
-class="math inline"><em>t</em></span> 个 token 时不能偷看未来
-token。</p>
-<p>简单对比：</p>
-<table>
-<thead>
-<tr class="header">
-<th>结构</th>
-<th>作用</th>
-<th>典型模型</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Encoder-only</td>
-<td>理解输入</td>
-<td>BERT</td>
-</tr>
-<tr class="even">
-<td>Decoder-only</td>
-<td>自回归生成</td>
-<td>GPT</td>
-</tr>
-<tr class="odd">
-<td>Encoder-decoder</td>
-<td>输入到输出转换</td>
-<td>T5、原始翻译 Transformer</td>
-</tr>
-</tbody>
-</table>
-<p>这部分后面讲现代大模型时还会展开。这里只要先记住：GPT 类模型主要是
-decoder-only Transformer。</p>
-<h2 id="为什么-transformer-更适合大规模训练">10. 为什么 Transformer
-更适合大规模训练</h2>
-<p>相比 RNN，Transformer 的优势很明显。</p>
-<p>RNN 必须按时间步顺序计算：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">h1 -&gt; h2 -&gt; h3 -&gt; ... -&gt; hn<br></code></pre></td></tr></table></figure>
-<p>Transformer 的 self-attention 可以并行处理整段序列：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">all tokens -&gt; attention matrix -&gt; contextual representations<br></code></pre></td></tr></table></figure>
-<p>这让它更适合 GPU 并行计算。</p>
-<p>此外，self-attention 让任意两个 token 之间的信息路径更短。RNN 里第 1
-个 token 到第 100 个 token 要经过很多步，Transformer 里可以直接通过
-attention 建立联系。</p>
-<p>代价是 self-attention 的计算和显存通常随序列长度平方增长：</p>
-<p><span
-class="math display"><em>O</em>(<em>n</em><sup>2</sup>)</span></p>
-<p>所以长上下文 Transformer 需要各种效率优化。</p>
-<h2 id="几个点">11. 几个点</h2>
-<p>Attention 的本质是根据相关性对 value 做加权汇聚。</p>
-<p>Query、key、value 不需要背成术语。Query 是当前位置的问题，key
-是其他位置的索引，value 是真正要取的信息。</p>
-<p>Self-attention 让每个 token 的表示变成上下文化表示。</p>
-<p>Multi-head attention 给模型多个并行视角，不同 head
-可以关注不同关系。</p>
-<p>Transformer 能替代很多 RNN
-场景，一个关键原因是并行训练效率高，另一个关键原因是长距离依赖路径短。</p>
-<p>Transformer 不是大模型本身，但它是现代 LLM 的基础结构。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1706.03762">Attention Is All You

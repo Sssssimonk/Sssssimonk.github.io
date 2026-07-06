@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理 SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。 PEFT 则是另一类问题：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。 这篇把两件事放一起看：  SFT 解决“训练什么行为”，PEFT 解决">
+    <meta name="description" content="这一篇整理 SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="后训练笔记 02：SFT 与 PEFT">
 <meta property="og:url" content="https://sssssimonk.github.io/2025/11/08/post-training-notes-02-sft-and-peft/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理 SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。 PEFT 则是另一类问题：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。 这篇把两件事放一起看：  SFT 解决“训练什么行为”，PEFT 解决">
+<meta property="og:description" content="这一篇整理 SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-11-08T12:30:00.000Z">
 <meta property="article:modified_time" content="2025-11-08T12:30:00.000Z">
@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.2k 字
+          2.9k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          36 分钟
+          24 分钟
         
       </span>
     
@@ -484,12 +484,8 @@
 <p>在大模型后训练里，SFT 通常是第一步。Base model
 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT
 的作用就是先把模型拉到一个“能正常当助手”的状态。</p>
-<p>PEFT
-则是另一类问题：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。</p>
-<p>这篇把两件事放一起看：</p>
-<blockquote>
-<p>SFT 解决“训练什么行为”，PEFT 解决“用多低成本训练”。</p>
-</blockquote>
+<p>PEFT则是SFT的一种解法（即parameter <strong>efficient</strong>
+fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。</p>
 <h2 id="base-model-为什么不能直接用">1. Base model 为什么不能直接用</h2>
 <p>Base model 的训练目标通常是 next token prediction：</p>
 <p><span
@@ -507,7 +503,7 @@ class="math display">max<sub><em>θ</em></sub>log <em>π</em><sub><em>θ</em><
 <p>其中 <span class="math inline"><em>x</em></span> 是
 instruction，<span class="math inline"><em>y</em></span>
 是高质量回答。</p>
-<h2 id="sft-具体学到了什么">2. SFT 具体学到了什么</h2>
+<h3 id="sft-具体学到了什么">SFT 具体学到了什么</h3>
 <p>SFT 不只是“灌知识”。</p>
 <p>它主要学这些行为：</p>
 <ul>
@@ -518,11 +514,7 @@ instruction，<span class="math inline"><em>y</em></span>
 <li>学会某些任务格式，比如代码解释、数学推理、摘要</li>
 <li>初步形成 reasoning trace 的风格</li>
 </ul>
-<p>比如 base model 可能知道 AdamW，但 SFT model 更可能用分点方式解释
-Adam 和 AdamW 的区别。</p>
-<p>这也是为什么 chat model、instruct model、reasoning model
-往往都是从同一个 base model 派生出来，但行为差很多。</p>
-<h2 id="sft-的局限">3. SFT 的局限</h2>
+<h3 id="sft-的局限">SFT 的局限</h3>
 <p>SFT 本质上是 imitation learning。</p>
 <p>数据是什么样，模型就往什么样学。</p>
 <p>如果数据里回答很模板化，模型也会模板化。</p>
@@ -531,20 +523,7 @@ Adam 和 AdamW 的区别。</p>
 <p>更关键的是，SFT 不知道两个正确回答哪个更好。</p>
 <p>比如一个回答很简洁，一个回答更完整；一个回答更安全，一个回答更直接。SFT
 只能模仿目标答案，不能表达偏好排序。</p>
-<p>所以 SFT 通常只是后训练的起点，后面还需要 DPO、PPO、GRPO、KTO 或
-OPD。</p>
-<h2 id="full-fine-tuning-的成本">4. Full fine-tuning 的成本</h2>
-<p>全参数微调会更新模型所有参数。</p>
-<p>对于小模型，这很直接。对于几十亿、几百亿参数模型，成本很高：</p>
-<ul>
-<li>optimizer states 占显存</li>
-<li>gradient 占显存</li>
-<li>checkpoint 很大</li>
-<li>多个任务需要存多份模型</li>
-<li>训练和部署都更重</li>
-</ul>
-<p>Adam
-优化器通常需要为每个参数维护一阶、二阶动量，所以显存压力不只是模型参数本身。</p>
+<p>Full fine-tuning 的成本很大，全参数微调会更新模型所有参数。</p>
 <p>这就是 PEFT 出现的背景：不改全部参数，只训练小模块。</p>
 <h2 id="peft-的基本想法">5. PEFT 的基本想法</h2>
 <p>PEFT 是 parameter-efficient fine-tuning。</p>
@@ -562,7 +541,7 @@ OPD。</p>
 </ul>
 <p>但它也有代价。训练参数少意味着表达空间受限。如果任务和 base model
 差距很大，PEFT 可能不如 full fine-tuning。</p>
-<h2 id="lora低秩更新">6. LoRA：低秩更新</h2>
+<h3 id="lora低秩更新">LoRA：低秩更新</h3>
 <p>LoRA 的核心想法是：不要直接训练原始权重矩阵 <span
 class="math inline"><em>W</em></span>，而是冻结 <span
 class="math inline"><em>W</em></span>，只学习一个低秩更新：</p>
@@ -581,7 +560,7 @@ class="math display"><em>B</em> ∈ ℝ<sup><em>d</em> × <em>r</em></su
 假设任务适配所需的权重变化不需要覆盖完整高维空间，而可以落在一个低秩子空间里。</p>
 <p>这不是说模型能力只剩低秩。Base model 的原始参数仍然在，LoRA
 只是学习一个附加方向。</p>
-<h2 id="lora-插在哪里">7. LoRA 插在哪里</h2>
+<p><strong>LoRA 插在哪里</strong></p>
 <p>LoRA 常插在 Transformer 的线性层上，比如：</p>
 <ul>
 <li>attention 的 <span
@@ -595,7 +574,7 @@ class="math inline"><em>W</em><sub><em>Q</em></sub>, <em>W</em><sub><em>K</em>
 rate、数据质量都会显著影响效果。</p>
 <p>不要把 LoRA
 理解成固定魔法。它是一个低成本适配工具，具体效果依赖配置。</p>
-<h2 id="lora-为什么推理时方便">8. LoRA 为什么推理时方便</h2>
+<h3 id="lora-为什么推理时方便">LoRA 为什么推理时方便</h3>
 <p>LoRA 的更新是：</p>
 <p><span
 class="math display"><em>h</em> = <em>W</em><em>x</em> + <em>B</em><em>A</em><em>x</em></span></p>
@@ -610,8 +589,8 @@ class="math display"><em>W</em><sub>merged</sub> = <em>W</em> + <em>B</e
 <p>如果要服务多个 adapter，就可以保留 base model，按任务加载不同 LoRA
 权重。</p>
 <p>这也是 LoRA 在个人微调和多任务部署中很受欢迎的原因。</p>
-<h2 id="prefix-tuning给模型加可学习前缀">9. Prefix
-Tuning：给模型加可学习前缀</h2>
+<h3 id="prefix-tuning给模型加可学习前缀">Prefix
+Tuning：给模型加可学习前缀</h3>
 <p>Prefix tuning 不直接改模型权重，而是在每层 attention 里加入可学习
 prefix。</p>
 <p>可以理解成给模型提供一组虚拟的 key/value tokens，让后续 token 在
@@ -625,7 +604,7 @@ attention 时能读到这些可学习信息。</p>
 </blockquote>
 <p>它的优势是训练参数少。</p>
 <p>缺点是表达能力受限，而且会占用一定上下文或 attention 空间。</p>
-<h2 id="prompt-tuning-和-p-tuning">10. Prompt Tuning 和 P-Tuning</h2>
+<h3 id="prompt-tuning-和-p-tuning">Prompt Tuning 和 P-Tuning</h3>
 <p>Prompt tuning 学的是输入 embedding 前面的 soft prompt。</p>
 <p>如果原输入是：</p>
 <p><span
@@ -638,33 +617,9 @@ prompts，比如使用 MLP / LSTM 等 prompt encoder。</p>
 <p>它们的共同点是：冻结模型主体，只训练 prompt-like 参数。</p>
 <p>这类方法在早期很重要，但在当前 LLM 微调实践里，LoRA 通常更常见，因为
 LoRA 对生成任务更灵活，工程生态也更成熟。</p>
-<h2 id="loraprefix-tuningp-tuning-怎么选">11. LoRA、Prefix
-Tuning、P-Tuning 怎么选</h2>
-<p>可以粗略这样看。</p>
-<p>LoRA
-适合需要改模型行为、任务风格、领域适配的场景。它改的是线性层权重的低秩增量，表达能力相对强。</p>
-<p>Prefix tuning
-适合希望用少量参数控制模型行为，同时不动主体权重的场景。</p>
-<p>Prompt tuning / P-Tuning
-更像学习软提示，参数少，但对大模型和复杂生成任务不一定总是最强。</p>
-<p>如果是个人博客里的实践建议，我会优先写：</p>
-<ul>
-<li>小成本实验：LoRA / QLoRA</li>
-<li>需要多任务 adapter：LoRA</li>
-<li>只想做轻量控制：prefix / prompt tuning</li>
-<li>追求最好效果且资源够：full fine-tuning 或更大规模 post-training</li>
-</ul>
-<h2 id="qlora进一步省显存">12. QLoRA：进一步省显存</h2>
-<p>QLoRA 是 LoRA 的重要实践扩展。</p>
-<p>它把 base model 量化，比如 4-bit 存储，同时仍然用 LoRA adapter
-训练。</p>
-<p>关键点是：base model
-不参与梯度更新，只需要在前向/反向中提供计算；可训练的是 LoRA 参数。</p>
-<p>这样可以在更小显存上微调较大模型。</p>
-<p>但量化也可能带来数值误差。QLoRA
-的效果依赖量化格式、计算精度、rank、数据质量。</p>
-<h2 id="sft-数据比方法更重要">13. SFT 数据比方法更重要</h2>
-<p>SFT 和 PEFT 经常被讨论成训练技术，但真正决定结果的通常是数据。</p>
+<h2 id="补充说明">补充说明</h2>
+<p><strong>SFT 数据比方法更重要</strong></p>
+<p>SFT经常被讨论成训练技术，但真正决定结果的通常是数据。</p>
 <p>高质量 SFT 数据要满足：</p>
 <ul>
 <li>指令清楚</li>
@@ -678,41 +633,10 @@ Tuning、P-Tuning 怎么选</h2>
 <p>如果数据太窄，模型会过拟合某种格式。</p>
 <p>如果数据里充满“当然可以，下面是……”这种套话，模型会变得很像客服脚本。</p>
 <p>所以 SFT 的核心不是把 loss 跑低，而是把模型行为拉到你想要的区域。</p>
-<h2 id="sft-和后续-rl-dpo-的关系">14. SFT 和后续 RL / DPO 的关系</h2>
-<p>SFT 给模型一个可控起点。</p>
-<p>DPO / KTO 进一步从偏好信号中学习什么回答更好。</p>
-<p>PPO / GRPO 进一步用 reward 或 verifier 优化结果。</p>
-<p>OPD 则可以用 teacher 对 student 的 on-policy outputs 做 dense
-supervision。</p>
-<p>如果 SFT 起点太差，后面 RL 可能要花很多成本纠正基础格式问题。</p>
-<p>如果 SFT 起点太强但过度模板化，后面偏好优化可能很难恢复多样性。</p>
-<p>所以 SFT 不是越多越好，而是要给后续训练留下空间。</p>
-<h2 id="读-sft-peft-论文时看什么">15. 读 SFT / PEFT 论文时看什么</h2>
-<p>我会看这些问题：</p>
-<ul>
-<li>Base model 是什么</li>
-<li>SFT 数据来自哪里</li>
-<li>数据规模和质量如何</li>
-<li>是否包含 reasoning traces</li>
-<li>是 full fine-tuning 还是 PEFT</li>
-<li>LoRA rank 是多少</li>
-<li>LoRA 插在哪些模块</li>
-<li>是否使用 QLoRA</li>
-<li>是否只评估 benchmark，还是也看真实对话质量</li>
-<li>后面有没有接 DPO/RL/OPD</li>
-</ul>
-<p>尤其要注意：很多报告里“用了 LoRA”不是主要贡献。LoRA
-只是训练方式，真正重要的是数据、目标和评估。</p>
 <h2 id="小结">16. 小结</h2>
 <p>SFT 是后训练的入口。它让 base model 从“会续写”变成“会回答”。</p>
 <p>PEFT 是低成本适配工具。LoRA、Prefix Tuning、P-Tuning
 都是在减少可训练参数，但它们改模型的方式不同。</p>
-<p>我的理解是：</p>
-<blockquote>
-<p>SFT 决定模型学什么行为，PEFT 决定用多少参数去学这个行为。</p>
-</blockquote>
-<p>后面讲 PPO、DPO、GRPO 时，要一直记住：这些算法通常不是从 raw base
-model 开始，而是在 SFT 模型基础上继续塑形。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
 <li>Wei et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2109.01652">Finetuned

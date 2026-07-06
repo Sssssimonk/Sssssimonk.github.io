@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。 训练过程可以先抓住一条主线：  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  这几个概念连起来，基本就是传统机器学习和深度学习训练的共同底层">
+    <meta name="description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  1. 损失函数（loss function）：先定义什么叫错 模型训练不是凭感觉调整参数，而">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 02：损失函数、优化与正则化">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/06/15/ml-notes-02-loss-optimization-regularization/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。 训练过程可以先抓住一条主线：  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  这几个概念连起来，基本就是传统机器学习和深度学习训练的共同底层">
+<meta property="og:description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  1. 损失函数（loss function）：先定义什么叫错 模型训练不是凭感觉调整参数，而">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-06-15T12:30:00.000Z">
 <meta property="article:modified_time" content="2024-06-15T12:30:00.000Z">
@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.5k 字
+          3.6k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          30 分钟
+          31 分钟
         
       </span>
     
@@ -488,13 +488,11 @@
               <div class="markdown-body">
                 
                 <p>上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。</p>
-<p>训练过程可以先抓住一条主线：</p>
 <blockquote>
 <p>Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate
 定义“每次改多少”，regularization
 限制模型不要为了降低训练误差而变得过度复杂。</p>
 </blockquote>
-<p>这几个概念连起来，基本就是传统机器学习和深度学习训练的共同底层逻辑。</p>
 <h2 id="损失函数loss-function先定义什么叫错">1. 损失函数（loss
 function）：先定义什么叫错</h2>
 <p>模型训练不是凭感觉调整参数，而是先把“预测错了多少”变成一个可以计算的数值。这个数值就是
@@ -505,6 +503,11 @@ loss。</p>
 <p><span class="math display">$$
 J(\theta) = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
 $$</span></p>
+<p>其中，<span
+class="math inline"><em>y</em><sub><em>i</em></sub></span>
+是真实值，<span
+class="math inline"><em>ŷ</em><sub><em>i</em></sub></span>
+是预测值。预测和真实值差得越远，loss 越大。</p>
 <p>它惩罚预测值和真实值之间的平方误差。因为误差被平方，大误差会受到更大惩罚。</p>
 <p>例子：</p>
 <table>
@@ -565,7 +568,7 @@ $$</span></p>
 <p>如果 <span class="math inline"><em>y</em></span> 是 one-hot
 label，这个式子本质上就是取正确类别概率的负对数。</p>
 <p>实现时一般会对 logits 做数值稳定处理，例如先减去最大值：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">softmax</span>(<span class="hljs-params">logits</span>):<br>    logits = logits - np.<span class="hljs-built_in">max</span>(logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br>    exp_logits = np.exp(logits)<br>    <span class="hljs-keyword">return</span> exp_logits / np.<span class="hljs-built_in">sum</span>(exp_logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cross_entropy</span>(<span class="hljs-params">y_pred, y_true</span>):<br>    eps = <span class="hljs-number">1e-12</span><br>    y_pred = np.clip(y_pred, eps, <span class="hljs-number">1.0</span> - eps)<br>    <span class="hljs-keyword">return</span> -np.mean(np.<span class="hljs-built_in">sum</span>(y_true * np.log(y_pred), axis=<span class="hljs-number">1</span>))<br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">softmax</span>(<span class="hljs-params">logits</span>):<br>    logits = logits - np.<span class="hljs-built_in">max</span>(logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br>    exp_logits = np.exp(logits)<br>    <span class="hljs-keyword">return</span> exp_logits / np.<span class="hljs-built_in">sum</span>(exp_logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">mean_squared_error</span>(<span class="hljs-params">y_true, y_pred</span>):<br>    <span class="hljs-keyword">return</span> np.mean((y_true - y_pred)**<span class="hljs-number">2</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">binary_cross_entropy</span>(<span class="hljs-params">y_true, y_pred</span>):<br>    <span class="hljs-keyword">return</span> -np.mean(y_true * np.log(y_pred) + (<span class="hljs-number">1</span> - y_true) * np.log(<span class="hljs-number">1</span> - y_pred))<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cross_entropy</span>(<span class="hljs-params">y_pred, y_true</span>):<br>    eps = <span class="hljs-number">1e-12</span><br>    y_pred = np.clip(y_pred, eps, <span class="hljs-number">1.0</span> - eps)<br>    <span class="hljs-keyword">return</span> -np.mean(np.<span class="hljs-built_in">sum</span>(y_true * np.log(y_pred), axis=<span class="hljs-number">1</span>))<br></code></pre></td></tr></table></figure>
 <p>两个容易写错的点：第一，cross entropy 前面有负号；第二，如果输入是
 logits，应该先 softmax，而不是直接拿 logits 当概率。</p>
 <h2 id="梯度下降gradient-descent模型如何改参数">2. 梯度下降（gradient
@@ -637,9 +640,10 @@ loss 开始变差时，模型可能已经开始记训练集噪声了。</p>
 <p>Early stopping
 的优点是简单有效，缺点是它会把“什么时候停止训练”也变成一个需要调的超参数。</p>
 <p><strong>dropout</strong>：
-在训练过程中，每次前向传播时以一定概率随机“丢弃”一部分神经元（即将输出置零），反向传播不更新被丢弃神经元的权重。测试时不丢弃，但将所有权重乘以保留概率以保证尺度一致。直觉上，dropout
-强迫网络不能过度依赖某些特定的神经元或特征组合，相当于每次训练一个不同的子网络，最终预测时近似于大量子网络的集成，从而显著降低过拟合风险。优点是实现简单、效果突出，已成为深度网络标配；缺点是需要额外调整丢弃率（dropout
-rate）这个超参数，且训练收敛速度可能略微变慢。</p>
+在训练过程中，每次前向传播时以一定概率随机“丢弃”一部分神经元（即将输出置零），反向传播不更新被丢弃神经元的权重。
+测试时不丢弃，但将所有权重乘以保留概率以保证尺度一致。</p>
+<p>直觉上，dropout
+强迫网络不能过度依赖某些特定的神经元或特征组合，相当于每次训练一个不同的子网络，最终预测时近似于大量子网络的集成，从而显著降低过拟合风险。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><br><span class="hljs-comment"># 使用时，定义 dropout 层（p=0.5），训练时随机丢弃，eval时自动关闭</span><br><span class="hljs-variable language_">self</span>.dropout = nn.Dropout(<span class="hljs-number">0.5</span>)<br>x = <span class="hljs-variable language_">self</span>.dropout(x)<br><br><span class="hljs-comment">#dropout的实现</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">dropout_forward</span>(<span class="hljs-params">x, p=<span class="hljs-number">0.5</span>, training=<span class="hljs-literal">True</span></span>):<br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> training:<br>        <span class="hljs-keyword">return</span> x<br>    <span class="hljs-comment"># 生成与 x 形状相同的 mask，每个元素以概率 (1-p) 保留为1，以概率 p 置为0</span><br>    mask = torch.bernoulli(torch.full_like(x, <span class="hljs-number">1</span> - p))<br>    <span class="hljs-comment"># 训练时丢弃部分神经元，并将保留的神经元除以 (1-p) 保持期望一致</span><br>    <span class="hljs-keyword">return</span> x * mask / (<span class="hljs-number">1</span> - p)<br></code></pre></td></tr></table></figure>
 <p><strong>data augmentation</strong>：
 简单的说就是加数据，加数据，加数据！</p>

@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.2k 字
+          3.3k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          27 分钟
+          28 分钟
         
       </span>
     
@@ -501,7 +501,8 @@ tree）的基本想法</h2>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">访问次数 &gt; 10 ?<br>    yes -&gt; 停留时间 &gt; 5 分钟 ?<br>    no  -&gt; 预测不购买<br></code></pre></td></tr></table></figure>
 <p>每个内部节点是一个 split rule，每个叶子节点给出最终预测。</p>
 <p>分类树希望叶子节点里的类别尽量单一；回归树希望叶子节点里的目标值尽量接近。</p>
-<h2 id="什么叫节点更纯">2. 什么叫节点更“纯”</h2>
+<h2 id="如何切分数据信息什么叫节点更纯">2.
+如何切分数据信息，什么叫节点更“纯”</h2>
 <p>假设一个节点里有 10 个样本：</p>
 <table>
 <thead>
@@ -547,8 +548,8 @@ tree）的基本想法</h2>
 <p>那这个 split 就不错，因为两个子节点都更容易判断。</p>
 <p>Decision Tree 的 splitting metric，本质上就是量化“split
 前后到底变纯了多少”。</p>
-<h2 id="熵entropy">3. 熵（entropy）</h2>
-<p>Entropy 衡量不确定性：</p>
+<p>在这里使用<strong>熵（entropy）</strong> 衡量不确定性：
+熵越低，节点越“纯”</p>
 <p><span
 class="math display"><em>H</em>(<em>S</em>) =  − ∑<sub><em>c</em></sub><em>p</em><sub><em>c</em></sub>log<sub>2</sub>(<em>p</em><sub><em>c</em></sub>)</span></p>
 <p>其中，<span
@@ -556,31 +557,32 @@ class="math inline"><em>p</em><sub><em>c</em></sub></span> 是类别 <span
 class="math inline"><em>c</em></span> 在节点中的比例。</p>
 <p>二分类时，如果正负样本各一半，entropy
 最大；如果节点里全是同一类，entropy 为 0。</p>
-<p>例子：</p>
+<p>例：</p>
 <table>
 <thead>
 <tr class="header">
 <th>节点情况</th>
-<th>Entropy 直觉</th>
+<th>Entropy</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>5 正 / 5 负</td>
-<td>不确定性高</td>
+<td>1.0</td>
 </tr>
 <tr class="even">
 <td>9 正 / 1 负</td>
-<td>不确定性低</td>
+<td>约0.47</td>
 </tr>
 <tr class="odd">
 <td>10 正 / 0 负</td>
-<td>完全纯</td>
+<td>0</td>
 </tr>
 </tbody>
 </table>
 <p>Entropy 越低，节点越纯。</p>
-<h2 id="信息增益information-gain">4. 信息增益（information gain）</h2>
+<h2 id="splitting-metrics">3. Splitting metrics</h2>
+<p><strong>信息增益（information gain）</strong></p>
 <p>Information Gain 衡量 split 后 entropy 降低了多少：</p>
 <p><span class="math display">$$
 IG(S,A)=H(S)-\sum_{v \in Values(A)}\frac{|S_v|}{|S|}H(S_v)
@@ -589,11 +591,8 @@ $$</span></p>
 后各子节点不确定性的加权平均。</p>
 <p>如果 split 后子节点变得很纯，后半部分就小，information gain
 就大。</p>
-<p>ID3 使用 information gain 来选 split。</p>
-<p>一个直觉例子：用“是否经常访问网站”切用户，如果切完后高访问用户大多购买、低访问用户大多不购买，那么
-information gain 就高。如果切完后两边还是正负混杂，那这个 feature
-没什么用。</p>
-<h2 id="增益率gain-ratio">5. 增益率（gain ratio）</h2>
+<p>ID3 使用 information gain 来作为split指标。</p>
+<p><strong>增益率（gain ratio）</strong></p>
 <p>Information Gain 有一个问题：它偏好取值很多的特征。</p>
 <p>比如用户 ID 这种特征，每个用户几乎都是唯一值。按用户 ID
 切，训练集上可以变得很纯，但完全没有泛化意义。</p>
@@ -603,7 +602,7 @@ GainRatio(S,A)=\frac{InformationGain(S,A)}{SplitInfo(S,A)}
 $$</span></p>
 <p>C4.5 使用 gain ratio。直觉上，它不只看 split 后纯不纯，也看这个 split
 是不是把数据切得过于碎。</p>
-<h2 id="基尼指数gini-index">6. 基尼指数（Gini index）</h2>
+<p><strong>基尼指数（Gini index）</strong></p>
 <p>CART 分类树常用 Gini Index：</p>
 <p><span
 class="math display"><em>G</em><em>i</em><em>n</em><em>i</em>(<em>S</em>) = 1 − ∑<sub><em>c</em></sub><em>p</em><sub><em>c</em></sub><sup>2</sup></span></p>
@@ -633,7 +632,7 @@ class="math display"><em>G</em><em>i</em><em>n</em><em>i</em>(<em>S</em>) = 
 </table>
 <p>Gini 和 entropy 的目标很接近：都希望 split
 后子节点更纯。实际使用中，Gini 计算更简单一些。</p>
-<h2 id="id3c4.5cart">7. ID3、C4.5、CART</h2>
+<h2 id="id3c4.5cart">4. ID3、C4.5、CART</h2>
 <p>三类树的区别：</p>
 <table>
 <thead>
@@ -667,8 +666,7 @@ squared error 或 variance reduction。</p>
 能让两个子节点内部的目标值更接近，这个 split 就有价值。</p>
 <p>比如预测房价时，按“是否靠近地铁”切分后，如果靠近地铁的一组房价普遍更高，不靠近的一组更低，那么这个
 split 就能降低每个子节点内部的误差。</p>
-<h2 id="剪枝pruning为什么树需要剪枝">8.
-剪枝（pruning）：为什么树需要剪枝</h2>
+<p><strong>剪枝（pruning）：</strong></p>
 <p>单棵树很容易 overfit。如果不限制深度，它可以不断
 split，直到叶子节点里只剩很少样本，甚至每个叶子只对应一个训练样本。</p>
 <p>这在训练集上很好，但对新数据很差。</p>
@@ -683,8 +681,8 @@ split，直到叶子节点里只剩很少样本，甚至每个叶子只对应一
 <p><strong>Pre-pruning</strong>：树还没长完就提前停止，比如限制最大深度。</p>
 <p><strong>Post-pruning</strong>：先长出一棵比较完整的树，再从底部往上剪掉泛化收益不大的分支。</p>
 <p>简单说，剪枝就是不让树把训练集记得太细。</p>
-<h2 id="随机森林random-forest多棵树投票">9. 随机森林（random
-forest）：多棵树投票</h2>
+<h2 id="多棵树的组合">5.多棵树的组合</h2>
+<p><strong>Bagging：随机森林（random forest）</strong></p>
 <p>Random Forest 属于 Bagging 方法。它训练很多棵 decision
 tree，然后让它们投票或取平均。</p>
 <p>Random Forest 的随机性主要来自两点：</p>
@@ -697,45 +695,80 @@ tree，然后让它们投票或取平均。</p>
 variance。</p>
 <p>一个直觉例子：一个人判断可能很偏，但如果很多个相对独立的人投票，最终结果通常更稳定。Random
 Forest 也是类似的思路。</p>
-<h2 id="提升方法boostinggbdt-和-xgboost">10. 提升方法（boosting）、GBDT
-和 XGBoost</h2>
+<p><strong>Boosting：GBDT，XGBoost，lightGBM</strong></p>
 <p>Boosting 和 Random Forest 不一样。Random Forest
 里多棵树大致是并行、独立训练的；Boosting
 是一棵接一棵训练，后面的树重点修正前面模型的错误。</p>
-<p>GBDT 的思路是：</p>
+<p><strong>GBDT</strong> 的思路是：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">initial prediction<br>-&gt; compute residual / negative gradient<br>-&gt; train a new tree to fit the residual<br>-&gt; add this tree to the ensemble<br>-&gt; repeat<br></code></pre></td></tr></table></figure>
 <p>如果第一棵树预测房价总是偏低，下一棵树就会学习这个偏差，把预测往正确方向拉。</p>
-<p>XGBoost 可以看作更工程化、更正则化、更高效的 gradient boosting tree
-实现。它常见特点包括：</p>
+<p><strong>XGBoost</strong>可以看作更工程化、更正则化、更高效的 gradient
+boosting tree 实现。它的特点包括：</p>
 <ul>
-<li>使用一阶和二阶梯度信息</li>
-<li>在目标函数中加入正则项</li>
-<li>支持列采样和行采样</li>
-<li>对缺失值有默认 split direction</li>
-<li>工程实现上做了很多并行和缓存优化</li>
+<li><strong>二阶泰勒展开</strong>：使用一阶和二阶梯度（GBDT只用一阶），使损失函数逼近更精准。</li>
+<li><strong>正则化</strong>：目标函数加入L1/L2正则项（控制叶子节点权重和数量），防止过拟合。</li>
+<li><strong>并行化</strong>：特征预排序（Block结构）支持多线程查找最佳分裂点，但树仍是串行生成的。</li>
+<li><strong>缺失值处理</strong>：自动学习缺失值的默认分裂方向。</li>
 </ul>
 <p>这也是为什么 XGBoost 在传统 tabular data 上经常很强。</p>
-<h2 id="几个点">11. 几个点</h2>
+<p><strong>LightGBM</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th><strong>特性</strong></th>
+<th><strong>XGBoost</strong></th>
+<th><strong>LightGBM</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>生长策略</strong></td>
+<td>Level-wise（按层分裂）</td>
+<td>Leaf-wise（按叶子分裂）</td>
+</tr>
+<tr class="even">
+<td><strong>速度</strong></td>
+<td>较慢（预排序特征）</td>
+<td>更快（直方图算法）</td>
+</tr>
+<tr class="odd">
+<td><strong>内存占用</strong></td>
+<td>较高（存储预排序数据）</td>
+<td>较低（直方图压缩）</td>
+</tr>
+<tr class="even">
+<td><strong>正则化</strong></td>
+<td>支持L1/L2</td>
+<td>支持L1/L2</td>
+</tr>
+<tr class="odd">
+<td><strong>类别特征处理</strong></td>
+<td>需独热编码</td>
+<td>直接支持（无需编码）</td>
+</tr>
+<tr class="even">
+<td><strong>并行优化</strong></td>
+<td>特征并行</td>
+<td>特征并行+数据并行</td>
+</tr>
+</tbody>
+</table>
+<p><strong>LightGBM</strong>：大数据场景的默认选择，速度快、内存友好。</p>
+<p><strong>XGBoost</strong>：<strong>小数据</strong>或高精度需求时更优，调参空间大。</p>
+<h2 id="备注">备注</h2>
 <p>树模型不需要像 KNN 那样强依赖 feature
 scaling。因为树只关心某个特征是否大于 threshold，不关心距离。</p>
 <p>树模型擅长处理非线性关系和特征交互。比如“访问次数高并且最近 7
-天活跃”这种规则，树可以比较自然地表达。</p>
-<p>单棵树容易 overfit。实际项目里更常用 Random Forest、GBDT、XGBoost
-这类 ensemble。</p>
-<p>Random Forest 更偏降低 variance，Boosting 更偏逐步降低
-bias，但这只是粗略理解，实际效果还和参数、数据、噪声有关。</p>
+天活跃”这种规则，树可以比较自然地表达，而且树模型很适合可视化的。</p>
+<p>单棵树容易 overfit。实际里更常用 Random Forest、GBDT、XGBoost 这类
+ensemble。</p>
+<p>一般来说，Random Forest 更偏降低 variance，Boosting 更偏逐步降低
+bias，</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a
-target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/tree.html">scikit-learn
-User Guide: Decision Trees</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/ensemble.html">scikit-learn
-User Guide: Ensemble Methods</a></li>
+<li>ucsd dsc40B课程</li>
 <li><a target="_blank" rel="noopener" href="https://www.statlearning.com/">An Introduction to
 Statistical Learning</a></li>
-<li><a target="_blank" rel="noopener" href="https://xgboost.readthedocs.io/">XGBoost
-Documentation</a></li>
 </ul>
 
                 

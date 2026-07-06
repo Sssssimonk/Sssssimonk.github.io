@@ -337,77 +337,6 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
-          现代大模型笔记 01：Transformer 之后到底变了什么
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
-        <div>
-          1. 从 encoder-decoder 到 decoder-only 原始 Transformer是seq2seq架构，Encoder 负责读完整个输入句子，decoder 负责一步一步生成目标句子。 但现在很多通用语言模型，比如 GPT、LLaMA、Qwen、DeepSeek，主要采用 decoder-only 结构。它没有单独的 encoder，而是把所有任务都改写成 next token
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-09-06 20:00" pubdate>
-              2025-09-06
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
-            
-              <a href="/tags/Transformer/">#Transformer</a>
-            
-              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
-            
-              <a href="/tags/RoPE/">#RoPE</a>
-            
-              <a href="/tags/KV-cache/">#KV cache</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
         <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" target="_self">
           深度学习笔记 05：注意力机制与 Transformer
         </a>
@@ -600,10 +529,6 @@
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
               <a href="/tags/%E4%BC%98%E5%8C%96%E5%99%A8/">#优化器</a>
-            
-              <a href="/tags/Adam/">#Adam</a>
-            
-              <a href="/tags/AdamW/">#AdamW</a>
             
               <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/">#正则化</a>
             
@@ -1016,6 +941,75 @@
               <a href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/">#逻辑回归</a>
             
               <a href="/tags/KNN/">#KNN</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" target="_self">
+          机器学习笔记 02：损失函数、优化与正则化
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" target="_self">
+        <div>
+          上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  1. 损失函数（loss function）：先定义什么叫错 模型训练不是凭感觉调整参数，而
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-15 20:30" pubdate>
+              2024-06-15
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/">#正则化</a>
+            
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
+            
+              <a href="/tags/%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/">#损失函数</a>
+            
+              <a href="/tags/%E4%BC%98%E5%8C%96/">#优化</a>
             
           </div>
         

@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.5k 字
+          3.4k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          30 分钟
+          29 分钟
         
       </span>
     
@@ -545,11 +545,11 @@ label，所以“分得好不好”不像分类任务那样容易判断。</p>
 <p>不同 clustering 方法对 cluster 形状有不同假设。KMeans 偏向球形
 cluster，DBSCAN 偏向密度连通区域，hierarchical clustering
 更强调层级关系。</p>
-<h2 id="kmeans最经典的聚类方法">3. KMeans：最经典的聚类方法</h2>
+<h3 id="kmeans最经典的聚类方法">KMeans：最经典的聚类方法</h3>
 <p>KMeans 是最经典的 clustering 方法之一。它需要先指定 cluster 数量
 <span class="math inline"><em>K</em></span>。</p>
 <p>基本流程：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">choose K initial centers<br>assign each point to the nearest center<br>update each center by averaging assigned points<br>repeat until centers stop changing<br></code></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">1. 选择k个centroids<br>2. 计算每个点与centroids的距离<br>3. 将每个点分配给距离最近的centroid<br>4. 更新centroid位置<br>5. 重复3、4直到手链<br></code></pre></td></tr></table></figure>
 <p>目标可以理解为最小化簇内平方距离：</p>
 <p><span class="math display">$$
 \sum_{k=1}^{K}\sum_{x_i \in C_k}\|x_i-\mu_k\|^2
@@ -559,9 +559,8 @@ class="math inline"><em>C</em><sub><em>k</em></sub></span> 是第 <span
 class="math inline"><em>k</em></span> 个 cluster，<span
 class="math inline"><em>μ</em><sub><em>k</em></sub></span> 是这个
 cluster 的中心。</p>
-<p>一个简单例子：如果用户按“访问次数”和“购买次数”分布明显，一群是高访问高购买，另一群是低访问低购买，KMeans
-很容易把它们分开。</p>
-<p>KMeans 的问题也很明显：</p>
+<p>优点：实现简单</p>
+<p>KMeans 的问题：</p>
 <ul>
 <li>需要提前指定 <span class="math inline"><em>K</em></span></li>
 <li>对初始中心敏感</li>
@@ -569,7 +568,7 @@ cluster 的中心。</p>
 <li>更适合接近球形的 cluster</li>
 <li>特征 scale 会影响距离，通常要先 normalization</li>
 </ul>
-<h2 id="怎么选-k">4. 怎么选 K</h2>
+<p><strong>关于怎么选 K</strong></p>
 <p>常见方法是 elbow method 和 silhouette score。</p>
 <p><strong>Elbow method</strong> 看不同 <span
 class="math inline"><em>K</em></span> 下的簇内误差。随着 <span
@@ -579,10 +578,9 @@ class="math inline"><em>K</em></span> 通常是一个候选。</p>
 <p><strong>Silhouette score</strong> 同时考虑样本离自己 cluster
 的距离，以及离其他 cluster 的距离。分数越高，说明样本更像自己
 cluster，而不像其他 cluster。</p>
-<p>实际使用时，不要只机械看指标。比如用户分群最后要服务业务策略，那
-cluster 数量还要考虑是否可解释、是否方便运营。</p>
-<h2 id="dbscan基于密度的聚类clustering">5.
-DBSCAN：基于密度的聚类（clustering）</h2>
+<p>对于kmeans的改进方法有：kmeans++，sequential
+kmeans等，这里我就懒得写了，感兴趣可以搜一下。</p>
+<h3 id="dbscan基于密度的聚类">DBSCAN：基于密度的聚类</h3>
 <p>DBSCAN 不需要提前指定 cluster 数量。它通过密度来定义 cluster。</p>
 <p>两个重要参数：</p>
 <ul>
@@ -617,12 +615,15 @@ DBSCAN：基于密度的聚类（clustering）</h2>
 可能分不好，因为它偏向球形；DBSCAN 更可能按密度连通性分出来。</p>
 <p>缺点是参数敏感。如果 <code>eps</code> 太小，很多点会被当成
 noise；如果太大，不同 cluster 可能被连在一起。</p>
-<h2 id="层次聚类hierarchical-clustering">6. 层次聚类（hierarchical
-clustering）</h2>
+<p>以下是pseudo code <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs text">DBSCAN(D, eps, minPts):<br>    所有点标记为未访问，cluster_id = 0<br><br>    for p in D:<br>        if p 已访问: continue<br>        标记 p 已访问<br>        neighbors = 距离 p ≤ eps 的所有点<br><br>        if |neighbors| &lt; minPts:<br>            标记 p 为噪声<br>        else:<br>            cluster_id += 1<br>            把 p 归入 cluster_id<br>            把 neighbors 加入队列<br>            while 队列非空:<br>                q = 队列出队<br>                if q 未访问:<br>                    标记 q 已访问<br>                    qNeighbors = 距离 q ≤ eps 的所有点<br>                    if |qNeighbors| &gt;= minPts:<br>                        队列加入 qNeighbors<br>                if q 尚未归入任何簇:<br>                    把 q 归入 cluster_id<br></code></pre></td></tr></table></figure> ### 层次聚类（hierarchical
+clustering）</p>
 <p>Hierarchical clustering 关注层级结构。最常见的是 agglomerative
 clustering，也就是自底向上合并。</p>
 <p>流程：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">start with each point as its own cluster<br>merge the two closest clusters<br>repeat until only one cluster remains or target number reached<br></code></pre></td></tr></table></figure>
+<ol type="1">
+<li>找最近的两个点/cluster合并成新cluster。</li>
+<li>不断合并直到收敛</li>
+</ol>
 <p>它的结果可以用 dendrogram
 表示。虽然这里不画图，但可以把它想成一棵树：底部是单个样本，越往上
 cluster 越大。</p>
@@ -635,7 +636,7 @@ cluster 越大。</p>
 </ul>
 <p>Hierarchical clustering 的优点是能看到层级关系，不一定要一开始就指定
 cluster 数。缺点是计算成本高，大数据上不一定适合。</p>
-<h2 id="聚类clustering方法对比">7. 聚类（clustering）方法对比</h2>
+<p>聚类（clustering）方法对比</p>
 <table>
 
 <thead>
@@ -669,7 +670,7 @@ cluster 数。缺点是计算成本高，大数据上不一定适合。</p>
 </table>
 <p>KMeans 更像是在找中心点，DBSCAN 更像是在找密度连通区域，hierarchical
 clustering 更像是在整理样本之间的层级关系。</p>
-<h2 id="降维dimensionality-reduction为什么要降维">8.
+<h2 id="降维dimensionality-reduction为什么要降维">3.
 降维（dimensionality reduction）：为什么要降维</h2>
 <p>降维的目标是把高维数据变成低维表示，同时尽量保留重要信息。</p>
 <p>常见动机：</p>
@@ -681,51 +682,38 @@ clustering 更像是在整理样本之间的层级关系。</p>
 </ul>
 <p>比如一个用户有 1000
 个行为特征，很多特征之间高度相关。降维可以把它们压成几十个综合特征，保留主要变化方向。</p>
-<h2 id="pca用主成分保留主要变化">9. PCA：用主成分保留主要变化</h2>
+<h3 id="pca用主成分保留主要变化">PCA：用主成分保留主要变化</h3>
 <p>PCA
 的核心思想是：找到数据方差最大的方向，然后把数据投影到这些方向上。</p>
 <p>基本流程：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">standardize features<br>compute covariance matrix<br>compute eigenvectors and eigenvalues<br>choose top principal components<br>project data to lower-dimensional space<br></code></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">1. 将数据标准化（或中心化），使得每个特征均值为0。<br><br>2. 计算协方差矩阵，反映特征间的相关性。<br><br>3. 对协方差矩阵进行特征值分解，得到特征值和特征向量。<br><br>4. 将特征值从大到小排序，选择前k个最大特征值对应的特征向量作为主成分。<br><br>5. 用这些特征向量组成投影矩阵，将原始数据乘以该矩阵，得到降维后的数据。<br></code></pre></td></tr></table></figure>
+<p><strong>简单的说就是找eigenvector，这个就是主成分。</strong></p>
 <p>如果一个二维数据集大致沿着一条斜线分布，PCA
 的第一主成分就是这条斜线方向。把数据投影到这条线，就能用一维保留大部分变化。</p>
 <p>数学上，PCA 会找一组正交方向，第一主成分解释最多
 variance，第二主成分在和第一主成分正交的条件下解释剩余最多
 variance。</p>
-<h2 id="pca-的几个注意点">10. PCA 的几个注意点</h2>
-<p>PCA 对 scale 敏感。一个特征范围是 <span
+<p>PCA 的几个注意点</p>
+<ul>
+<li>PCA 对 scale 敏感。一个特征范围是 <span
 class="math inline">[0,100000]</span>，另一个是 <span
 class="math inline">[0,1]</span>，如果不 standardize，大范围特征会主导
-principal components。</p>
-<p>PCA 是线性降维。如果数据本身是复杂非线性结构，PCA 可能表达不好。</p>
-<p>PCA
-的主成分不一定好解释。原始特征可能有明确含义，但主成分是多个特征的线性组合，解释起来会更抽象。</p>
-<h2 id="t-sne-和-umap">11. t-SNE 和 UMAP</h2>
+principal components。</li>
+<li>PCA 是线性降维。如果数据本身是复杂非线性结构，PCA
+可能表达不好。</li>
+<li>PCA
+的主成分不一定好解释。原始特征可能有明确含义，但主成分是多个特征的线性组合，解释起来会更抽象。</li>
+</ul>
+<p>其他：t-SNE 和 UMAP</p>
 <p>t-SNE 和 UMAP 常用于可视化高维 embedding，比如把文本 embedding 或图像
 embedding 投到二维。</p>
 <p>它们更关注局部邻域结构，适合看样本是否聚在一起。但这类方法主要用于
 visualization，不太适合直接当成严肃的全局距离解释。</p>
 <p>一个常见误区是看见二维图上两个 cluster
 离得远，就断言原始高维空间里它们也有同样的全局距离关系。这个不一定成立。</p>
-<h2 id="几个点">12. 几个点</h2>
-<p>Clustering 没有
-label，所以评估本来就更难。指标只能辅助，最后还要看任务目的。</p>
-<p>KMeans 前基本要做 scaling，否则距离会被大尺度特征主导。</p>
-<p>DBSCAN 适合找异常点和非球形 cluster，但参数 <code>eps</code>
-很关键。</p>
-<p>PCA 保留的是最大 variance
-方向，不等于保留对下游任务最有用的方向。</p>
-<p>降维后的图很好看，不代表结论一定可靠。可视化是探索工具，不是最终证明。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a
-target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/clustering.html">scikit-learn
-User Guide: Clustering</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/decomposition.html">scikit-learn
-User Guide: Decomposition</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/manifold.html">scikit-learn
-User Guide: Manifold Learning</a></li>
+<li>hkust bdt5002课程</li>
 <li><a target="_blank" rel="noopener" href="https://www.statlearning.com/">An Introduction to
 Statistical Learning</a></li>
 </ul>
