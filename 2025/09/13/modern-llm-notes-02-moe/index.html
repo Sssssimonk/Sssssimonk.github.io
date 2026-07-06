@@ -489,12 +489,18 @@
               <div class="markdown-body">
                 
                 <p>这一篇整理 MoE，也就是 mixture of experts。</p>
-<p>现在很多前沿开源模型都会强调两个数字：total parameters 和 activated parameters。比如一个模型可能有 235B 总参数，但每个 token 只激活 22B 参数。</p>
-<p>第一次看到这个说法时很容易觉得矛盾：到底是 235B 模型，还是 22B 模型？</p>
-<p>MoE 的关键就在这里。它不是让所有参数每次都参与计算，而是给每个 token 选择一小部分 expert 来算。</p>
-<h2 id="1-Dense-model-的问题"><a href="#1-Dense-model-的问题" class="headerlink" title="1. Dense model 的问题"></a>1. Dense model 的问题</h2><p>普通 Transformer 是 dense model。</p>
+<p>现在很多前沿开源模型都会强调两个数字：total parameters 和 activated
+parameters。比如一个模型可能有 235B 总参数，但每个 token 只激活 22B
+参数。</p>
+<p>第一次看到这个说法时很容易觉得矛盾：到底是 235B 模型，还是 22B
+模型？</p>
+<p>MoE 的关键就在这里。它不是让所有参数每次都参与计算，而是给每个 token
+选择一小部分 expert 来算。</p>
+<h2 id="dense-model-的问题">1. Dense model 的问题</h2>
+<p>普通 Transformer 是 dense model。</p>
 <p>每个 token 经过每一层时，都会使用这一层的全部参数。</p>
-<p>如果模型变大，计算量也跟着变大。一个 dense 70B 模型和一个 dense 7B 模型相比，容量更大，但每个 token 的计算成本也明显更高。</p>
+<p>如果模型变大，计算量也跟着变大。一个 dense 70B 模型和一个 dense 7B
+模型相比，容量更大，但每个 token 的计算成本也明显更高。</p>
 <p>这带来一个很现实的问题：参数规模、训练成本、推理成本几乎绑在一起。</p>
 <p>想要更强模型，就要更大参数；参数越大，每次推理越贵。</p>
 <p>MoE 试图拆开这件事：</p>
@@ -503,49 +509,79 @@
 <li>每个 token 只用一部分参数，用来控制计算成本</li>
 </ul>
 <p>也就是说，MoE 想要的是“大容量”和“低激活成本”同时存在。</p>
-<h2 id="2-Expert-是什么"><a href="#2-Expert-是什么" class="headerlink" title="2. Expert 是什么"></a>2. Expert 是什么</h2><p>在很多 MoE Transformer 里，attention 层仍然是 shared 的，MoE 主要替换 FFN 层。</p>
+<h2 id="expert-是什么">2. Expert 是什么</h2>
+<p>在很多 MoE Transformer 里，attention 层仍然是 shared 的，MoE 主要替换
+FFN 层。</p>
 <p>普通 FFN 是一个大的前馈网络：</p>
-<p>$$<br>\mathrm{FFN}(x)<br>$$</p>
+<p><span class="math display">FFN(<em>x</em>)</span></p>
 <p>MoE FFN 则有多个 expert：</p>
-<p>$$<br>E_1(x), E_2(x), …, E_N(x)<br>$$</p>
-<p>每个 expert 本质上可以理解成一个 FFN。区别是，不是每个 token 都跑所有 expert，而是由 router 选择其中几个。</p>
-<p>如果使用 top-2 routing，那么 token $x$ 的输出大概是：</p>
-<p>$$<br>y &#x3D; g_1(x)E_{i}(x) + g_2(x)E_{j}(x)<br>$$</p>
-<p>这里 $E_i$ 和 $E_j$ 是被选中的两个 experts，$g_1$ 和 $g_2$ 是 router 给出的权重。</p>
+<p><span
+class="math display"><em>E</em><sub>1</sub>(<em>x</em>), <em>E</em><sub>2</sub>(<em>x</em>), ..., <em>E</em><sub><em>N</em></sub>(<em>x</em>)</span></p>
+<p>每个 expert 本质上可以理解成一个 FFN。区别是，不是每个 token 都跑所有
+expert，而是由 router 选择其中几个。</p>
+<p>如果使用 top-2 routing，那么 token <span
+class="math inline"><em>x</em></span> 的输出大概是：</p>
+<p><span
+class="math display"><em>y</em> = <em>g</em><sub>1</sub>(<em>x</em>)<em>E</em><sub><em>i</em></sub>(<em>x</em>) + <em>g</em><sub>2</sub>(<em>x</em>)<em>E</em><sub><em>j</em></sub>(<em>x</em>)</span></p>
+<p>这里 <span class="math inline"><em>E</em><sub><em>i</em></sub></span>
+和 <span class="math inline"><em>E</em><sub><em>j</em></sub></span>
+是被选中的两个 experts，<span
+class="math inline"><em>g</em><sub>1</sub></span> 和 <span
+class="math inline"><em>g</em><sub>2</sub></span> 是 router
+给出的权重。</p>
 <p>直觉上，模型在说：</p>
 <blockquote>
 <p>这个 token 更适合交给这些 expert 处理。</p>
 </blockquote>
-<h2 id="3-Router：MoE-的真正难点"><a href="#3-Router：MoE-的真正难点" class="headerlink" title="3. Router：MoE 的真正难点"></a>3. Router：MoE 的真正难点</h2><p>MoE 听起来像“多放几个专家，然后自动选择”。但真正难的是 router。</p>
+<h2 id="routermoe-的真正难点">3. Router：MoE 的真正难点</h2>
+<p>MoE 听起来像“多放几个专家，然后自动选择”。但真正难的是 router。</p>
 <p>Router 通常会对每个 token 算一个分数：</p>
-<p>$$<br>s &#x3D; xW_r<br>$$</p>
+<p><span
+class="math display"><em>s</em> = <em>x</em><em>W</em><sub><em>r</em></sub></span></p>
 <p>再从所有 expert 里选 top-k。</p>
-<p>问题是，如果 router 学得不好，所有 token 都挤向少数几个 expert，其他 expert 几乎不用。这样不仅浪费参数，还会导致某些 expert 负载爆炸。</p>
+<p>问题是，如果 router 学得不好，所有 token 都挤向少数几个 expert，其他
+expert 几乎不用。这样不仅浪费参数，还会导致某些 expert 负载爆炸。</p>
 <p>所以 MoE 训练里经常要处理 load balancing。</p>
-<p>Switch Transformer 里用了 auxiliary loss 来鼓励 token 更均匀地分配到不同 expert。DeepSeek-V3 则强调 auxiliary-loss-free 的 load balancing，试图减少辅助损失对模型主目标的干扰。</p>
+<p>Switch Transformer 里用了 auxiliary loss 来鼓励 token
+更均匀地分配到不同 expert。DeepSeek-V3 则强调 auxiliary-loss-free 的
+load balancing，试图减少辅助损失对模型主目标的干扰。</p>
 <p>这里有一个技术取舍：</p>
 <ul>
 <li>加 auxiliary loss，路由更容易均衡，但可能影响语言建模目标</li>
 <li>不加或弱化 auxiliary loss，主目标更干净，但路由稳定性更难保证</li>
 </ul>
 <p>MoE 的难点不是“有多个 expert”，而是“怎么让 expert 被合理使用”。</p>
-<h2 id="4-总参数和激活参数"><a href="#4-总参数和激活参数" class="headerlink" title="4. 总参数和激活参数"></a>4. 总参数和激活参数</h2><p>MoE 报告里经常出现两个数字。</p>
+<h2 id="总参数和激活参数">4. 总参数和激活参数</h2>
+<p>MoE 报告里经常出现两个数字。</p>
 <p>Total parameters 指模型所有参数，包括所有 experts。</p>
 <p>Activated parameters 指处理一个 token 时实际参与计算的参数。</p>
-<p>比如一个 MoE 模型有 64 个 experts，每次只选 2 个。那总参数可能很大，但每个 token 只走其中一小部分。</p>
-<p>这就解释了为什么一个模型可以同时标注为 235B total parameters 和 22B activated parameters。</p>
+<p>比如一个 MoE 模型有 64 个 experts，每次只选 2
+个。那总参数可能很大，但每个 token 只走其中一小部分。</p>
+<p>这就解释了为什么一个模型可以同时标注为 235B total parameters 和 22B
+activated parameters。</p>
 <p>它的容量接近一个超大模型，但单 token 计算量更接近一个中等模型。</p>
-<p>不过这句话不能简单理解成“235B 的效果，22B 的成本”。因为 MoE 还有通信、路由、负载均衡、batching 等额外问题。</p>
-<h2 id="5-MoE-为什么适合大规模预训练"><a href="#5-MoE-为什么适合大规模预训练" class="headerlink" title="5. MoE 为什么适合大规模预训练"></a>5. MoE 为什么适合大规模预训练</h2><p>预训练阶段，模型会看到海量 token。不同 token 的统计特征差异很大：代码、数学、中文、英文、表格、对话、网页文本。</p>
+<p>不过这句话不能简单理解成“235B 的效果，22B 的成本”。因为 MoE
+还有通信、路由、负载均衡、batching 等额外问题。</p>
+<h2 id="moe-为什么适合大规模预训练">5. MoE 为什么适合大规模预训练</h2>
+<p>预训练阶段，模型会看到海量 token。不同 token
+的统计特征差异很大：代码、数学、中文、英文、表格、对话、网页文本。</p>
 <p>Dense model 对所有 token 使用同一组 FFN 参数。</p>
-<p>MoE 则允许不同 token 走不同 expert。理论上，不同 expert 可以学到不同类型的模式。</p>
-<p>比如某些 expert 可能更常处理代码 token，某些 expert 可能更常处理数学符号，某些 expert 更常处理自然语言。</p>
-<p>这里要注意，我不会把 expert 理解成非常清晰的人类职业分工。它们不一定真的变成“数学专家”“代码专家”。更准确地说，expert 是被 router 动态选择的参数子空间。</p>
-<p>这个区别很重要。技术报告里如果没有分析 expert specialization，就不要强行给每个 expert 贴人类标签。</p>
-<h2 id="6-MoE-的通信成本"><a href="#6-MoE-的通信成本" class="headerlink" title="6. MoE 的通信成本"></a>6. MoE 的通信成本</h2><p>MoE 在单卡上很容易理解，但大模型训练通常跨很多 GPU。</p>
-<p>如果 expert 分布在不同 GPU 上，token 被 router 分配后，就需要在 GPU 之间传输。</p>
+<p>MoE 则允许不同 token 走不同 expert。理论上，不同 expert
+可以学到不同类型的模式。</p>
+<p>比如某些 expert 可能更常处理代码 token，某些 expert
+可能更常处理数学符号，某些 expert 更常处理自然语言。</p>
+<p>这里要注意，我不会把 expert
+理解成非常清晰的人类职业分工。它们不一定真的变成“数学专家”“代码专家”。更准确地说，expert
+是被 router 动态选择的参数子空间。</p>
+<p>这个区别很重要。技术报告里如果没有分析 expert
+specialization，就不要强行给每个 expert 贴人类标签。</p>
+<h2 id="moe-的通信成本">6. MoE 的通信成本</h2>
+<p>MoE 在单卡上很容易理解，但大模型训练通常跨很多 GPU。</p>
+<p>如果 expert 分布在不同 GPU 上，token 被 router 分配后，就需要在 GPU
+之间传输。</p>
 <p>这会引入 all-to-all communication。</p>
-<p>Dense model 的通信主要来自模型并行、数据并行、梯度同步等。MoE 额外增加了 token dispatch 和 combine 的通信。</p>
+<p>Dense model 的通信主要来自模型并行、数据并行、梯度同步等。MoE
+额外增加了 token dispatch 和 combine 的通信。</p>
 <p>这就是为什么 MoE 论文和技术报告会关心：</p>
 <ul>
 <li>expert parallelism</li>
@@ -555,27 +591,44 @@
 <li>communication-computation overlap</li>
 </ul>
 <p>这些听起来像工程细节，但它们决定 MoE 能不能真的跑起来。</p>
-<p>一个 routing 很漂亮但通信开销巨大的 MoE，在真实训练里可能并不划算。</p>
-<h2 id="7-Capacity-factor-和-token-dropping"><a href="#7-Capacity-factor-和-token-dropping" class="headerlink" title="7. Capacity factor 和 token dropping"></a>7. Capacity factor 和 token dropping</h2><p>每个 expert 每个 batch 能处理的 token 数通常会有限制。</p>
-<p>如果某个 expert 被分配了太多 token，超出的 token 可能被 drop，或者走 fallback 路径。</p>
+<p>一个 routing 很漂亮但通信开销巨大的
+MoE，在真实训练里可能并不划算。</p>
+<h2 id="capacity-factor-和-token-dropping">7. Capacity factor 和 token
+dropping</h2>
+<p>每个 expert 每个 batch 能处理的 token 数通常会有限制。</p>
+<p>如果某个 expert 被分配了太多 token，超出的 token 可能被 drop，或者走
+fallback 路径。</p>
 <p>Capacity factor 控制每个 expert 的容量上限。</p>
 <p>如果 capacity 太小，容易 drop token，训练信号受损。</p>
 <p>如果 capacity 太大，显存和计算浪费增加。</p>
-<p>所以 MoE 的训练不是简单调 learning rate。它多了一组系统参数，而且这些参数和硬件拓扑、batch size、sequence length 都有关。</p>
-<h2 id="8-DeepSeekMoE-的思路"><a href="#8-DeepSeekMoE-的思路" class="headerlink" title="8. DeepSeekMoE 的思路"></a>8. DeepSeekMoE 的思路</h2><p>DeepSeek 系列技术报告里，MoE 是核心结构之一。</p>
-<p>DeepSeek-V3 使用 671B total parameters，但每个 token 激活约 37B 参数。它还结合了 MLA、multi-token prediction、FP8 training 等工程优化。</p>
+<p>所以 MoE 的训练不是简单调 learning
+rate。它多了一组系统参数，而且这些参数和硬件拓扑、batch size、sequence
+length 都有关。</p>
+<h2 id="deepseekmoe-的思路">8. DeepSeekMoE 的思路</h2>
+<p>DeepSeek 系列技术报告里，MoE 是核心结构之一。</p>
+<p>DeepSeek-V3 使用 671B total parameters，但每个 token 激活约 37B
+参数。它还结合了 MLA、multi-token prediction、FP8 training
+等工程优化。</p>
 <p>这里值得注意的是：DeepSeek-V3 的强并不只是因为 MoE。</p>
-<p>MoE 提供参数容量和计算效率，MLA 降低 KV cache 成本，FP8 降低训练成本，多 token prediction 尝试提高生成效率。</p>
-<p>所以读 DeepSeek-V3 时，不要把结论压缩成“MoE 很强”。更准确的说法是：</p>
+<p>MoE 提供参数容量和计算效率，MLA 降低 KV cache 成本，FP8
+降低训练成本，多 token prediction 尝试提高生成效率。</p>
+<p>所以读 DeepSeek-V3 时，不要把结论压缩成“MoE
+很强”。更准确的说法是：</p>
 <blockquote>
-<p>DeepSeek-V3 是一组结构、训练和系统优化叠加出来的结果，MoE 是其中负责参数容量扩展的一块。</p>
+<p>DeepSeek-V3 是一组结构、训练和系统优化叠加出来的结果，MoE
+是其中负责参数容量扩展的一块。</p>
 </blockquote>
-<h2 id="9-Qwen3-MoE-的位置"><a href="#9-Qwen3-MoE-的位置" class="headerlink" title="9. Qwen3 MoE 的位置"></a>9. Qwen3 MoE 的位置</h2><p>Qwen3 技术报告里同时有 dense 和 MoE 模型。</p>
-<p>这很有意思，因为它说明 dense 和 MoE 不是谁完全替代谁，而是面向不同规模和部署场景的选择。</p>
+<h2 id="qwen3-moe-的位置">9. Qwen3 MoE 的位置</h2>
+<p>Qwen3 技术报告里同时有 dense 和 MoE 模型。</p>
+<p>这很有意思，因为它说明 dense 和 MoE
+不是谁完全替代谁，而是面向不同规模和部署场景的选择。</p>
 <p>小模型用 dense 可能更简单、更稳定、更容易部署。</p>
 <p>大模型用 MoE 可以把总容量拉高，同时控制每 token 计算。</p>
-<p>所以模型家族通常会同时提供 dense 和 MoE 版本，让用户在延迟、成本、能力之间选。</p>
-<h2 id="10-MoE-不是免费午餐"><a href="#10-MoE-不是免费午餐" class="headerlink" title="10. MoE 不是免费午餐"></a>10. MoE 不是免费午餐</h2><p>MoE 最大的误区是：只看 activated parameters，然后以为成本就等于一个小 dense 模型。</p>
+<p>所以模型家族通常会同时提供 dense 和 MoE
+版本，让用户在延迟、成本、能力之间选。</p>
+<h2 id="moe-不是免费午餐">10. MoE 不是免费午餐</h2>
+<p>MoE 最大的误区是：只看 activated parameters，然后以为成本就等于一个小
+dense 模型。</p>
 <p>实际不是。</p>
 <p>MoE 至少有这些额外代价：</p>
 <ul>
@@ -587,18 +640,25 @@
 <li>Serving 系统更难做</li>
 </ul>
 <p>这也是为什么 MoE 更像系统工程，而不只是模型结构。</p>
-<p>如果部署环境很简单，dense model 可能反而更好。MoE 的优势通常要在足够大规模、足够好的并行系统里才能发挥。</p>
-<h2 id="11-一个简单例子"><a href="#11-一个简单例子" class="headerlink" title="11. 一个简单例子"></a>11. 一个简单例子</h2><p>假设一个客服模型要处理三类问题：</p>
+<p>如果部署环境很简单，dense model 可能反而更好。MoE
+的优势通常要在足够大规模、足够好的并行系统里才能发挥。</p>
+<h2 id="一个简单例子">11. 一个简单例子</h2>
+<p>假设一个客服模型要处理三类问题：</p>
 <ul>
 <li>订单状态</li>
 <li>退款政策</li>
 <li>技术故障</li>
 </ul>
 <p>Dense model 会用同一套 FFN 参数处理所有问题。</p>
-<p>MoE model 可能学到某些 token 更常走某些 expert。和订单相关的表达经常激活一组 expert，技术故障相关的表达激活另一组 expert。</p>
-<p>但真实 LLM 里的分工不会这么干净。一个 token 的意义受上下文影响，同一个词在代码、数学、闲聊里可能完全不同。</p>
-<p>所以 MoE 的 router 不是按关键词查表，而是根据 hidden state 做动态选择。</p>
-<h2 id="12-读-MoE-模型报告时看什么"><a href="#12-读-MoE-模型报告时看什么" class="headerlink" title="12. 读 MoE 模型报告时看什么"></a>12. 读 MoE 模型报告时看什么</h2><p>我会重点看这些问题：</p>
+<p>MoE model 可能学到某些 token 更常走某些
+expert。和订单相关的表达经常激活一组
+expert，技术故障相关的表达激活另一组 expert。</p>
+<p>但真实 LLM 里的分工不会这么干净。一个 token
+的意义受上下文影响，同一个词在代码、数学、闲聊里可能完全不同。</p>
+<p>所以 MoE 的 router 不是按关键词查表，而是根据 hidden state
+做动态选择。</p>
+<h2 id="读-moe-模型报告时看什么">12. 读 MoE 模型报告时看什么</h2>
+<p>我会重点看这些问题：</p>
 <ul>
 <li>总参数和激活参数分别是多少</li>
 <li>每层都有 MoE，还是部分层有 MoE</li>
@@ -608,10 +668,12 @@
 <li>是否使用 auxiliary loss</li>
 <li>expert 数量是多少</li>
 <li>训练和推理时的通信开销怎么处理</li>
-<li>benchmark 提升是来自 MoE 本身，还是同时叠加了数据、RL、上下文扩展</li>
+<li>benchmark 提升是来自 MoE
+本身，还是同时叠加了数据、RL、上下文扩展</li>
 </ul>
 <p>这些问题比“用了 MoE”更重要。</p>
-<h2 id="13-小结"><a href="#13-小结" class="headerlink" title="13. 小结"></a>13. 小结</h2><p>MoE 的核心思想很直接：</p>
+<h2 id="小结">13. 小结</h2>
+<p>MoE 的核心思想很直接：</p>
 <blockquote>
 <p>用稀疏激活把总参数容量和单 token 计算成本拆开。</p>
 </blockquote>
@@ -619,15 +681,26 @@
 <blockquote>
 <p>参数变稀疏以后，训练和系统复杂度会显著上升。</p>
 </blockquote>
-<p>所以我会把 MoE 看成一种大规模模型扩展路线，而不是一个单纯提升模型能力的小技巧。</p>
-<p>它适合的问题是：当 dense scaling 越来越贵时，能不能用更聪明的参数激活方式继续扩展模型容量。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li>Shazeer et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1701.06538">Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer</a></li>
-<li>Fedus et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2101.03961">Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity</a></li>
-<li>Qwen Team, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li>
-<li>DeepSeek-AI, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a></li>
-<li>GLM-4.5 Team, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2508.06471">GLM-4.5: Agentic, Reasoning, and Coding Foundation Models</a></li>
-<li>Moonshot AI, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2507.20534">Kimi K2: Open Agentic Intelligence</a></li>
+<p>所以我会把 MoE
+看成一种大规模模型扩展路线，而不是一个单纯提升模型能力的小技巧。</p>
+<p>它适合的问题是：当 dense scaling
+越来越贵时，能不能用更聪明的参数激活方式继续扩展模型容量。</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li>Shazeer et al., <a
+target="_blank" rel="noopener" href="https://arxiv.org/abs/1701.06538">Outrageously Large Neural
+Networks: The Sparsely-Gated Mixture-of-Experts Layer</a></li>
+<li>Fedus et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2101.03961">Switch
+Transformers: Scaling to Trillion Parameter Models with Simple and
+Efficient Sparsity</a></li>
+<li>Qwen Team, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2505.09388">Qwen3
+Technical Report</a></li>
+<li>DeepSeek-AI, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2412.19437">DeepSeek-V3
+Technical Report</a></li>
+<li>GLM-4.5 Team, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2508.06471">GLM-4.5:
+Agentic, Reasoning, and Coding Foundation Models</a></li>
+<li>Moonshot AI, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2507.20534">Kimi K2:
+Open Agentic Intelligence</a></li>
 </ul>
 
                 

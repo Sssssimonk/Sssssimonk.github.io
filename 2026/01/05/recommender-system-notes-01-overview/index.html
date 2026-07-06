@@ -19,24 +19,28 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。 一">
+    <meta name="description" content="这一篇先整理推荐系统的整体框架。 推荐系统看起来是在回答一个很简单的问题：  这个用户接下来可能喜欢什么？  但真正落到工业系统里，它不只是一个模型问题。它同时是数据问题、检索问题、排序问题、评估问题，也是一个非常强的工程系统问题。 比如短视频、广告、电商、新闻流、音乐、论文推荐，它们表面上都在推荐 item，但目标并不完全一样：  短视频可能更关心观看时长、完播、互动。 广告可能更关心点击、转化">
 <meta property="og:type" content="article">
-<meta property="og:title" content="关于这个博客">
-<meta property="og:url" content="https://sssssimonk.github.io/2026/07/01/about-this-blog/index.html">
+<meta property="og:title" content="推荐系统笔记 01：推荐系统概述">
+<meta property="og:url" content="https://sssssimonk.github.io/2026/01/05/recommender-system-notes-01-overview/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。 一">
+<meta property="og:description" content="这一篇先整理推荐系统的整体框架。 推荐系统看起来是在回答一个很简单的问题：  这个用户接下来可能喜欢什么？  但真正落到工业系统里，它不只是一个模型问题。它同时是数据问题、检索问题、排序问题、评估问题，也是一个非常强的工程系统问题。 比如短视频、广告、电商、新闻流、音乐、论文推荐，它们表面上都在推荐 item，但目标并不完全一样：  短视频可能更关心观看时长、完播、互动。 广告可能更关心点击、转化">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-01T14:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-01T14:00:00.000Z">
+<meta property="article:published_time" content="2026-01-05T12:00:00.000Z">
+<meta property="article:modified_time" content="2026-01-05T12:00:00.000Z">
 <meta property="article:author" content="Siyu Chen">
-<meta property="article:tag" content="AI">
-<meta property="article:tag" content="Notes">
-<meta property="article:tag" content="Research">
+<meta property="article:tag" content="CTR">
+<meta property="article:tag" content="CVR">
+<meta property="article:tag" content="召回">
+<meta property="article:tag" content="序列建模">
+<meta property="article:tag" content="排序">
+<meta property="article:tag" content="推荐系统">
+<meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>关于这个博客 - Siyu Chen</title>
+  <title>推荐系统笔记 01：推荐系统概述 - Siyu Chen</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -310,7 +314,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="关于这个博客"></span>
+            <span id="subtitle" data-typed-text="推荐系统笔记 01：推荐系统概述"></span>
           
         </div>
 
@@ -321,8 +325,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-07-01 22:00" pubdate>
-          2026-07-01
+        <time datetime="2026-01-05 20:00" pubdate>
+          2026-01-05
         </time>
       </span>
     
@@ -333,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          472 字
+          4k 字
         
       </span>
     
@@ -344,7 +348,7 @@
         
         
         
-          4 分钟
+          34 分钟
         
       </span>
     
@@ -391,17 +395,17 @@
     
     <div class="category row nomargin-x">
       <a class="category-item 
-          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Blog"
-        id="heading-be8df1f28c0abc85a0ed0c6860e5d832" role="tab" data-toggle="collapse" href="#collapse-be8df1f28c0abc85a0ed0c6860e5d832"
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="推荐系统笔记"
+        id="heading-74a93445c88dd2433c0a54083cf2eec0" role="tab" data-toggle="collapse" href="#collapse-74a93445c88dd2433c0a54083cf2eec0"
         aria-expanded="true"
       >
-        Blog
+        推荐系统笔记
         <span class="list-group-count">(1)</span>
         <i class="iconfont icon-arrowright"></i>
       </a>
       
-      <div class="category-collapse collapse show" id="collapse-be8df1f28c0abc85a0ed0c6860e5d832"
-           role="tabpanel" aria-labelledby="heading-be8df1f28c0abc85a0ed0c6860e5d832">
+      <div class="category-collapse collapse show" id="collapse-74a93445c88dd2433c0a54083cf2eec0"
+           role="tabpanel" aria-labelledby="heading-74a93445c88dd2433c0a54083cf2eec0">
         
         
           
@@ -410,10 +414,10 @@
     
       
       
-        <a href="/2026/07/01/about-this-blog/" title="关于这个博客"
+        <a href="/2026/01/05/recommender-system-notes-01-overview/" title="推荐系统笔记 01：推荐系统概述"
            class="list-group-item list-group-item-action
            active">
-          <span class="category-post">关于这个博客</span>
+          <span class="category-post">推荐系统笔记 01：推荐系统概述</span>
         </a>
       
     
@@ -435,26 +439,233 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">关于这个博客</h1>
+            <h1 id="seo-header">推荐系统笔记 01：推荐系统概述</h1>
             
             
               <div class="markdown-body">
                 
-                <p>这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。</p>
-<p>我希望每篇文章都尽量回答三个问题：</p>
+                <p>这一篇先整理推荐系统的整体框架。</p>
+<p>推荐系统看起来是在回答一个很简单的问题：</p>
+<blockquote>
+<p>这个用户接下来可能喜欢什么？</p>
+</blockquote>
+<p>但真正落到工业系统里，它不只是一个模型问题。它同时是数据问题、检索问题、排序问题、评估问题，也是一个非常强的工程系统问题。</p>
+<p>比如短视频、广告、电商、新闻流、音乐、论文推荐，它们表面上都在推荐
+item，但目标并不完全一样：</p>
+<ul>
+<li>短视频可能更关心观看时长、完播、互动。</li>
+<li>广告可能更关心点击、转化、付费、长期价值。</li>
+<li>电商可能更关心点击、加购、购买、GMV。</li>
+<li>内容平台还要考虑多样性、新鲜度、创作者生态。</li>
+</ul>
+<p>所以推荐系统不是简单地“预测用户喜欢什么”，而是在一个很大的候选空间里，尽量把用户、item、上下文和业务目标同时对齐。</p>
+<h2 id="推荐系统为什么需要分阶段">1. 推荐系统为什么需要分阶段</h2>
+<p>如果平台里有几千万甚至几亿个 item，不可能对每个用户把所有 item
+都拿出来打分。</p>
+<p>因此推荐系统通常会拆成多阶段：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">全量 item 池<br>-&gt; 召回<br>-&gt; 粗排<br>-&gt; 精排<br>-&gt; 重排<br>-&gt; 展示<br></code></pre></td></tr></table></figure>
+<p>每一层解决的问题不一样。</p>
+<p><strong>召回（retrieval）</strong> 负责从海量 item
+中快速找出几百到几千个候选。它更看重速度和覆盖率。</p>
+<p><strong>排序（ranking）</strong> 负责对候选 item
+做更精细的打分。这里模型可以更复杂，因为候选数量已经小很多。</p>
+<p><strong>重排（reranking）</strong>
+负责考虑列表级约束，比如多样性、重复内容、广告频控、内容安全、展示策略等。</p>
+<p>可以粗略理解成：</p>
+<blockquote>
+<p>召回解决“有没有可能相关”，排序解决“谁更应该排前面”，重排解决“整个列表看起来是否合理”。</p>
+</blockquote>
+<h2 id="推荐系统和普通分类问题的区别">2.
+推荐系统和普通分类问题的区别</h2>
+<p>很多推荐模型最后看起来都是二分类。</p>
+<p>比如 CTR 预测：</p>
+<blockquote>
+<p>给定用户、item、上下文，预测用户是否点击。</p>
+</blockquote>
+<p>形式上确实像分类问题：</p>
+<p><span
+class="math display"><em>ŷ</em> = <em>f</em><sub><em>θ</em></sub>(<em>u</em>,<em>i</em>,<em>c</em>)</span></p>
+<p>其中 <span class="math inline"><em>u</em></span> 是用户特征，<span
+class="math inline"><em>i</em></span> 是 item 特征，<span
+class="math inline"><em>c</em></span> 是上下文特征。</p>
+<p>但推荐系统和普通分类有几个明显区别。</p>
+<p>第一，样本不是独立同分布的。用户的兴趣会变，item
+的热度会变，平台策略也会变。今天的点击分布不一定能代表明天。</p>
+<p>第二，曝光本身有偏。模型只能从已经被系统展示过的 item
+上看到反馈。没有展示的 item，不代表用户不喜欢，只是系统没给机会。</p>
+<p>第三，负样本很复杂。用户没点一个广告，可能是不感兴趣，也可能是没看到，也可能是位置太差，也可能是当时没有购买意愿。</p>
+<p>第四，优化目标不止一个。点击率高不一定转化率高，短期收益高不一定长期体验好。</p>
+<p>这也是为什么推荐系统里会有很多看起来“不像机器学习教材”的东西：负采样、曝光校正、位置偏置、延迟转化、多目标学习、冷启动、探索利用。</p>
+<h2 id="显式反馈和隐式反馈">3. 显式反馈和隐式反馈</h2>
+<p>推荐系统的反馈大致可以分成两类。</p>
+<p><strong>显式反馈（explicit feedback）</strong>
+是用户主动表达的偏好，比如评分、收藏、点赞。</p>
+<p><strong>隐式反馈（implicit feedback）</strong>
+是用户行为里暗含的偏好，比如点击、观看、停留、购买、跳出。</p>
+<p>早期推荐系统里经常用评分矩阵，比如 MovieLens
+这种电影评分数据。用户给电影打 1 到 5
+分，模型要预测用户对未评分电影的评分。</p>
+<p>但工业推荐里更多是隐式反馈。</p>
+<p>比如广告场景里，用户对广告的反馈可能是：</p>
+<ul>
+<li>是否曝光</li>
+<li>是否点击</li>
+<li>是否转化</li>
+<li>转化金额</li>
+<li>是否屏蔽</li>
+<li>是否重复点击</li>
+</ul>
+<p>隐式反馈的麻烦在于它更噪。</p>
+<p>一个用户点击了某个
+item，不一定真的喜欢，可能是标题党。一个用户没点击，也不一定讨厌，可能只是没注意到。推荐系统要从这些很脏的行为里学出稳定偏好。</p>
+<h2 id="协同过滤从用户和-item-的关系开始">4. 协同过滤：从用户和 item
+的关系开始</h2>
+<p>推荐系统里最经典的思想是协同过滤（collaborative filtering）。</p>
+<p>它的核心直觉很简单：</p>
+<blockquote>
+<p>如果两个用户过去喜欢的东西相似，那么他们未来可能也会喜欢相似的东西。</p>
+</blockquote>
+<p>或者换一个角度：</p>
+<blockquote>
+<p>如果两个 item 经常被同一批用户喜欢，那么它们可能是相似 item。</p>
+</blockquote>
+<p>基于用户的协同过滤会找相似用户，基于 item 的协同过滤会找相似
+item。</p>
+<p>举个简单例子：</p>
+<ul>
+<li>用户 A 喜欢《星际穿越》《盗梦空间》《信条》</li>
+<li>用户 B 喜欢《星际穿越》《盗梦空间》</li>
+<li>那么系统可能会把《信条》推荐给用户 B</li>
+</ul>
+<p>这个例子很朴素，但它抓住了推荐系统最核心的东西：很多时候我们不是先理解
+item 的内容，而是先利用用户行为形成的共现关系。</p>
+<p>协同过滤的问题也很明显：</p>
+<ul>
+<li>新用户没有历史行为，存在冷启动的问题</li>
+<li>新 item 没有交互记录，冷启动困难。</li>
+<li>用户和 item 矩阵极其稀疏，在这个共现矩阵里大部分都是0.</li>
+<li>相似度计算在大规模系统里不efficient。</li>
+</ul>
+<p>这些问题后来推动了矩阵分解、embedding、双塔召回、图推荐和深度排序模型的发展。</p>
+<h2 id="矩阵分解和-embedding">5. 矩阵分解和 embedding</h2>
+<p>矩阵分解可以看成协同过滤的一个更参数化版本。</p>
+<p>假设有一个用户-item 交互矩阵。矩阵里的每个元素表示用户对 item
+的偏好。矩阵分解会给每个用户和每个 item 学一个向量：</p>
+<p><span
+class="math display"><em>r̂</em><sub><em>u</em><em>i</em></sub> = <em>p</em><sub><em>u</em></sub><sup>⊤</sup><em>q</em><sub><em>i</em></sub></span></p>
+<p>其中 <span class="math inline"><em>p</em><sub><em>u</em></sub></span>
+是用户向量，<span
+class="math inline"><em>q</em><sub><em>i</em></sub></span> 是 item
+向量。</p>
+<p>如果两个向量内积大，就说明模型认为这个用户更可能喜欢这个 item。</p>
+<p>这个思想后来几乎变成了推荐系统的基本语言：用户、item、类别、作者、广告主、query、上下文，都可以先变成
+embedding，再做匹配或排序。</p>
+<p>但 embedding 本身不是答案。真正的问题是：</p>
+<ul>
+<li>这些 embedding 从哪里来？</li>
+<li>用什么行为训练？</li>
+<li>是否只用 ID，还是加入内容特征？</li>
+<li>新 item 没有历史行为时怎么办？</li>
+<li>embedding 是否会记住训练集里的噪声？</li>
+</ul>
+<p>这也是后来语义 ID、生成式推荐、冷启动优化这些方向会出现的原因。</p>
+<h2 id="召回先把候选找出来">6. 召回：先把候选找出来</h2>
+<p>召回阶段的目标是快速从海量 item 中找出可能相关的一小批候选。</p>
+<p>常见召回方式包括：</p>
+<ul>
+<li>热门召回：给用户一些当前热门 item。</li>
+<li>协同过滤召回：根据相似用户或相似 item 找候选。</li>
+<li>双塔召回：分别编码用户和 item，用向量相似度检索。</li>
+<li>序列召回：根据用户最近行为预测下一个可能交互的 item。</li>
+<li>多路召回：多个召回通道并行，每个通道覆盖不同兴趣。</li>
+</ul>
+<p>双塔模型可以写成：</p>
+<p><span
+class="math display"><em>s</em>(<em>u</em>,<em>i</em>) = <em>f</em><sub><em>θ</em></sub>(<em>u</em>)<sup>⊤</sup><em>g</em><sub><em>ϕ</em></sub>(<em>i</em>)</span></p>
+<p>用户塔输出用户向量，item 塔输出 item 向量，然后通过向量检索找
+top-k。</p>
+<p>双塔的优点是快。item 向量可以离线算好，线上只需要算用户向量，然后做
+ANN 检索。</p>
+<p>但双塔也有缺点。用户和 item
+很早就被分开编码，复杂交叉特征表达不够强。所以它更适合召回，不太适合最终精排。</p>
+<h2 id="排序真正决定谁排前面">7. 排序：真正决定谁排前面</h2>
+<p>排序阶段会使用更丰富的特征。</p>
+<p>一个广告排序模型可能会看：</p>
+<ul>
+<li>用户 ID、年龄段、地域、设备、历史行为</li>
+<li>广告 ID、广告主、行业、素材、商品属性</li>
+<li>上下文时间、位置、场景、请求来源</li>
+<li>用户和广告的交叉特征</li>
+<li>用户行为序列和候选广告之间的匹配程度</li>
+</ul>
+<p>早期排序模型可能是 LR、GBDT、FM、Wide &amp; Deep、DeepFM。</p>
+<p>后来推荐排序模型越来越强调两件事：</p>
+<p>第一，特征交叉。不是单独看用户，也不是单独看
+item，而是看“这个用户在这个场景下对这个 item 是否感兴趣”。</p>
+<p>第二，序列兴趣。用户最近做了什么，往往比静态画像更重要。</p>
+<p>比如用户最近连续浏览露营装备，那么给他推荐帐篷、睡袋、户外炉具可能比推荐他长期喜欢的电子产品更有效。</p>
+<h2 id="序列推荐用户兴趣不是静态画像">8.
+序列推荐：用户兴趣不是静态画像</h2>
+<p>序列推荐把用户历史行为看成一个时间序列。</p>
+<p>最简单的想法是用最近 K 个行为预测下一个 item。</p>
+<p>早期可以用 Markov Chain、RNN、GRU。后来 SASRec 把 self-attention
+引入序列推荐，让模型直接从历史行为里挑出对当前预测最相关的部分。</p>
+<p>SASRec 的一个重要直觉是：</p>
+<blockquote>
+<p>用户历史里不是所有行为都同等重要，模型应该自己学会关注哪些行为。</p>
+</blockquote>
+<p>比如用户过去一年买过手机壳、耳机、键盘、显示器。现在他看了相机包，那么历史里的“数码配件”可能相关，但“键盘”未必相关。</p>
+<p>再往后，DIN / DIEN / BST / HSTU
+这类模型都在解决类似问题：用户兴趣会随时间变化，行为序列很长，历史里既有长期偏好，也有短期意图。</p>
+<h2 id="广告推荐ctr-只是开始">9. 广告推荐：CTR 只是开始</h2>
+<p>广告推荐比普通内容推荐更复杂，因为它通常不只优化点击。</p>
+<p>常见目标包括：</p>
+<ul>
+<li>CTR：点击率</li>
+<li>CVR：转化率</li>
+<li>CTCVR：点击后转化概率和整体转化概率</li>
+<li>GMV / revenue：商业收益</li>
+<li>ROI：广告主投入产出</li>
+<li>用户体验：不能只推容易点击但质量差的广告</li>
+</ul>
+<p>这会带来多目标建模。</p>
+<p>比如一个广告 CTR 很高，但用户点进去后很少购买；另一个广告 CTR
+一般，但转化率很高。到底谁应该排前面，要看业务目标。</p>
+<p>广告推荐还会遇到延迟反馈。用户可能今天点击广告，几天后才购买。训练时如果直接把“暂时没转化”当负样本，就会污染标签。</p>
+<p>所以工业广告推荐里，模型结构重要，但数据定义、标签定义、样本构造、评估协议同样重要。</p>
+<h2 id="生成式推荐为什么出现">10. 生成式推荐为什么出现</h2>
+<p>传统推荐通常是 retrieve-and-rank：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">先召回候选 item<br>再对候选 item 打分排序<br></code></pre></td></tr></table></figure>
+<p>生成式推荐想换一个角度：</p>
+<blockquote>
+<p>不再只是在候选集合里打分，而是让模型直接生成下一个 item 或 item
+的语义 ID。</p>
+</blockquote>
+<p>这和语言模型很像。语言模型根据前文生成下一个
+token，生成式推荐根据用户历史行为生成下一个 item token。</p>
+<p>但 item 不是自然语言 token。item ID
+高基数、变化快、冷启动严重。所以很多生成式推荐工作会引入 semantic
+ID：先把 item 映射成一串离散 code，再让模型生成这串 code。</p>
+<p>这也是 TAAC2025
+这类赛题值得关注的地方。它不是把推荐系统包装成大模型，而是在尝试把“推荐什么”转成“生成什么”的问题。</p>
+<h2 id="补充说明">11. 补充说明</h2>
+<p>现在的推荐系统有两条半主流赛道</p>
 <ol type="1">
-<li>这篇论文或技术真正解决了什么问题？</li>
-<li>它的核心假设、方法设计和实验结论是否站得住？</li>
-<li>如果把它放到真实系统或后续研究里，它给我的启发是什么？</li>
+<li><p>（长）序列建模
+用户可能会有很长的交互历史，如何用到这个交互序列里的信息，捕捉用户长时间的兴趣与变化是这个方向的关键。</p></li>
+<li><p>特征交叉
+提升模型最简单的方式就是构建特征，但是如何让不同的特征进行交互，构建特征高纬度下的信息也很关键。</p></li>
+<li><p>生成式推荐
+包括但不限于sid，端到端推荐模型，生成式召回/排序等方向。</p></li>
 </ol>
-<p>后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。</p>
-<p>一个简单的公式示例：</p>
-<p><span class="math display">$$
-\mathcal{L}(\theta) = - \sum_{t=1}^{T} \log p_\theta(y_t \mid y_{&lt;t},
-x)
-$$</span></p>
-<p>一个代码块示例：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">summarize_claim</span>(<span class="hljs-params">paper</span>):<br>    <span class="hljs-keyword">return</span> &#123;<br>        <span class="hljs-string">&quot;problem&quot;</span>: paper.problem,<br>        <span class="hljs-string">&quot;method&quot;</span>: paper.method,<br>        <span class="hljs-string">&quot;evidence&quot;</span>: paper.experiments,<br>        <span class="hljs-string">&quot;my_take&quot;</span>: paper.limitations,<br>    &#125;<br></code></pre></td></tr></table></figure>
+<h2 id="参考">参考</h2>
+<ul>
+<li>UCSD CSE158/258: Data Mining课程</li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1mA4y1Q7RN">王树森推荐系统
+(b站)</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.05065">Recommender Systems with
+Generative Retrieval</a></li>
+</ul>
 
                 
               </div>
@@ -473,7 +684,7 @@ $$</span></p>
     
       <span class="category-chain">
         
-  <a href="/categories/Blog/" class="category-chain-item">Blog</a>
+  <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0/" class="category-chain-item">推荐系统笔记</a>
   
   
 
@@ -488,11 +699,19 @@ $$</span></p>
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/AI/" class="print-no-link">#AI</a>
+        <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
       
-        <a href="/tags/Research/" class="print-no-link">#Research</a>
+        <a href="/tags/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" class="print-no-link">#推荐系统</a>
       
-        <a href="/tags/Notes/" class="print-no-link">#Notes</a>
+        <a href="/tags/%E5%8F%AC%E5%9B%9E/" class="print-no-link">#召回</a>
+      
+        <a href="/tags/%E6%8E%92%E5%BA%8F/" class="print-no-link">#排序</a>
+      
+        <a href="/tags/CTR/" class="print-no-link">#CTR</a>
+      
+        <a href="/tags/CVR/" class="print-no-link">#CVR</a>
+      
+        <a href="/tags/%E5%BA%8F%E5%88%97%E5%BB%BA%E6%A8%A1/" class="print-no-link">#序列建模</a>
       
     </div>
   
@@ -506,12 +725,18 @@ $$</span></p>
                   <article class="post-prev col-6">
                     
                     
+                      <a href="/2026/07/01/about-this-blog/" title="关于这个博客">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">关于这个博客</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/01/05/recommender-system-notes-01-overview/" title="推荐系统笔记 01：推荐系统概述">
-                        <span class="hidden-mobile">推荐系统笔记 01：推荐系统概述</span>
+                      <a href="/2025/11/29/post-training-notes-05-opd/" title="后训练笔记 05：OPD，On-Policy Distillation">
+                        <span class="hidden-mobile">后训练笔记 05：OPD，On-Policy Distillation</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
@@ -575,21 +800,6 @@ $$</span></p>
 
 
 
-
-
-  <script>
-  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
-    mermaid.initialize({"theme":"default"});
-
-    Fluid.utils.listenDOMLoaded(function() {
-      Fluid.events.registerRefreshCallback(function() {
-        if ('mermaid' in window) {
-          mermaid.init();
-        }
-      });
-    });
-  });
-</script>
 
 
 

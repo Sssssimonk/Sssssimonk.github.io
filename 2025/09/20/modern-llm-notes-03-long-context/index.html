@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.3k 字
+          4.2k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          36 分钟
+          35 分钟
         
       </span>
     
@@ -490,7 +490,8 @@
               <div class="markdown-body">
                 
                 <p>这一篇整理长上下文。</p>
-<p>很多模型现在都会宣传 32K、128K、1M context window。这个数字很吸引人，但它很容易被误解。</p>
+<p>很多模型现在都会宣传 32K、128K、1M context
+window。这个数字很吸引人，但它很容易被误解。</p>
 <p>长上下文不是“把 max length 参数调大”。真正困难的地方有三类：</p>
 <ul>
 <li>attention 计算量变大</li>
@@ -498,48 +499,83 @@
 <li>上下文变长后，模型未必能稳定用好信息</li>
 </ul>
 <p>所以这篇重点不是列方法，而是看长上下文到底在解决什么瓶颈。</p>
-<h2 id="1-Self-attention-为什么贵"><a href="#1-Self-attention-为什么贵" class="headerlink" title="1. Self-attention 为什么贵"></a>1. Self-attention 为什么贵</h2><p>标准 self-attention 是：</p>
-<p>$$<br>\mathrm{Attention}(Q,K,V)&#x3D;\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d}}\right)V<br>$$</p>
-<p>如果 sequence length 是 $n$，那么 $QK^\top$ 是一个 $n \times n$ 的矩阵。</p>
-<p>这意味着 attention 的时间和显存复杂度通常和 $n^2$ 有关。</p>
-<p>当上下文从 4K 增加到 32K，长度变成 8 倍，attention matrix 的规模大约变成 64 倍。</p>
+<h2 id="self-attention-为什么贵">1. Self-attention 为什么贵</h2>
+<p>标准 self-attention 是：</p>
+<p><span class="math display">$$
+\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d}}\right)V
+$$</span></p>
+<p>如果 sequence length 是 <span
+class="math inline"><em>n</em></span>，那么 <span
+class="math inline"><em>Q</em><em>K</em><sup>⊤</sup></span> 是一个 <span
+class="math inline"><em>n</em> × <em>n</em></span> 的矩阵。</p>
+<p>这意味着 attention 的时间和显存复杂度通常和 <span
+class="math inline"><em>n</em><sup>2</sup></span> 有关。</p>
+<p>当上下文从 4K 增加到 32K，长度变成 8 倍，attention matrix
+的规模大约变成 64 倍。</p>
 <p>这就是为什么长上下文不是线性加 token 那么简单。</p>
-<p>当然，实际实现里有 FlashAttention、分块计算、并行策略等优化，不一定真的显式保存完整 attention matrix。但底层的两两 token 交互压力仍然存在。</p>
-<h2 id="2-Prefill-和-decode-是两种成本"><a href="#2-Prefill-和-decode-是两种成本" class="headerlink" title="2. Prefill 和 decode 是两种成本"></a>2. Prefill 和 decode 是两种成本</h2><p>LLM 推理可以拆成两个阶段。</p>
-<p>Prefill 阶段：模型一次性处理 prompt，把所有输入 token 的 hidden states 和 KV cache 算出来。</p>
+<p>当然，实际实现里有
+FlashAttention、分块计算、并行策略等优化，不一定真的显式保存完整
+attention matrix。但底层的两两 token 交互压力仍然存在。</p>
+<h2 id="prefill-和-decode-是两种成本">2. Prefill 和 decode
+是两种成本</h2>
+<p>LLM 推理可以拆成两个阶段。</p>
+<p>Prefill 阶段：模型一次性处理 prompt，把所有输入 token 的 hidden
+states 和 KV cache 算出来。</p>
 <p>Decode 阶段：模型每次生成一个新 token，并复用前面的 KV cache。</p>
 <p>这两个阶段的瓶颈不同。</p>
-<p>长 prompt 会让 prefill 很贵，因为 prompt 内部 token 之间要做 attention。</p>
-<p>长生成会让 decode 过程中 KV cache 越来越大，因为每一步都要关注过去所有 token。</p>
+<p>长 prompt 会让 prefill 很贵，因为 prompt 内部 token 之间要做
+attention。</p>
+<p>长生成会让 decode 过程中 KV cache
+越来越大，因为每一步都要关注过去所有 token。</p>
 <p>所以同样是“长上下文”，有两种场景：</p>
 <ul>
 <li>读一个很长的文档，然后回答几个问题</li>
 <li>持续进行很长的对话或生成很长的内容</li>
 </ul>
 <p>它们的系统瓶颈并不完全一样。</p>
-<h2 id="3-KV-cache-为什么重要"><a href="#3-KV-cache-为什么重要" class="headerlink" title="3. KV cache 为什么重要"></a>3. KV cache 为什么重要</h2><p>自回归生成时，第 $t$ 步要用前面所有 token 的 key 和 value。</p>
+<h2 id="kv-cache-为什么重要">3. KV cache 为什么重要</h2>
+<p>自回归生成时，第 <span class="math inline"><em>t</em></span>
+步要用前面所有 token 的 key 和 value。</p>
 <p>如果每一步都重新计算前面所有 token，成本会爆炸。</p>
-<p>KV cache 的做法是把历史 token 的 key&#x2F;value 存下来。</p>
-<p>这样第 $t$ 步只需要算新 token 的 query，然后和缓存里的 key&#x2F;value 做 attention。</p>
+<p>KV cache 的做法是把历史 token 的 key/value 存下来。</p>
+<p>这样第 <span class="math inline"><em>t</em></span> 步只需要算新 token
+的 query，然后和缓存里的 key/value 做 attention。</p>
 <p>但 cache 本身很占显存。</p>
 <p>粗略看，KV cache 大小和这些因素成正比：</p>
-<p>$$<br>\text{layers} \times \text{sequence length} \times \text{KV heads} \times \text{head dimension}<br>$$</p>
-<p>所以 sequence length 越长，cache 越大。模型层数越多，cache 也越大。</p>
-<p>这也是为什么 GQA、MQA、MLA 这类方法重要。它们都在不同程度上减少 key&#x2F;value 的存储或计算成本。</p>
-<h2 id="4-MHA、MQA、GQA-与-MLA"><a href="#4-MHA、MQA、GQA-与-MLA" class="headerlink" title="4. MHA、MQA、GQA 与 MLA"></a>4. MHA、MQA、GQA 与 MLA</h2><p>标准 MHA 中，每个 query head 都有自己的 key&#x2F;value head。</p>
-<p>MQA 让所有 query heads 共享一组 key&#x2F;value。</p>
-<p>GQA 折中，让一组 query heads 共享一组 key&#x2F;value。</p>
+<p><span class="math display">layers × sequence length × KV heads × head
+dimension</span></p>
+<p>所以 sequence length 越长，cache 越大。模型层数越多，cache
+也越大。</p>
+<p>这也是为什么 GQA、MQA、MLA 这类方法重要。它们都在不同程度上减少
+key/value 的存储或计算成本。</p>
+<h2 id="mhamqagqa-与-mla">4. MHA、MQA、GQA 与 MLA</h2>
+<p>标准 MHA 中，每个 query head 都有自己的 key/value head。</p>
+<p>MQA 让所有 query heads 共享一组 key/value。</p>
+<p>GQA 折中，让一组 query heads 共享一组 key/value。</p>
 <p>它们主要是在减少 KV cache。</p>
-<p>DeepSeek 的 MLA 更进一步。MLA 把 key&#x2F;value 压到一个 latent 表示里，再在需要时恢复出用于 attention 的表示。它的目标也是降低 KV cache，但做法不是简单减少 KV heads，而是改变缓存内容的表示方式。</p>
+<p>DeepSeek 的 MLA 更进一步。MLA 把 key/value 压到一个 latent
+表示里，再在需要时恢复出用于 attention 的表示。它的目标也是降低 KV
+cache，但做法不是简单减少 KV heads，而是改变缓存内容的表示方式。</p>
 <p>这里可以抓住一个直觉：</p>
 <blockquote>
-<p>长上下文推理里，缓存什么、缓存多少、怎么缓存，是和 attention 公式同样重要的问题。</p>
+<p>长上下文推理里，缓存什么、缓存多少、怎么缓存，是和 attention
+公式同样重要的问题。</p>
 </blockquote>
-<p>很多论文看起来在改 attention，实际是在改 inference memory footprint。</p>
-<h2 id="5-FlashAttention-解决的不是同一个问题"><a href="#5-FlashAttention-解决的不是同一个问题" class="headerlink" title="5. FlashAttention 解决的不是同一个问题"></a>5. FlashAttention 解决的不是同一个问题</h2><p>FlashAttention 优化的是 attention 计算过程中的内存读写。</p>
-<p>标准实现可能会把 $QK^\top$ 这样的中间矩阵写入 HBM，再读回来做 softmax 和乘 $V$。</p>
-<p>FlashAttention 用 tiling 和 online softmax，把计算分块放进更快的 SRAM，减少 HBM 访问。</p>
-<p>所以它不是让 attention 从 $O(n^2)$ 变成 $O(n)$，而是让同样的 exact attention 在 GPU 上跑得更高效、占用更少显存。</p>
+<p>很多论文看起来在改 attention，实际是在改 inference memory
+footprint。</p>
+<h2 id="flashattention-解决的不是同一个问题">5. FlashAttention
+解决的不是同一个问题</h2>
+<p>FlashAttention 优化的是 attention 计算过程中的内存读写。</p>
+<p>标准实现可能会把 <span
+class="math inline"><em>Q</em><em>K</em><sup>⊤</sup></span>
+这样的中间矩阵写入 HBM，再读回来做 softmax 和乘 <span
+class="math inline"><em>V</em></span>。</p>
+<p>FlashAttention 用 tiling 和 online softmax，把计算分块放进更快的
+SRAM，减少 HBM 访问。</p>
+<p>所以它不是让 attention 从 <span
+class="math inline"><em>O</em>(<em>n</em><sup>2</sup>)</span> 变成 <span
+class="math inline"><em>O</em>(<em>n</em>)</span>，而是让同样的 exact
+attention 在 GPU 上跑得更高效、占用更少显存。</p>
 <p>这点很关键。</p>
 <p>如果一个方法宣称“更长上下文”，要看它是在：</p>
 <ul>
@@ -550,23 +586,29 @@
 <li>提升长文本检索能力</li>
 </ul>
 <p>这些不是一回事。</p>
-<h2 id="6-位置编码的外推问题"><a href="#6-位置编码的外推问题" class="headerlink" title="6. 位置编码的外推问题"></a>6. 位置编码的外推问题</h2><p>模型训练时如果只见过 4K 长度，直接推到 32K 可能出问题。</p>
+<h2 id="位置编码的外推问题">6. 位置编码的外推问题</h2>
+<p>模型训练时如果只见过 4K 长度，直接推到 32K 可能出问题。</p>
 <p>因为 position embedding 或 RoPE 的位置范围发生了变化。</p>
-<p>RoPE 的好处是相对位置信息更自然，但它也有频率外推问题。位置很大时，旋转角度分布可能和训练时不一样。</p>
+<p>RoPE
+的好处是相对位置信息更自然，但它也有频率外推问题。位置很大时，旋转角度分布可能和训练时不一样。</p>
 <p>所以会有 RoPE scaling、NTK-aware scaling、YaRN 等方法。</p>
 <p>这些方法的目标不是让模型“突然理解长文档”，而是先解决位置编码在更长长度下不崩。</p>
 <p>换句话说：</p>
 <blockquote>
 <p>位置外推解决的是模型能不能在更长坐标系里正常工作，不等于模型真的会做长程推理。</p>
 </blockquote>
-<p>这也是为什么有些模型标称 128K，但实际问很长文档里的细节时，表现并不稳定。</p>
-<h2 id="7-Lost-in-the-middle"><a href="#7-Lost-in-the-middle" class="headerlink" title="7. Lost in the middle"></a>7. Lost in the middle</h2><p>长上下文还有一个能力问题：模型可能看得见，但用不好。</p>
-<p>一种常见现象是 lost in the middle。信息放在开头或结尾时，模型更容易找到；信息放在中间时，模型容易漏掉。</p>
+<p>这也是为什么有些模型标称
+128K，但实际问很长文档里的细节时，表现并不稳定。</p>
+<h2 id="lost-in-the-middle">7. Lost in the middle</h2>
+<p>长上下文还有一个能力问题：模型可能看得见，但用不好。</p>
+<p>一种常见现象是 lost in the
+middle。信息放在开头或结尾时，模型更容易找到；信息放在中间时，模型容易漏掉。</p>
 <p>这说明 context window 大小和 effective context length 不一样。</p>
 <p>Context window 是系统允许输入多少 token。</p>
 <p>Effective context length 是模型在任务中能可靠利用多少 token。</p>
 <p>这两个数字差很多时，长上下文就更像“能塞进去”，而不是“能读明白”。</p>
-<h2 id="8-长上下文任务的类型"><a href="#8-长上下文任务的类型" class="headerlink" title="8. 长上下文任务的类型"></a>8. 长上下文任务的类型</h2><p>我觉得长上下文至少要分三类看。</p>
+<h2 id="长上下文任务的类型">8. 长上下文任务的类型</h2>
+<p>我觉得长上下文至少要分三类看。</p>
 <p>第一类是 retrieval-heavy 任务。</p>
 <p>比如在长文档里找一个事实。这里关键是模型能不能定位证据。</p>
 <p>第二类是 synthesis-heavy 任务。</p>
@@ -574,7 +616,8 @@
 <p>第三类是 reasoning-heavy 任务。</p>
 <p>比如给很长的实验日志，判断哪一步导致结果异常。这里需要模型在长上下文里做因果判断。</p>
 <p>很多 benchmark 只测第一类，但真实使用里后两类更难。</p>
-<h2 id="9-Context-compression"><a href="#9-Context-compression" class="headerlink" title="9. Context compression"></a>9. Context compression</h2><p>如果上下文太长，一种思路是压缩。</p>
+<h2 id="context-compression">9. Context compression</h2>
+<p>如果上下文太长，一种思路是压缩。</p>
 <p>压缩可以发生在很多层面：</p>
 <ul>
 <li>文本层面：先摘要，再输入模型</li>
@@ -584,22 +627,33 @@
 </ul>
 <p>这些方法的风险是信息丢失。</p>
 <p>压缩越强，成本越低，但越可能丢掉后面问题需要的细节。</p>
-<p>所以长上下文和 RAG 不是完全替代关系。长上下文让模型能直接读更多内容，RAG 让系统先筛掉明显无关内容。实际系统里经常两者结合。</p>
-<h2 id="10-Sparse-attention"><a href="#10-Sparse-attention" class="headerlink" title="10. Sparse attention"></a>10. Sparse attention</h2><p>Sparse attention 试图减少 token 两两交互。</p>
-<p>不是每个 token 都关注所有 token，而是只关注局部窗口、全局 token，或者某种稀疏模式。</p>
+<p>所以长上下文和 RAG
+不是完全替代关系。长上下文让模型能直接读更多内容，RAG
+让系统先筛掉明显无关内容。实际系统里经常两者结合。</p>
+<h2 id="sparse-attention">10. Sparse attention</h2>
+<p>Sparse attention 试图减少 token 两两交互。</p>
+<p>不是每个 token 都关注所有 token，而是只关注局部窗口、全局
+token，或者某种稀疏模式。</p>
 <p>它的好处是复杂度更低。</p>
-<p>问题是稀疏模式可能限制信息流。如果任务需要两个相距很远的位置直接交互，稀疏 attention 未必能很好处理。</p>
-<p>所以 sparse attention 的关键问题是：稀疏模式是不是和任务结构匹配。</p>
+<p>问题是稀疏模式可能限制信息流。如果任务需要两个相距很远的位置直接交互，稀疏
+attention 未必能很好处理。</p>
+<p>所以 sparse attention
+的关键问题是：稀疏模式是不是和任务结构匹配。</p>
 <p>代码、文档、视频、对话的长程依赖形态不一样。一个固定稀疏模式很难对所有任务都最优。</p>
-<h2 id="11-为什么-128K-不等于真正会用-128K"><a href="#11-为什么-128K-不等于真正会用-128K" class="headerlink" title="11. 为什么 128K 不等于真正会用 128K"></a>11. 为什么 128K 不等于真正会用 128K</h2><p>假设模型支持 128K context。</p>
+<h2 id="为什么-128k-不等于真正会用-128k">11. 为什么 128K 不等于真正会用
+128K</h2>
+<p>假设模型支持 128K context。</p>
 <p>这至少包含三层含义：</p>
 <p>第一，系统层面可以接收 128K token。</p>
 <p>第二，模型结构和位置编码在 128K 下不会明显崩。</p>
 <p>第三，模型在真实任务中能稳定利用 128K 里的关键信息。</p>
 <p>很多时候宣传的是第一层或第二层，用户期待的是第三层。</p>
 <p>这就是长上下文体验落差的来源。</p>
-<p>所以读模型报告时，不能只看 max context length，还要看它怎么评估长上下文能力。Needle-in-a-haystack 只能说明模型能不能找针，不能完全说明它能不能理解一整份复杂材料。</p>
-<h2 id="12-读长上下文论文时看什么"><a href="#12-读长上下文论文时看什么" class="headerlink" title="12. 读长上下文论文时看什么"></a>12. 读长上下文论文时看什么</h2><p>我会看这些问题：</p>
+<p>所以读模型报告时，不能只看 max context
+length，还要看它怎么评估长上下文能力。Needle-in-a-haystack
+只能说明模型能不能找针，不能完全说明它能不能理解一整份复杂材料。</p>
+<h2 id="读长上下文论文时看什么">12. 读长上下文论文时看什么</h2>
+<p>我会看这些问题：</p>
 <ul>
 <li>训练时最大长度是多少，推理时最大长度是多少</li>
 <li>使用什么位置编码和 scaling 方法</li>
@@ -611,7 +665,8 @@
 <li>有没有和 RAG 或 compression 结合</li>
 </ul>
 <p>尤其要注意：有些方法提升的是“能跑更长”，有些方法提升的是“用得更好”。这两个目标相关，但不是同一个目标。</p>
-<h2 id="13-小结"><a href="#13-小结" class="headerlink" title="13. 小结"></a>13. 小结</h2><p>长上下文的核心不是把窗口开大，而是同时处理三个问题：</p>
+<h2 id="小结">13. 小结</h2>
+<p>长上下文的核心不是把窗口开大，而是同时处理三个问题：</p>
 <ul>
 <li>算得动</li>
 <li>存得下</li>
@@ -620,15 +675,26 @@
 <p>FlashAttention、GQA、MLA 主要偏向算得动和存得下。</p>
 <p>RoPE scaling、YaRN 主要解决位置外推。</p>
 <p>长文本训练、检索式评估、context compression 更接近用得好的问题。</p>
-<p>所以看一个长上下文模型时，我不会只看 32K、128K、1M 这些数字。真正要问的是：它在什么任务上证明了自己能稳定使用这么长的上下文。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li>Dao et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2205.14135">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</a></li>
-<li>Ainslie et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.13245">GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints</a></li>
-<li>Su et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2104.09864">RoFormer: Enhanced Transformer with Rotary Position Embedding</a></li>
-<li>Peng et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2309.00071">YaRN: Efficient Context Window Extension of Large Language Models</a></li>
-<li>Liu et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2307.03172">Lost in the Middle: How Language Models Use Long Contexts</a></li>
-<li>DeepSeek-AI, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a></li>
-<li>Qwen Team, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li>
+<p>所以看一个长上下文模型时，我不会只看 32K、128K、1M
+这些数字。真正要问的是：它在什么任务上证明了自己能稳定使用这么长的上下文。</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li>Dao et al., <a
+target="_blank" rel="noopener" href="https://arxiv.org/abs/2205.14135">FlashAttention: Fast and
+Memory-Efficient Exact Attention with IO-Awareness</a></li>
+<li>Ainslie et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.13245">GQA:
+Training Generalized Multi-Query Transformer Models from Multi-Head
+Checkpoints</a></li>
+<li>Su et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2104.09864">RoFormer:
+Enhanced Transformer with Rotary Position Embedding</a></li>
+<li>Peng et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2309.00071">YaRN:
+Efficient Context Window Extension of Large Language Models</a></li>
+<li>Liu et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2307.03172">Lost in the
+Middle: How Language Models Use Long Contexts</a></li>
+<li>DeepSeek-AI, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2412.19437">DeepSeek-V3
+Technical Report</a></li>
+<li>Qwen Team, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2505.09388">Qwen3
+Technical Report</a></li>
 </ul>
 
                 
@@ -665,9 +731,9 @@
       
         <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
       
-        <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/" class="print-no-link">#注意力机制</a>
-      
         <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/" class="print-no-link">#大模型</a>
+      
+        <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/" class="print-no-link">#注意力机制</a>
       
         <a href="/tags/RoPE/" class="print-no-link">#RoPE</a>
       

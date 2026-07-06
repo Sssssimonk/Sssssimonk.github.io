@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理 CNN、RNN、LSTM、GRU 这些经典结构。这里不写成模型百科，只抓它们各自利用了什么数据结构假设。 可以先从一个问题出发：  如果 MLP 已经可以拟合复杂函数，为什么还需要 CNN、RNN 这些结构？  答案是：不同数据有不同结构。图像有局部空间结构，序列有时间顺序结构。专门的网络结构把这些先验写进模型里，让模型更高效地学习。 1. 归纳偏置（inductive bias）In">
+    <meta name="description" content="这一篇整理 CNN、RNN、LSTM、GRU 这些经典结构。这里不写成模型百科，只抓它们各自利用了什么数据结构假设。 可以先从一个问题出发：  如果 MLP 已经可以拟合复杂函数，为什么还需要 CNN、RNN 这些结构？  答案是：不同数据有不同结构。图像有局部空间结构，序列有时间顺序结构。专门的网络结构把这些先验写进模型里，让模型更高效地学习。 1. 归纳偏置（inductive bias） I">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深度学习笔记 04：CNN、RNN 与经典结构">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/08/24/deep-learning-notes-04-cnn-rnn-classic-architectures/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理 CNN、RNN、LSTM、GRU 这些经典结构。这里不写成模型百科，只抓它们各自利用了什么数据结构假设。 可以先从一个问题出发：  如果 MLP 已经可以拟合复杂函数，为什么还需要 CNN、RNN 这些结构？  答案是：不同数据有不同结构。图像有局部空间结构，序列有时间顺序结构。专门的网络结构把这些先验写进模型里，让模型更高效地学习。 1. 归纳偏置（inductive bias）In">
+<meta property="og:description" content="这一篇整理 CNN、RNN、LSTM、GRU 这些经典结构。这里不写成模型百科，只抓它们各自利用了什么数据结构假设。 可以先从一个问题出发：  如果 MLP 已经可以拟合复杂函数，为什么还需要 CNN、RNN 这些结构？  答案是：不同数据有不同结构。图像有局部空间结构，序列有时间顺序结构。专门的网络结构把这些先验写进模型里，让模型更高效地学习。 1. 归纳偏置（inductive bias） I">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-08-24T13:30:00.000Z">
 <meta property="article:modified_time" content="2024-08-24T13:30:00.000Z">
@@ -336,7 +336,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.9k 字
+          2.8k 字
         
       </span>
     
@@ -479,15 +479,19 @@
             
               <div class="markdown-body">
                 
-                <p>这一篇整理 CNN、RNN、LSTM、GRU 这些经典结构。这里不写成模型百科，只抓它们各自利用了什么数据结构假设。</p>
+                <p>这一篇整理 CNN、RNN、LSTM、GRU
+这些经典结构。这里不写成模型百科，只抓它们各自利用了什么数据结构假设。</p>
 <p>可以先从一个问题出发：</p>
 <blockquote>
 <p>如果 MLP 已经可以拟合复杂函数，为什么还需要 CNN、RNN 这些结构？</p>
 </blockquote>
 <p>答案是：不同数据有不同结构。图像有局部空间结构，序列有时间顺序结构。专门的网络结构把这些先验写进模型里，让模型更高效地学习。</p>
-<h2 id="1-归纳偏置（inductive-bias）"><a href="#1-归纳偏置（inductive-bias）" class="headerlink" title="1. 归纳偏置（inductive bias）"></a>1. 归纳偏置（inductive bias）</h2><p>Inductive bias 可以理解成模型对数据结构的默认假设。</p>
-<p>MLP 的假设很弱。它把输入展开成向量后，每个输入维度和每个 hidden unit 都连接起来。</p>
-<p>如果输入是一张图片，MLP 并不知道左上角像素和它旁边像素关系更近，也不知道同一个边缘模式可以出现在图片不同位置。</p>
+<h2 id="归纳偏置inductive-bias">1. 归纳偏置（inductive bias）</h2>
+<p>Inductive bias 可以理解成模型对数据结构的默认假设。</p>
+<p>MLP 的假设很弱。它把输入展开成向量后，每个输入维度和每个 hidden unit
+都连接起来。</p>
+<p>如果输入是一张图片，MLP
+并不知道左上角像素和它旁边像素关系更近，也不知道同一个边缘模式可以出现在图片不同位置。</p>
 <p>CNN 就把这些假设写进模型：</p>
 <ul>
 <li>局部连接：相邻像素更相关</li>
@@ -501,49 +505,57 @@
 <li>顺序本身有意义</li>
 </ul>
 <p>这些结构不只是为了减少参数，也是在告诉模型应该怎样看数据。</p>
-<h2 id="2-卷积神经网络（CNN）为什么适合图像"><a href="#2-卷积神经网络（CNN）为什么适合图像" class="headerlink" title="2. 卷积神经网络（CNN）为什么适合图像"></a>2. 卷积神经网络（CNN）为什么适合图像</h2><p>图像有很强的局部结构。一个像素通常和周围像素关系更大，而不是和很远的像素关系同等重要。</p>
+<h2 id="卷积神经网络cnn为什么适合图像">2.
+卷积神经网络（CNN）为什么适合图像</h2>
+<p>图像有很强的局部结构。一个像素通常和周围像素关系更大，而不是和很远的像素关系同等重要。</p>
 <p>CNN 使用 convolution kernel 在图像上滑动：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">small kernel<br>-&gt; slide over image<br>-&gt; produce feature map<br></code></pre></td></tr></table></figure>
-
-<p>比如一个 $3 \times 3$ kernel 每次只看局部区域。它可以检测边缘、角点、纹理等局部 pattern。</p>
-<p>如果某个 kernel 学会检测垂直边缘，那么它可以在整张图上重复使用。同一个边缘检测器不需要为每个位置单独学一套参数。</p>
+<p>比如一个 <span class="math inline">3 × 3</span> kernel
+每次只看局部区域。它可以检测边缘、角点、纹理等局部 pattern。</p>
+<p>如果某个 kernel
+学会检测垂直边缘，那么它可以在整张图上重复使用。同一个边缘检测器不需要为每个位置单独学一套参数。</p>
 <p>这就是 weight sharing。</p>
-<h2 id="3-卷积（convolution）的几个概念"><a href="#3-卷积（convolution）的几个概念" class="headerlink" title="3. 卷积（convolution）的几个概念"></a>3. 卷积（convolution）的几个概念</h2><p>常见概念：</p>
+<h2 id="卷积convolution的几个概念">3. 卷积（convolution）的几个概念</h2>
+<p>常见概念：</p>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th>概念</th>
 <th>含义</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>Kernel &#x2F; filter</td>
+<tbody>
+<tr class="odd">
+<td>Kernel / filter</td>
 <td>用来扫描局部区域的小矩阵</td>
 </tr>
-<tr>
+<tr class="even">
 <td>Feature map</td>
 <td>kernel 扫描后得到的响应图</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>Stride</td>
 <td>每次滑动的步长</td>
 </tr>
-<tr>
+<tr class="even">
 <td>Padding</td>
 <td>在边缘补 0，控制输出尺寸</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>Channel</td>
 <td>输入或输出的通道数</td>
 </tr>
-</tbody></table>
-<p>如果 stride 大，输出 feature map 会变小；如果 padding 合适，可以让输出保持原尺寸。</p>
+</tbody>
+</table>
+<p>如果 stride 大，输出 feature map 会变小；如果 padding
+合适，可以让输出保持原尺寸。</p>
 <p>一个直觉例子：检测猫脸时，前面层可能检测边缘和纹理，中间层检测眼睛、耳朵、鼻子，后面层组合成更完整的猫脸结构。</p>
 <p>CNN 的层级结构和图像视觉层级比较匹配。</p>
-<h2 id="4-池化（pooling）：降低空间分辨率"><a href="#4-池化（pooling）：降低空间分辨率" class="headerlink" title="4. 池化（pooling）：降低空间分辨率"></a>4. 池化（pooling）：降低空间分辨率</h2><p>Pooling 常用于降低 feature map 尺寸。</p>
+<h2 id="池化pooling降低空间分辨率">4.
+池化（pooling）：降低空间分辨率</h2>
+<p>Pooling 常用于降低 feature map 尺寸。</p>
 <p>Max pooling 取局部窗口里的最大值：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">2x2 window -&gt; max value<br></code></pre></td></tr></table></figure>
-
 <p>它的作用包括：</p>
 <ul>
 <li>降低计算量</li>
@@ -551,32 +563,56 @@
 <li>提供一定平移不变性</li>
 </ul>
 <p>比如一个边缘稍微移动几像素，max pooling 后的响应可能仍然相似。</p>
-<p>不过现代 CNN 里不一定大量依赖 pooling，有些结构会用 stride convolution 来完成下采样。</p>
-<h2 id="5-ResNet：为什么残差连接（residual-connection）重要"><a href="#5-ResNet：为什么残差连接（residual-connection）重要" class="headerlink" title="5. ResNet：为什么残差连接（residual connection）重要"></a>5. ResNet：为什么残差连接（residual connection）重要</h2><p>网络变深后，训练会变难。一个问题是：更深的网络理论上表达能力更强，但实际训练时可能反而效果变差。</p>
+<p>不过现代 CNN 里不一定大量依赖 pooling，有些结构会用 stride
+convolution 来完成下采样。</p>
+<h2 id="resnet为什么残差连接residual-connection重要">5.
+ResNet：为什么残差连接（residual connection）重要</h2>
+<p>网络变深后，训练会变难。一个问题是：更深的网络理论上表达能力更强，但实际训练时可能反而效果变差。</p>
 <p>ResNet 的核心是 residual connection：</p>
-<p>$$<br>y &#x3D; F(x) + x<br>$$</p>
-<p>模型不直接学习完整映射 $H(x)$，而是学习 residual：</p>
-<p>$$<br>F(x) &#x3D; H(x) - x<br>$$</p>
-<p>直觉上，如果某几层暂时不需要做复杂变换，模型可以让 $F(x)$ 接近 0，这样输出接近 $x$。这让深层网络更容易优化。</p>
-<p>Residual connection 也让梯度可以更直接地传回前面层。这个思想后来不只用于 CNN，也广泛出现在 Transformer 里。</p>
-<h2 id="6-RNN：处理序列的基本思路"><a href="#6-RNN：处理序列的基本思路" class="headerlink" title="6. RNN：处理序列的基本思路"></a>6. RNN：处理序列的基本思路</h2><p>RNN 用 hidden state 记录过去信息。</p>
+<p><span
+class="math display"><em>y</em> = <em>F</em>(<em>x</em>) + <em>x</em></span></p>
+<p>模型不直接学习完整映射 <span
+class="math inline"><em>H</em>(<em>x</em>)</span>，而是学习
+residual：</p>
+<p><span
+class="math display"><em>F</em>(<em>x</em>) = <em>H</em>(<em>x</em>) − <em>x</em></span></p>
+<p>直觉上，如果某几层暂时不需要做复杂变换，模型可以让 <span
+class="math inline"><em>F</em>(<em>x</em>)</span> 接近 0，这样输出接近
+<span
+class="math inline"><em>x</em></span>。这让深层网络更容易优化。</p>
+<p>Residual connection
+也让梯度可以更直接地传回前面层。这个思想后来不只用于 CNN，也广泛出现在
+Transformer 里。</p>
+<h2 id="rnn处理序列的基本思路">6. RNN：处理序列的基本思路</h2>
+<p>RNN 用 hidden state 记录过去信息。</p>
 <p>最基本形式：</p>
-<p>$$<br>h_t &#x3D; \phi(W_xx_t + W_hh_{t-1} + b)<br>$$</p>
-<p>$$<br>y_t &#x3D; W_yh_t<br>$$</p>
-<p>其中，$x_t$ 是当前时间步输入，$h_{t-1}$ 是上一个时间步的 hidden state。</p>
+<p><span
+class="math display"><em>h</em><sub><em>t</em></sub> = <em>ϕ</em>(<em>W</em><sub><em>x</em></sub><em>x</em><sub><em>t</em></sub>+<em>W</em><sub><em>h</em></sub><em>h</em><sub><em>t</em> − 1</sub>+<em>b</em>)</span></p>
+<p><span
+class="math display"><em>y</em><sub><em>t</em></sub> = <em>W</em><sub><em>y</em></sub><em>h</em><sub><em>t</em></sub></span></p>
+<p>其中，<span
+class="math inline"><em>x</em><sub><em>t</em></sub></span>
+是当前时间步输入，<span
+class="math inline"><em>h</em><sub><em>t</em> − 1</sub></span>
+是上一个时间步的 hidden state。</p>
 <p>比如句子：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">I really like this movie<br></code></pre></td></tr></table></figure>
-
-<p>RNN 会按顺序读 token，每一步更新 hidden state。理论上，最后的 hidden state 可以包含前面读到的信息。</p>
-<p>RNN 的优点是结构自然适合序列；缺点是长序列训练困难，难以捕捉很长距离的依赖。</p>
-<h2 id="7-RNN-的梯度问题"><a href="#7-RNN-的梯度问题" class="headerlink" title="7. RNN 的梯度问题"></a>7. RNN 的梯度问题</h2><p>RNN 的反向传播要沿时间展开，也叫 backpropagation through time。</p>
-<p>如果序列很长，gradient 会经过很多时间步反传。这和深层网络里的梯度消失&#x2F;爆炸类似。</p>
+<p>RNN 会按顺序读 token，每一步更新 hidden state。理论上，最后的 hidden
+state 可以包含前面读到的信息。</p>
+<p>RNN
+的优点是结构自然适合序列；缺点是长序列训练困难，难以捕捉很长距离的依赖。</p>
+<h2 id="rnn-的梯度问题">7. RNN 的梯度问题</h2>
+<p>RNN 的反向传播要沿时间展开，也叫 backpropagation through time。</p>
+<p>如果序列很长，gradient
+会经过很多时间步反传。这和深层网络里的梯度消失/爆炸类似。</p>
 <p>一个常见问题是 long-term dependency。</p>
 <p>比如：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">The book that I bought last week and left on the table is interesting.<br></code></pre></td></tr></table></figure>
-
-<p>如果要判断主语和谓语关系，模型需要记住很早之前的 “book”。普通 RNN 很容易在长距离依赖上表现差。</p>
-<h2 id="8-LSTM-和-GRU：用门控机制控制记忆"><a href="#8-LSTM-和-GRU：用门控机制控制记忆" class="headerlink" title="8. LSTM 和 GRU：用门控机制控制记忆"></a>8. LSTM 和 GRU：用门控机制控制记忆</h2><p>LSTM 的核心是 cell state 和 gate。</p>
+<p>如果要判断主语和谓语关系，模型需要记住很早之前的 “book”。普通 RNN
+很容易在长距离依赖上表现差。</p>
+<h2 id="lstm-和-gru用门控机制控制记忆">8. LSTM 和
+GRU：用门控机制控制记忆</h2>
+<p>LSTM 的核心是 cell state 和 gate。</p>
 <p>它通过门控机制控制：</p>
 <ul>
 <li>忘掉哪些旧信息</li>
@@ -588,48 +624,66 @@
 <p>常见对比：</p>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th>模型</th>
 <th>核心</th>
 <th>特点</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr class="odd">
 <td>RNN</td>
 <td>hidden state</td>
 <td>简单，但长依赖困难</td>
 </tr>
-<tr>
+<tr class="even">
 <td>LSTM</td>
 <td>cell state + gates</td>
 <td>更擅长长依赖，参数较多</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>GRU</td>
 <td>simplified gates</td>
 <td>比 LSTM 简洁</td>
 </tr>
-</tbody></table>
-<p>LSTM &#x2F; GRU 不是彻底解决长距离依赖，只是比普通 RNN 更稳定。</p>
-<h2 id="9-为什么注意力机制（attention）后来替代很多-RNN"><a href="#9-为什么注意力机制（attention）后来替代很多-RNN" class="headerlink" title="9. 为什么注意力机制（attention）后来替代很多 RNN"></a>9. 为什么注意力机制（attention）后来替代很多 RNN</h2><p>RNN 有一个天然问题：它按时间一步步处理序列，难以并行。</p>
-<p>如果序列长度是 1000，RNN 需要从第 1 步一路算到第 1000 步。后一步依赖前一步 hidden state。</p>
-<p>Attention 的思路不同。它允许当前位置直接看序列中其他位置，不一定要把信息压进一个 hidden state 里一步步传递。</p>
+</tbody>
+</table>
+<p>LSTM / GRU 不是彻底解决长距离依赖，只是比普通 RNN 更稳定。</p>
+<h2 id="为什么注意力机制attention后来替代很多-rnn">9.
+为什么注意力机制（attention）后来替代很多 RNN</h2>
+<p>RNN 有一个天然问题：它按时间一步步处理序列，难以并行。</p>
+<p>如果序列长度是 1000，RNN 需要从第 1 步一路算到第 1000
+步。后一步依赖前一步 hidden state。</p>
+<p>Attention
+的思路不同。它允许当前位置直接看序列中其他位置，不一定要把信息压进一个
+hidden state 里一步步传递。</p>
 <p>这带来两个优势：</p>
 <ul>
 <li>更容易建模长距离依赖</li>
 <li>更容易并行训练</li>
 </ul>
 <p>所以在 NLP 和大模型里，Transformer 逐渐成为主流。</p>
-<h2 id="10-几个点"><a href="#10-几个点" class="headerlink" title="10. 几个点"></a>10. 几个点</h2><p>CNN 的关键不是“卷积公式”，而是局部连接和权重共享。它利用了图像的空间结构。</p>
-<p>ResNet 的 residual connection 让深层网络更容易优化，这个思想后来影响很大。</p>
+<h2 id="几个点">10. 几个点</h2>
+<p>CNN
+的关键不是“卷积公式”，而是局部连接和权重共享。它利用了图像的空间结构。</p>
+<p>ResNet 的 residual connection
+让深层网络更容易优化，这个思想后来影响很大。</p>
 <p>RNN 适合序列，但长距离依赖和并行效率是它的核心瓶颈。</p>
-<p>LSTM &#x2F; GRU 通过门控机制缓解 RNN 的梯度和记忆问题，但没有完全摆脱序列计算瓶颈。</p>
+<p>LSTM / GRU 通过门控机制缓解 RNN
+的梯度和记忆问题，但没有完全摆脱序列计算瓶颈。</p>
 <p>CNN、RNN、Transformer 的区别，本质上是它们对数据结构的不同假设。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://cs231n.github.io/convolutional-networks/">Stanford CS231n: Convolutional Neural Networks</a></li>
-<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1512.03385">Deep Residual Learning for Image Recognition</a></li>
-<li><a target="_blank" rel="noopener" href="https://colah.github.io/posts/2015-08-Understanding-LSTMs/">Understanding LSTM Networks</a></li>
-<li><a target="_blank" rel="noopener" href="https://d2l.ai/chapter_recurrent-neural-networks/index.html">Dive into Deep Learning: Recurrent Neural Networks</a></li>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://cs231n.github.io/convolutional-networks/">Stanford
+CS231n: Convolutional Neural Networks</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1512.03385">Deep Residual Learning
+for Image Recognition</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://colah.github.io/posts/2015-08-Understanding-LSTMs/">Understanding
+LSTM Networks</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://d2l.ai/chapter_recurrent-neural-networks/index.html">Dive
+into Deep Learning: Recurrent Neural Networks</a></li>
 </ul>
 
                 

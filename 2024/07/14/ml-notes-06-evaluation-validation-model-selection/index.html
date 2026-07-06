@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？  不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不">
+    <meta name="description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 06：评估、验证与模型选择">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/07/14/ml-notes-06-evaluation-validation-model-selection/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？  不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不">
+<meta property="og:description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-07-14T14:30:00.000Z">
 <meta property="article:modified_time" content="2024-07-14T14:30:00.000Z">
@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.9k 字
+          3.8k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          33 分钟
+          32 分钟
         
       </span>
     
@@ -487,119 +487,189 @@
             
               <div class="markdown-body">
                 
-                <p>这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。</p>
-<h2 id="1-评估指标不是装饰"><a href="#1-评估指标不是装饰" class="headerlink" title="1. 评估指标不是装饰"></a>1. 评估指标不是装饰</h2><p>模型评估的核心问题是：</p>
+                <p>这一篇整理模型评估、验证和模型选择。训练 loss
+下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。</p>
+<h2 id="评估指标不是装饰">1. 评估指标不是装饰</h2>
+<p>模型评估的核心问题是：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">这个模型在真正关心的场景里，到底有没有变好？<br></code></pre></td></tr></table></figure>
-
 <p>不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。</p>
 <p>所以指标不是越多越好，而是要对应任务代价。</p>
-<h2 id="2-回归指标（regression-metrics）"><a href="#2-回归指标（regression-metrics）" class="headerlink" title="2. 回归指标（regression metrics）"></a>2. 回归指标（regression metrics）</h2><p>回归任务预测连续值，常见指标有 MSE、RMSE、MAE、$R^2$。</p>
-<h3 id="MSE-和-RMSE"><a href="#MSE-和-RMSE" class="headerlink" title="MSE 和 RMSE"></a>MSE 和 RMSE</h3><p>MSE：</p>
-<p>$$<br>MSE&#x3D;\frac{1}{n}\sum_{i&#x3D;1}^{n}(y_i-\hat{y}_i)^2<br>$$</p>
+<h2 id="回归指标regression-metrics">2. 回归指标（regression
+metrics）</h2>
+<p>回归任务预测连续值，常见指标有 MSE、RMSE、MAE、<span
+class="math inline"><em>R</em><sup>2</sup></span>。</p>
+<h3 id="mse-和-rmse">MSE 和 RMSE</h3>
+<p>MSE：</p>
+<p><span class="math display">$$
+MSE=\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2
+$$</span></p>
 <p>RMSE：</p>
-<p>$$<br>RMSE&#x3D;\sqrt{MSE}<br>$$</p>
-<p>MSE 对大误差更敏感，因为误差被平方。RMSE 和原始目标变量单位一致，更容易解释。</p>
-<p>比如预测房价时，RMSE &#x3D; 20 万，比 MSE &#x3D; 400 亿更直观。</p>
-<h3 id="MAE"><a href="#MAE" class="headerlink" title="MAE"></a>MAE</h3><p>MAE：</p>
-<p>$$<br>MAE&#x3D;\frac{1}{n}\sum_{i&#x3D;1}^{n}|y_i-\hat{y}_i|<br>$$</p>
+<p><span class="math display">$$
+RMSE=\sqrt{MSE}
+$$</span></p>
+<p>MSE 对大误差更敏感，因为误差被平方。RMSE
+和原始目标变量单位一致，更容易解释。</p>
+<p>比如预测房价时，RMSE = 20 万，比 MSE = 400 亿更直观。</p>
+<h3 id="mae">MAE</h3>
+<p>MAE：</p>
+<p><span class="math display">$$
+MAE=\frac{1}{n}\sum_{i=1}^{n}|y_i-\hat{y}_i|
+$$</span></p>
 <p>MAE 对 outlier 没有 MSE 那么敏感。</p>
-<p>如果数据里有少数极端样本，比如一两套超级豪宅，MSE 会被这些样本强烈影响，MAE 会更稳一些。</p>
-<h3 id="R-2"><a href="#R-2" class="headerlink" title="$R^2$"></a>$R^2$</h3><p>$R^2$ 衡量模型解释了多少目标变量的 variance：</p>
-<p>$$<br>R^2&#x3D;1-\frac{\sum_i(y_i-\hat{y}_i)^2}{\sum_i(y_i-\bar{y})^2}<br>$$</p>
-<p>如果 $R^2&#x3D;0.8$，可以粗略理解为模型解释了 80% 的变化。它适合看整体拟合程度，但不一定能说明具体业务误差是否可接受。</p>
-<h2 id="3-分类指标（classification-metrics）"><a href="#3-分类指标（classification-metrics）" class="headerlink" title="3. 分类指标（classification metrics）"></a>3. 分类指标（classification metrics）</h2><p>分类任务常见指标都可以从 confusion matrix 出发。</p>
+<p>如果数据里有少数极端样本，比如一两套超级豪宅，MSE
+会被这些样本强烈影响，MAE 会更稳一些。</p>
+<h3 id="r2"><span class="math inline"><em>R</em><sup>2</sup></span></h3>
+<p><span class="math inline"><em>R</em><sup>2</sup></span>
+衡量模型解释了多少目标变量的 variance：</p>
+<p><span class="math display">$$
+R^2=1-\frac{\sum_i(y_i-\hat{y}_i)^2}{\sum_i(y_i-\bar{y})^2}
+$$</span></p>
+<p>如果 <span
+class="math inline"><em>R</em><sup>2</sup> = 0.8</span>，可以粗略理解为模型解释了
+80%
+的变化。它适合看整体拟合程度，但不一定能说明具体业务误差是否可接受。</p>
+<h2 id="分类指标classification-metrics">3. 分类指标（classification
+metrics）</h2>
+<p>分类任务常见指标都可以从 confusion matrix 出发。</p>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th></th>
-<th align="right">Predicted Positive</th>
-<th align="right">Predicted Negative</th>
+<th style="text-align: right;">Predicted Positive</th>
+<th style="text-align: right;">Predicted Negative</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr class="odd">
 <td>Actual Positive</td>
-<td align="right">TP</td>
-<td align="right">FN</td>
+<td style="text-align: right;">TP</td>
+<td style="text-align: right;">FN</td>
 </tr>
-<tr>
+<tr class="even">
 <td>Actual Negative</td>
-<td align="right">FP</td>
-<td align="right">TN</td>
+<td style="text-align: right;">FP</td>
+<td style="text-align: right;">TN</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>TP 是真正例，FP 是假正例，FN 是假负例，TN 是真负例。</p>
-<h3 id="准确率（accuracy）"><a href="#准确率（accuracy）" class="headerlink" title="准确率（accuracy）"></a>准确率（accuracy）</h3><p>$$<br>Accuracy&#x3D;\frac{TP+TN}{TP+TN+FP+FN}<br>$$</p>
+<h3 id="准确率accuracy">准确率（accuracy）</h3>
+<p><span class="math display">$$
+Accuracy=\frac{TP+TN}{TP+TN+FP+FN}
+$$</span></p>
 <p>Accuracy 直观，但在 imbalanced dataset 上容易误导。</p>
-<p>比如一个疾病数据集中，99% 都是阴性。模型全部预测阴性，也有 99% accuracy，但它完全找不到阳性病人。</p>
-<h3 id="精确率（precision）"><a href="#精确率（precision）" class="headerlink" title="精确率（precision）"></a>精确率（precision）</h3><p>$$<br>Precision&#x3D;\frac{TP}{TP+FP}<br>$$</p>
+<p>比如一个疾病数据集中，99% 都是阴性。模型全部预测阴性，也有 99%
+accuracy，但它完全找不到阳性病人。</p>
+<h3 id="精确率precision">精确率（precision）</h3>
+<p><span class="math display">$$
+Precision=\frac{TP}{TP+FP}
+$$</span></p>
 <p>Precision 关心预测为正的样本里，有多少是真的正。</p>
-<p>垃圾邮件识别里 precision 很重要，因为把正常邮件误判成垃圾邮件会影响用户。</p>
-<h3 id="召回率（recall）"><a href="#召回率（recall）" class="headerlink" title="召回率（recall）"></a>召回率（recall）</h3><p>$$<br>Recall&#x3D;\frac{TP}{TP+FN}<br>$$</p>
+<p>垃圾邮件识别里 precision
+很重要，因为把正常邮件误判成垃圾邮件会影响用户。</p>
+<h3 id="召回率recall">召回率（recall）</h3>
+<p><span class="math display">$$
+Recall=\frac{TP}{TP+FN}
+$$</span></p>
 <p>Recall 关心真实正样本里，有多少被找出来。</p>
 <p>疾病筛查里 recall 很重要，因为漏诊的代价可能很高。</p>
-<h3 id="F1-分数（F1-score）"><a href="#F1-分数（F1-score）" class="headerlink" title="F1 分数（F1 score）"></a>F1 分数（F1 score）</h3><p>$$<br>F1&#x3D;2\cdot\frac{Precision\cdot Recall}{Precision+Recall}<br>$$</p>
-<p>F1 是 precision 和 recall 的调和平均。它适合在两者都重要时作为综合指标。</p>
-<p>但 F1 也不是万能的。如果业务上 FP 和 FN 代价明显不同，还是要单独看 precision 和 recall。</p>
-<h2 id="4-ROC-和-AUC：阈值变化下的分类表现"><a href="#4-ROC-和-AUC：阈值变化下的分类表现" class="headerlink" title="4. ROC 和 AUC：阈值变化下的分类表现"></a>4. ROC 和 AUC：阈值变化下的分类表现</h2><p>ROC 曲线关注不同 threshold 下 TPR 和 FPR 的变化。</p>
-<p>$$<br>TPR&#x3D;\frac{TP}{TP+FN}<br>$$</p>
-<p>$$<br>FPR&#x3D;\frac{FP}{FP+TN}<br>$$</p>
-<p>AUC 是 ROC 曲线下面积。它也可以理解为：随机抽一个正样本和一个负样本，模型把正样本排在负样本前面的概率。</p>
-<p>这就是为什么 AUC 常用于排序、推荐、广告等场景。很多时候模型输出的不是最终类别，而是一个 score，业务再根据 threshold 或排序位置使用这个 score。</p>
+<h3 id="f1-分数f1-score">F1 分数（F1 score）</h3>
+<p><span class="math display">$$
+F1=2\cdot\frac{Precision\cdot Recall}{Precision+Recall}
+$$</span></p>
+<p>F1 是 precision 和 recall
+的调和平均。它适合在两者都重要时作为综合指标。</p>
+<p>但 F1 也不是万能的。如果业务上 FP 和 FN 代价明显不同，还是要单独看
+precision 和 recall。</p>
+<h2 id="roc-和-auc阈值变化下的分类表现">4. ROC 和
+AUC：阈值变化下的分类表现</h2>
+<p>ROC 曲线关注不同 threshold 下 TPR 和 FPR 的变化。</p>
+<p><span class="math display">$$
+TPR=\frac{TP}{TP+FN}
+$$</span></p>
+<p><span class="math display">$$
+FPR=\frac{FP}{FP+TN}
+$$</span></p>
+<p>AUC 是 ROC
+曲线下面积。它也可以理解为：随机抽一个正样本和一个负样本，模型把正样本排在负样本前面的概率。</p>
+<p>这就是为什么 AUC
+常用于排序、推荐、广告等场景。很多时候模型输出的不是最终类别，而是一个
+score，业务再根据 threshold 或排序位置使用这个 score。</p>
 <p>一个小例子：</p>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th>用户</th>
-<th align="right">是否点击</th>
-<th align="right">模型 score</th>
+<th style="text-align: right;">是否点击</th>
+<th style="text-align: right;">模型 score</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr class="odd">
 <td>A</td>
-<td align="right">1</td>
-<td align="right">0.90</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.90</td>
 </tr>
-<tr>
+<tr class="even">
 <td>B</td>
-<td align="right">0</td>
-<td align="right">0.80</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.80</td>
 </tr>
-<tr>
+<tr class="odd">
 <td>C</td>
-<td align="right">1</td>
-<td align="right">0.70</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.70</td>
 </tr>
-<tr>
+<tr class="even">
 <td>D</td>
-<td align="right">0</td>
-<td align="right">0.20</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.20</td>
 </tr>
-</tbody></table>
-<p>AUC 关心的是正样本是否整体排在负样本前面，而不是某个固定 threshold 下分对了多少。</p>
-<h2 id="5-PR-曲线（PR-curve）"><a href="#5-PR-曲线（PR-curve）" class="headerlink" title="5. PR 曲线（PR curve）"></a>5. PR 曲线（PR curve）</h2><p>PR Curve 的横轴是 recall，纵轴是 precision。</p>
+</tbody>
+</table>
+<p>AUC 关心的是正样本是否整体排在负样本前面，而不是某个固定 threshold
+下分对了多少。</p>
+<h2 id="pr-曲线pr-curve">5. PR 曲线（PR curve）</h2>
+<p>PR Curve 的横轴是 recall，纵轴是 precision。</p>
 <p>在正负样本极度不平衡时，PR curve 往往比 ROC curve 更敏感。</p>
-<p>比如欺诈检测里，正样本非常少。ROC-AUC 可能看起来还不错，但 precision 可能很低：模型找出一堆“疑似欺诈”，里面真正欺诈的比例很小。这个时候 PR curve 更能反映实际使用体验。</p>
-<h2 id="6-类别不平衡数据集（imbalanced-dataset）"><a href="#6-类别不平衡数据集（imbalanced-dataset）" class="headerlink" title="6. 类别不平衡数据集（imbalanced dataset）"></a>6. 类别不平衡数据集（imbalanced dataset）</h2><p>类别不平衡时，accuracy 通常不够。</p>
+<p>比如欺诈检测里，正样本非常少。ROC-AUC 可能看起来还不错，但 precision
+可能很低：模型找出一堆“疑似欺诈”，里面真正欺诈的比例很小。这个时候 PR
+curve 更能反映实际使用体验。</p>
+<h2 id="类别不平衡数据集imbalanced-dataset">6.
+类别不平衡数据集（imbalanced dataset）</h2>
+<p>类别不平衡时，accuracy 通常不够。</p>
 <p>常见处理方式：</p>
 <ul>
 <li>换指标：precision、recall、F1、AUC、PR-AUC</li>
-<li>重采样：oversampling &#x2F; undersampling</li>
+<li>重采样：oversampling / undersampling</li>
 <li>调整 loss：给少数类更高权重</li>
 <li>调 threshold：根据业务代价调整预测阈值</li>
 <li>anomaly detection：把少数类当异常点处理</li>
 </ul>
-<p>一个例子：阳性率只有 1% 的疾病筛查。模型如果全部预测阴性，accuracy 是 99%，但 recall 是 0。这种模型没有实际价值。</p>
-<h2 id="7-验证（validation）：怎么可靠地估计泛化能力"><a href="#7-验证（validation）：怎么可靠地估计泛化能力" class="headerlink" title="7. 验证（validation）：怎么可靠地估计泛化能力"></a>7. 验证（validation）：怎么可靠地估计泛化能力</h2><p>训练集表现不能代表泛化能力，所以需要 validation。</p>
-<h3 id="留出法验证（holdout-validation）"><a href="#留出法验证（holdout-validation）" class="headerlink" title="留出法验证（holdout validation）"></a>留出法验证（holdout validation）</h3><p>最常见方式是 train &#x2F; validation &#x2F; test split。</p>
+<p>一个例子：阳性率只有 1% 的疾病筛查。模型如果全部预测阴性，accuracy 是
+99%，但 recall 是 0。这种模型没有实际价值。</p>
+<h2 id="验证validation怎么可靠地估计泛化能力">7.
+验证（validation）：怎么可靠地估计泛化能力</h2>
+<p>训练集表现不能代表泛化能力，所以需要 validation。</p>
+<h3 id="留出法验证holdout-validation">留出法验证（holdout
+validation）</h3>
+<p>最常见方式是 train / validation / test split。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">training set: train model parameters<br>validation set: tune hyperparameters and choose models<br>test set: final evaluation<br></code></pre></td></tr></table></figure>
-
-<p>test set 不应该频繁用来调模型。如果每次调参都看 test score，test set 也会被间接过拟合。</p>
-<h3 id="K-折交叉验证（K-fold-cross-validation）"><a href="#K-折交叉验证（K-fold-cross-validation）" class="headerlink" title="K 折交叉验证（K-fold cross validation）"></a>K 折交叉验证（K-fold cross validation）</h3><p>K-fold cross validation 把数据分成 $K$ 份，每次用其中一份做 validation，其余做 training，最后平均结果。</p>
+<p>test set 不应该频繁用来调模型。如果每次调参都看 test score，test set
+也会被间接过拟合。</p>
+<h3 id="k-折交叉验证k-fold-cross-validation">K 折交叉验证（K-fold cross
+validation）</h3>
+<p>K-fold cross validation 把数据分成 <span
+class="math inline"><em>K</em></span> 份，每次用其中一份做
+validation，其余做 training，最后平均结果。</p>
 <p>它比单次 holdout 更稳定，尤其适合数据量不大的情况。</p>
 <p>缺点是训练成本更高。比如 5-fold 就要训练 5 次。</p>
-<h3 id="Bootstrap"><a href="#Bootstrap" class="headerlink" title="Bootstrap"></a>Bootstrap</h3><p>Bootstrap 是有放回采样。每次从原始数据中采出一个同样大小的数据集，有些样本会重复，有些样本不会被采到。没被采到的样本可以用于评估。</p>
+<h3 id="bootstrap">Bootstrap</h3>
+<p>Bootstrap
+是有放回采样。每次从原始数据中采出一个同样大小的数据集，有些样本会重复，有些样本不会被采到。没被采到的样本可以用于评估。</p>
 <p>它在统计估计里很常见，但日常模型训练中更常用 holdout 和 K-fold。</p>
-<h2 id="8-模型选择（model-selection）"><a href="#8-模型选择（model-selection）" class="headerlink" title="8. 模型选择（model selection）"></a>8. 模型选择（model selection）</h2><p>Model selection 不只是选模型类型，也包括选超参数。</p>
+<h2 id="模型选择model-selection">8. 模型选择（model selection）</h2>
+<p>Model selection 不只是选模型类型，也包括选超参数。</p>
 <p>比如：</p>
 <ul>
 <li>Linear Regression vs Random Forest vs XGBoost</li>
@@ -608,29 +678,49 @@
 <li>Logistic regression 的 regularization strength</li>
 <li>XGBoost 的 learning rate、tree depth、number of estimators</li>
 </ul>
-<h3 id="网格搜索（grid-search）"><a href="#网格搜索（grid-search）" class="headerlink" title="网格搜索（grid search）"></a>网格搜索（grid search）</h3><p>Grid search 枚举所有组合。</p>
+<h3 id="网格搜索grid-search">网格搜索（grid search）</h3>
+<p>Grid search 枚举所有组合。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">max_depth = [3, 5, 7]<br>learning_rate = [0.01, 0.1]<br></code></pre></td></tr></table></figure>
-
-<p>总共会试 $3 \times 2 &#x3D; 6$ 种组合。</p>
+<p>总共会试 <span class="math inline">3 × 2 = 6</span> 种组合。</p>
 <p>优点是简单直接，缺点是组合多时成本很高。</p>
-<h3 id="随机搜索（random-search）"><a href="#随机搜索（random-search）" class="headerlink" title="随机搜索（random search）"></a>随机搜索（random search）</h3><p>Random search 从参数空间中随机采样。它经常比 grid search 更高效，因为并不是所有超参数都同等重要。</p>
-<p>比如 10 个超参数里真正敏感的可能只有 2 个，grid search 会浪费很多组合，random search 反而可能更快碰到好区域。</p>
-<h3 id="贝叶斯优化（Bayesian-optimization）"><a href="#贝叶斯优化（Bayesian-optimization）" class="headerlink" title="贝叶斯优化（Bayesian optimization）"></a>贝叶斯优化（Bayesian optimization）</h3><p>Bayesian optimization 会根据已有实验结果，估计哪些参数区域更可能好，然后优先尝试这些区域。</p>
-<p>它比 random search 更聪明，但实现和调试更复杂。小任务里不一定需要，上规模后才更有价值。</p>
-<h2 id="9-数据泄漏（data-leakage）"><a href="#9-数据泄漏（data-leakage）" class="headerlink" title="9. 数据泄漏（data leakage）"></a>9. 数据泄漏（data leakage）</h2><p>Data leakage 是评估里最危险的问题之一。它指训练过程中用了不该提前知道的信息。</p>
-<p>例子：预测用户未来是否流失，但 feature 里包含“用户是否已经取消订阅”。这个特征在预测时根本不可用，但训练时会让模型表现非常好。</p>
-<p>另一个例子：先对全量数据做 normalization，再划分 train&#x2F;test。这样 test set 的统计信息已经泄漏到了 training process。正确做法是只在 training set 上 fit scaler，再 apply 到 validation&#x2F;test set。</p>
+<h3 id="随机搜索random-search">随机搜索（random search）</h3>
+<p>Random search 从参数空间中随机采样。它经常比 grid search
+更高效，因为并不是所有超参数都同等重要。</p>
+<p>比如 10 个超参数里真正敏感的可能只有 2 个，grid search
+会浪费很多组合，random search 反而可能更快碰到好区域。</p>
+<h3 id="贝叶斯优化bayesian-optimization">贝叶斯优化（Bayesian
+optimization）</h3>
+<p>Bayesian optimization
+会根据已有实验结果，估计哪些参数区域更可能好，然后优先尝试这些区域。</p>
+<p>它比 random search
+更聪明，但实现和调试更复杂。小任务里不一定需要，上规模后才更有价值。</p>
+<h2 id="数据泄漏data-leakage">9. 数据泄漏（data leakage）</h2>
+<p>Data leakage
+是评估里最危险的问题之一。它指训练过程中用了不该提前知道的信息。</p>
+<p>例子：预测用户未来是否流失，但 feature
+里包含“用户是否已经取消订阅”。这个特征在预测时根本不可用，但训练时会让模型表现非常好。</p>
+<p>另一个例子：先对全量数据做 normalization，再划分 train/test。这样
+test set 的统计信息已经泄漏到了 training process。正确做法是只在
+training set 上 fit scaler，再 apply 到 validation/test set。</p>
 <p>Data leakage 会让离线评估虚高，线上效果崩掉。</p>
-<h2 id="10-几个点"><a href="#10-几个点" class="headerlink" title="10. 几个点"></a>10. 几个点</h2><p>Accuracy 不适合严重类别不平衡的问题。</p>
-<p>Precision 和 recall 要结合 FP&#x2F;FN 的业务代价看，不要机械比较谁更大。</p>
+<h2 id="几个点">10. 几个点</h2>
+<p>Accuracy 不适合严重类别不平衡的问题。</p>
+<p>Precision 和 recall 要结合 FP/FN
+的业务代价看，不要机械比较谁更大。</p>
 <p>AUC 更像排序指标，适合看 score 的整体区分能力。</p>
 <p>PR curve 在正样本稀少时更敏感。</p>
 <p>Validation set 用来选模型，test set 留到最后做最终评估。</p>
 <p>数据泄漏比模型小 bug 更可怕，因为它会让结果看起来特别好。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://scikit-learn.org/stable/model_selection.html">scikit-learn User Guide: Model Selection and Evaluation</a></li>
-<li><a target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/model_evaluation.html">scikit-learn User Guide: Metrics and Scoring</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.statlearning.com/">An Introduction to Statistical Learning</a></li>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://scikit-learn.org/stable/model_selection.html">scikit-learn
+User Guide: Model Selection and Evaluation</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/model_evaluation.html">scikit-learn
+User Guide: Metrics and Scoring</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.statlearning.com/">An Introduction to
+Statistical Learning</a></li>
 </ul>
 
                 

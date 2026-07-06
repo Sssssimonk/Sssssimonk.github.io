@@ -402,6 +402,79 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2026/01/05/recommender-system-notes-01-overview/" target="_self">
+          推荐系统笔记 01：推荐系统概述
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/01/05/recommender-system-notes-01-overview/" target="_self">
+        <div>
+          这一篇先整理推荐系统的整体框架。 推荐系统看起来是在回答一个很简单的问题：  这个用户接下来可能喜欢什么？  但真正落到工业系统里，它不只是一个模型问题。它同时是数据问题、检索问题、排序问题、评估问题，也是一个非常强的工程系统问题。 比如短视频、广告、电商、新闻流、音乐、论文推荐，它们表面上都在推荐 item，但目标并不完全一样：  短视频可能更关心观看时长、完播、互动。 广告可能更关心点击、转化
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-01-05 20:00" pubdate>
+              2026-01-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0/" class="category-chain-item">推荐系统笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/">#推荐系统</a>
+            
+              <a href="/tags/%E5%8F%AC%E5%9B%9E/">#召回</a>
+            
+              <a href="/tags/%E6%8E%92%E5%BA%8F/">#排序</a>
+            
+              <a href="/tags/CTR/">#CTR</a>
+            
+              <a href="/tags/CVR/">#CVR</a>
+            
+              <a href="/tags/%E5%BA%8F%E5%88%97%E5%BB%BA%E6%A8%A1/">#序列建模</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2025/11/29/post-training-notes-05-opd/" target="_self">
           后训练笔记 05：OPD，On-Policy Distillation
         </a>
@@ -410,7 +483,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/11/29/post-training-notes-05-opd/" target="_self">
         <div>
-          这一篇整理 OPD，也就是 On-Policy Distillation。 OPD 是近期后训练里很值得关注的一条路线。它和 GRPO &#x2F; RLVR 的目标有些相似：都想让模型在自己的生成分布上变强。但它给训练信号的方式不一样。 GRPO 通常是：  student 自己生成 response，然后 verifier &#x2F; reward model 给一个 scalar rewa
+          这一篇整理 OPD，也就是 On-Policy Distillation。 OPD 是近期后训练里很值得关注的一条路线。它和 GRPO / RLVR 的目标有些相似：都想让模型在自己的生成分布上变强。但它给训练信号的方式不一样。 GRPO 通常是：  student 自己生成 response，然后 verifier / reward model 给一个 scalar reward。  OPD 更
         </div>
       </a>
 
@@ -481,7 +554,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/11/22/post-training-notes-04-grpo-variants-and-kto/" target="_self">
         <div>
-          这一篇整理 GRPO 的变体，以及 KTO。 这里需要先区分一下：KTO 不是 GRPO 的变体。它更像 DPO 同一类的 direct alignment 方法。之所以放在这一篇，是因为它属于“PPO&#x2F;GRPO 之外的后训练目标改造”，而且经常和 DPO、IPO、ORPO 放在一起比较。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、ad
+          这一篇整理 GRPO 的变体，以及 KTO。 这里需要先区分一下：KTO 不是 GRPO 的变体。它更像 DPO 同一类的 direct alignment 方法。之所以放在这一篇，是因为它属于“PPO/GRPO 之外的后训练目标改造”，而且经常和 DPO、IPO、ORPO 放在一起比较。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advanta
         </div>
       </a>
 
@@ -771,7 +844,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/10/11/modern-llm-notes-06-multimodal-models/" target="_self">
         <div>
-          这一篇整理多模态模型。 多模态模型经常被描述成“模型能看图、看视频、听音频”。但从结构上看，问题其实是：  怎么把不同模态的信息变成 LLM 能处理的 representation。  LLM 本来处理的是 token sequence。图像、视频、音频不是离散文本 token，所以要先经过编码、投影、对齐，再接入语言模型。 1. VLM 的基本结构一个典型 vision-language mod
+          这一篇整理多模态模型。 多模态模型经常被描述成“模型能看图、看视频、听音频”。但从结构上看，问题其实是：  怎么把不同模态的信息变成 LLM 能处理的 representation。  LLM 本来处理的是 token sequence。图像、视频、音频不是离散文本 token，所以要先经过编码、投影、对齐，再接入语言模型。 1. VLM 的基本结构 一个典型 vision-language mo
         </div>
       </a>
 
@@ -965,79 +1038,6 @@
               <a href="/tags/DeepSeek-R1/">#DeepSeek-R1</a>
             
               <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">#强化学习</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
-          现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
-        <div>
-          这一篇整理长上下文。 很多模型现在都会宣传 32K、128K、1M context window。这个数字很吸引人，但它很容易被误解。 长上下文不是“把 max length 参数调大”。真正困难的地方有三类：  attention 计算量变大 KV cache 显存变大 上下文变长后，模型未必能稳定用好信息  所以这篇重点不是列方法，而是看长上下文到底在解决什么瓶颈。 1. Self-atten
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-09-20 21:00" pubdate>
-              2025-09-20
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
-            
-              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
-            
-              <a href="/tags/RoPE/">#RoPE</a>
-            
-              <a href="/tags/KV-cache/">#KV cache</a>
-            
-              <a href="/tags/%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87/">#长上下文</a>
-            
-              <a href="/tags/FlashAttention/">#FlashAttention</a>
             
           </div>
         

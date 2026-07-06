@@ -337,6 +337,79 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
+          现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
+        <div>
+          这一篇整理长上下文。 很多模型现在都会宣传 32K、128K、1M context window。这个数字很吸引人，但它很容易被误解。 长上下文不是“把 max length 参数调大”。真正困难的地方有三类：  attention 计算量变大 KV cache 显存变大 上下文变长后，模型未必能稳定用好信息  所以这篇重点不是列方法，而是看长上下文到底在解决什么瓶颈。 1. Self-atten
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-09-20 21:00" pubdate>
+              2025-09-20
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%8E%B0%E4%BB%A3%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%89%8D%E6%B2%BF%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="category-chain-item">现代大模型与前沿论文笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
+            
+              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
+            
+              <a href="/tags/RoPE/">#RoPE</a>
+            
+              <a href="/tags/KV-cache/">#KV cache</a>
+            
+              <a href="/tags/%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87/">#长上下文</a>
+            
+              <a href="/tags/FlashAttention/">#FlashAttention</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2025/09/13/modern-llm-notes-02-moe/" target="_self">
           现代大模型笔记 02：MoE，为什么大模型开始变稀疏
         </a>
@@ -457,11 +530,11 @@
             
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
-              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
+              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
             
               <a href="/tags/Transformer/">#Transformer</a>
             
-              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
+              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
             
               <a href="/tags/RoPE/">#RoPE</a>
             
@@ -530,9 +603,9 @@
             
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
-              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
-            
               <a href="/tags/Transformer/">#Transformer</a>
+            
+              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
             
               <a href="/tags/%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B/">#自注意力</a>
             
@@ -556,7 +629,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/24/deep-learning-notes-04-cnn-rnn-classic-architectures/" target="_self">
         <div>
-          这一篇整理 CNN、RNN、LSTM、GRU 这些经典结构。这里不写成模型百科，只抓它们各自利用了什么数据结构假设。 可以先从一个问题出发：  如果 MLP 已经可以拟合复杂函数，为什么还需要 CNN、RNN 这些结构？  答案是：不同数据有不同结构。图像有局部空间结构，序列有时间顺序结构。专门的网络结构把这些先验写进模型里，让模型更高效地学习。 1. 归纳偏置（inductive bias）In
+          这一篇整理 CNN、RNN、LSTM、GRU 这些经典结构。这里不写成模型百科，只抓它们各自利用了什么数据结构假设。 可以先从一个问题出发：  如果 MLP 已经可以拟合复杂函数，为什么还需要 CNN、RNN 这些结构？  答案是：不同数据有不同结构。图像有局部空间结构，序列有时间顺序结构。专门的网络结构把这些先验写进模型里，让模型更高效地学习。 1. 归纳偏置（inductive bias） I
         </div>
       </a>
 
@@ -698,7 +771,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/" target="_self">
         <div>
-          这一篇整理最基础的神经网络：多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。 可以先抓住一句话：  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 1. 神经元（neuron）在做什么一个最简单的 n
+          这一篇整理最基础的神经网络：多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。 可以先抓住一句话：  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 1. 神经元（neuron）在做什么 一个最简单的
         </div>
       </a>
 
@@ -834,7 +907,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" target="_self">
         <div>
-          这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？  不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不
+          这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不
         </div>
       </a>
 
@@ -903,7 +976,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
         <div>
-          这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning）无监督学习只有输入 $x$，没有标签 $y$。 比如有一批用户行为数据：    用户 访问次数 平均停留时间
+          这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning） 无监督学习只有输入 x，没有标签 y。 比如有一批用户行为数据：    用户 访问次数 平均停留时间 购买次
         </div>
       </a>
 
@@ -951,75 +1024,6 @@
               <a href="/tags/%E8%81%9A%E7%B1%BB/">#聚类</a>
             
               <a href="/tags/PCA/">#PCA</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/29/ml-notes-04-tree-based-models/" target="_self">
-          机器学习笔记 04：树模型
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/29/ml-notes-04-tree-based-models/" target="_self">
-        <div>
-          这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 1. 决策树（decision tree）的基本想法Decision Tree 每一步都在问一个问题： 1这个 featu
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-29 21:30" pubdate>
-              2024-06-29
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
-            
-              <a href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/">#决策树</a>
-            
-              <a href="/tags/%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97/">#随机森林</a>
-            
-              <a href="/tags/XGBoost/">#XGBoost</a>
             
           </div>
         
