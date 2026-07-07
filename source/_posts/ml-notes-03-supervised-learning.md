@@ -15,7 +15,7 @@ category_bar: true
 ---
 
 
-## 1. 线性回归（linear regression）：用线性函数做预测
+## 线性回归（linear regression）：用线性函数做预测
 
 Linear regression 用来预测连续值。最简单的一维形式是：
 
@@ -46,7 +46,7 @@ $$
 
 线性模型的优点是简单、稳定、可解释。缺点是表达能力有限，对 feature engineering 比较依赖。
 
-## 3. 逻辑回归（logistic regression）
+## 逻辑回归（logistic regression）
 
 Logistic regression 通常用于二分类。它先计算一个线性打分：
 
@@ -73,7 +73,7 @@ $$
 
 threshold 不一定非要是 0.5。比如疾病筛查里更怕漏诊，可以把 threshold 调低，让模型更容易预测为阳性，从而提高 recall。(后续在模型评估环节细嗦)
 
-## 4. 为什么逻辑回归（logistic regression）适合分类
+## 为什么逻辑回归（logistic regression）适合分类
 
 Linear regression 直接输出连续值，不适合表示概率。Logistic regression 的 sigmoid 输出天然在 $[0,1]$ 范围内，所以可以解释为概率。
 
@@ -92,7 +92,7 @@ $$
 | Linear Regression | 连续值 | Regression | MSE |
 | Logistic Regression | 概率 | Binary Classification | Binary Cross Entropy |
 
-## 6. KNN：没有显式训练过程的模型
+## KNN：没有显式训练过程的模型
 
 KNN 全称是 K-Nearest Neighbors。它的思想很直接：要预测一个新样本，就看训练集中离它最近的 $K$ 个样本，然后让它们投票。
 
@@ -134,7 +134,7 @@ KNN 是 non-parametric model。它没有像 linear regression 那样显式学出
 - k 值选择：通常为奇数（避免分类平票），通过交叉验证确定。
 - 归一化：若特征量纲差异大，需先对数据标准化。
 
-## 7. 距离和相似度很关键
+## 距离和相似度很关键
 
 KNN 的效果很依赖距离度量。常见距离包括 Euclidean distance、Manhattan distance、cosine similarity 等。
 
@@ -154,7 +154,7 @@ $$
 
 所以 KNN 前通常需要做 feature scaling。
 
-## 8. 点积（dot product）和余弦相似度（cosine similarity）
+## 点积（dot product）和余弦相似度（cosine similarity）
 
 这部分和推荐系统、embedding retrieval、RAG 都有关。
 
@@ -180,7 +180,7 @@ $$
 
 推荐系统里有时会保留 embedding norm，因为热门物品可能被训练出更大的向量长度，dot product 会把这种 popularity signal 也算进去。检索场景里如果只关心语义方向，则常用 cosine similarity 或 normalized embedding dot product。
 
-## 9. 几个点
+## 几个点
 
 Logistic regression 做分类，但它的 decision boundary 仍然是线性的。sigmoid 只是把线性打分转成概率，并没有让边界变复杂。
 KNN 对特征 scale 很敏感。写 KNN 前先想 normalization，不然距离可能没有意义。

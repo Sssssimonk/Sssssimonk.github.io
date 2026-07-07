@@ -18,7 +18,7 @@ category_bar: true
 
 > Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。
 
-## 1. 损失函数（loss function）：先定义什么叫错
+## 损失函数（loss function）：先定义什么叫错
 
 模型训练不是凭感觉调整参数，而是先把“预测错了多少”变成一个可以计算的数值。这个数值就是 loss。
 
@@ -100,7 +100,7 @@ def cross_entropy(y_pred, y_true):
 
 两个容易写错的点：第一，cross entropy 前面有负号；第二，如果输入是 logits，应该先 softmax，而不是直接拿 logits 当概率。
 
-## 2. 梯度下降（gradient descent）：模型如何改参数
+## 梯度下降（gradient descent）：模型如何改参数
 
 有了 loss 后，训练的目标就是找到让 loss 更小的参数。
 
@@ -126,7 +126,7 @@ current parameters
 ```
 
 
-## 3. 正则化（regularization）：限制模型复杂度
+## 正则化（regularization）：限制模型复杂度
 
 Regularization的主要作用是限制模型为了降低训练误差而使用过于复杂的参数，增加模型的泛化能力。
 
@@ -169,7 +169,7 @@ $$
 
 L1 更像在做“删特征”，L2 更像在做“压权重”。
 
-## 4. 其他防止过拟合的方法：
+## 其他防止过拟合的方法：
 
 **早停（early stopping）：用验证集控制训练**
 
@@ -212,7 +212,7 @@ def dropout_forward(x, p=0.5, training=True):
 
 优点是无需额外标注、防过拟合效果显著、提升模型鲁棒性；缺点是依赖领域知识设计合理增强策略，若变换过强或不符合真实分布，可能引入噪声误导模型。
 
-## 5. 小结
+## 小结
 
 
 - loss 决定模型追求什么；

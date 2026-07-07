@@ -16,7 +16,7 @@ category_bar: true
 
 这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。
 
-## 1. 决策树（decision tree）的基本想法
+## 决策树（decision tree）的基本想法
 
 Decision Tree 每一步都在问一个问题：
 
@@ -36,7 +36,7 @@ Decision Tree 每一步都在问一个问题：
 
 分类树希望叶子节点里的类别尽量单一；回归树希望叶子节点里的目标值尽量接近。
 
-## 2. 如何切分数据信息，什么叫节点更“纯”
+## 如何切分数据信息，什么叫节点更“纯”
 
 假设一个节点里有 10 个样本：
 
@@ -79,7 +79,7 @@ $$
 
 Entropy 越低，节点越纯。
 
-## 3. Splitting metrics
+## Splitting metrics
 
 **信息增益（information gain）**
 
@@ -130,7 +130,7 @@ Gini 也衡量节点不纯度。节点越纯，Gini 越小。
 
 Gini 和 entropy 的目标很接近：都希望 split 后子节点更纯。实际使用中，Gini 计算更简单一些。
 
-## 4. ID3、C4.5、CART
+## ID3、C4.5、CART
 
 三类树的区别：
 
@@ -167,7 +167,7 @@ Pruning 分两类：
 
 简单说，剪枝就是不让树把训练集记得太细。
 
-## 5.多棵树的组合
+## 多棵树的组合
 
 **Bagging：随机森林（random forest）**
 

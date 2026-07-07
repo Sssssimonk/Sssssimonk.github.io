@@ -23,7 +23,7 @@ category_bar: true
 PEFT则是SFT的一种解法（即parameter **efficient** fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。
 
 
-## 1. Base model 为什么不能直接用
+## Base model 为什么不能直接用
 
 Base model 的训练目标通常是 next token prediction：
 
@@ -82,7 +82,7 @@ Full fine-tuning 的成本很大，全参数微调会更新模型所有参数。
 
 这就是 PEFT 出现的背景：不改全部参数，只训练小模块。
 
-## 5. PEFT 的基本想法
+## PEFT 的基本想法
 
 PEFT 是 parameter-efficient fine-tuning。
 
@@ -227,7 +227,7 @@ SFT经常被讨论成训练技术，但真正决定结果的通常是数据。
 所以 SFT 的核心不是把 loss 跑低，而是把模型行为拉到你想要的区域。
 
 
-## 16. 小结
+## 小结
 
 SFT 是后训练的入口。它让 base model 从“会续写”变成“会回答”。
 
