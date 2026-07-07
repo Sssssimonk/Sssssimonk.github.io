@@ -84,3 +84,8 @@ marked:
   postAsset: true
   lazyload: false
 
+pandoc:
+  pandocPath: pandoc
+  timeout: 10000
+  args:
+    - "--mathjax"

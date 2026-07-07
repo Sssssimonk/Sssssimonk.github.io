@@ -67,8 +67,8 @@ index:
   slogan:
     enable: true
     text:
-      - "Reading papers, tracing ideas, and writing down what actually works."
-      - "AI research notes, algorithm intuition, and engineering lessons."
+      - "人类与AI的不同，在于Curiosity & Empathy。"
+      - "思考，是我们最强大的武器。"
   auto_excerpt:
     enable: true
   post_url_target: _self

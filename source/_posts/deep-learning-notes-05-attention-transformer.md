@@ -1,5 +1,5 @@
 ---
-title: "深度学习笔记 05：注意力机制与 Transformer"
+title: "深度学习笔记 05：注意力机制"
 date: 2024-08-31 22:00:00
 updated: 2024-08-31 22:00:00
 categories:
@@ -7,20 +7,17 @@ categories:
 tags:
   - 深度学习
   - 注意力机制
-  - Transformer
   - 自注意力
   - 笔记
 math: true
 category_bar: true
 ---
 
-这一篇整理注意力机制和 Transformer。它是 Deep Learning 章节和后面现代大模型章节之间的桥。
+这一篇只整理 attention 本身。
 
-这篇不展开 GPT、BERT、MoE、RLHF 这些内容，只看 Transformer 为什么出现，以及 self-attention 到底在做什么。
+Transformer block、Pre-Norm、FFN、RoPE、GQA 这些更偏模型架构的内容，放到现代大模型章节里讲。这里先把最核心的问题说清楚：
 
-可以先抓住一句话：
-
-> Attention 让模型在处理某个位置时，直接从其他位置取信息，而不是把所有历史信息都压进一个固定 hidden state。
+> 模型处理当前位置时，怎么从其他位置拿到有用信息。
 
 ## 1. RNN 的瓶颈
 
@@ -36,9 +33,9 @@ $$
 
 第二，计算难以并行，因为第 $t$ 步必须等第 $t-1$ 步算完。
 
-比如翻译句子时，目标词可能需要关注源句中很远的词。RNN 要把这些信息逐步压缩进 hidden state，压力很大。
+比如翻译一句话时，目标词可能需要关注源句中很远的词。RNN 要把这些信息逐步压缩进 hidden state，压力很大。
 
-Attention 的想法是：不要只依赖最后一个 hidden state，而是让模型需要什么就去看什么。
+Attention 的想法是：不要只依赖最后一个 hidden state，而是让模型需要什么就直接去看什么。
 
 ## 2. 注意力机制（attention）的直觉
 
@@ -47,18 +44,18 @@ Attention 可以理解成一个信息检索过程。
 当模型处理当前位置时，它会问：
 
 ```text
-当前 token 需要从哪些其他 token 获取信息？
+当前位置需要从哪些位置拿信息？
 ```
 
-比如句子：
+比如：
 
 ```text
 The animal didn't cross the street because it was too tired.
 ```
 
-这里 "it" 指的是 "animal"，而不是 "street"。模型处理 "it" 时，需要关注前面的 "animal"。
+这里 `it` 指的是 `animal`，不是 `street`。模型处理 `it` 时，需要更关注前面的 `animal`。
 
-Attention 就是在学习这种关联强度。
+Attention 学的就是这种关联强度。
 
 ## 3. 查询、键和值（query、key、value）
 
@@ -84,7 +81,7 @@ $$
 v_i = x_iW_V
 $$
 
-当前位置的 query 会和所有位置的 key 做相似度计算，得到 attention score。
+当前位置的 query 会和所有位置的 key 做相似度计算，得到 attention score。score 越高，说明当前位置越应该从那个位置取信息。
 
 ## 4. 缩放点积注意力（scaled dot-product attention）
 
@@ -104,7 +101,9 @@ $$
 
 为什么要除以 $\sqrt{d_k}$？
 
-如果向量维度很高，dot product 的数值可能变大，softmax 会变得过于尖锐，梯度不稳定。缩放项可以缓解这个问题。
+如果向量维度很高，dot product 的数值可能变大，softmax 会变得过于尖锐。最后结果就是某一个 token 权重接近 1，其他 token 权重接近 0，梯度也容易不稳定。
+
+缩放项不是为了改变 attention 的本质，而是让数值更稳。
 
 ## 5. 自注意力（self-attention）：序列内部互相看
 
@@ -124,11 +123,60 @@ The bank approved the loan.
 The bank is near the river.
 ```
 
-"bank" 的含义要靠上下文判断。Self-attention 让 "bank" 可以关注 "loan" 或 "river"，从而形成不同语义表示。
+`bank` 的含义要靠上下文判断。Self-attention 让 `bank` 可以关注 `loan` 或 `river`，从而形成不同语义表示。
 
-这也是 Transformer 适合语言建模的原因之一：每个 token 的表示不是孤立的，而是上下文化的。
+这也是 attention 很适合语言任务的原因：token 的表示不是孤立的，而是上下文化的。
 
-## 6. 多头注意力（multi-head attention）
+## 6. Attention matrix 在看什么
+
+如果序列长度是 $n$，那么 $QK^\top$ 会得到一个 $n \times n$ 的矩阵。
+
+第 $i$ 行可以理解成：
+
+```text
+第 i 个 token 在看哪些 token
+```
+
+第 $j$ 列可以理解成：
+
+```text
+哪些 token 在看第 j 个 token
+```
+
+这也是为什么 attention 常被拿来可视化。虽然不能把 attention weight 直接等同于“模型解释”，但它至少能显示信息流的大致方向。
+
+一个简单例子：
+
+```text
+I gave the book to Alice because she likes reading.
+```
+
+处理 `she` 时，attention matrix 里对应那一行可能会给 `Alice` 更高权重。这样模型才有机会把指代关系接上。
+
+## 7. Mask：哪些位置不能看
+
+Attention 里经常会加 mask。
+
+Mask 的作用是：在 softmax 前把某些位置的 score 变成很小的数，让它们的权重接近 0。
+
+最常见的是 causal mask。
+
+语言模型做 next token prediction 时，第 $t$ 个位置不能看未来 token，否则训练就作弊了。
+
+所以 causal attention 会让第 $t$ 个位置只能看 $1$ 到 $t$：
+
+```text
+token 1: 看 1
+token 2: 看 1, 2
+token 3: 看 1, 2, 3
+token 4: 看 1, 2, 3, 4
+```
+
+如果没有 causal mask，模型预测下一个词时已经看到了答案，训练 loss 会很好看，但推理时完全没法用。
+
+Padding mask 也是同类东西。batch 里不同句子长度不一样，短句后面补的 padding token 不应该参与 attention。
+
+## 8. 多头注意力（multi-head attention）
 
 Multi-head attention 不是只做一次 attention，而是并行做多组 attention：
 
@@ -139,58 +187,32 @@ $$
 然后把多个 head 拼接起来：
 
 $$
-\text{MultiHead}(Q,K,V)=\text{Concat}(\text{head}_1,\dots,\text{head}_h)W^O
+\text{MultiHead}(Q,K,V)
+=
+\text{Concat}(\text{head}_1,\dots,\text{head}_h)W^O
 $$
 
 直觉上，不同 head 可以关注不同关系。
 
-一个 head 可能关注主谓关系，一个 head 可能关注指代关系，一个 head 可能关注局部相邻 token。当然实际 head 不一定这么干净可解释，但多头机制给了模型并行建模不同关系的能力。
+一个 head 可能更关注局部搭配，一个 head 可能更关注指代关系，一个 head 可能更关注句法结构。当然实际 head 不一定这么干净可解释，但多头机制给了模型并行建模不同关系的空间。
 
-## 7. 位置编码（positional encoding）：Transformer 怎么知道顺序
+## 9. Attention 和 Transformer 的关系
 
-Self-attention 本身不包含顺序信息。
+Attention 不是 Transformer 的全部。
 
-如果只看 attention 公式，输入 token 换个顺序，模型并不会天然知道谁在前谁在后。
+Transformer 还包括 residual connection、normalization、feed-forward network、position encoding 等结构。
 
-所以 Transformer 需要加入 positional encoding。
+但 attention 是 Transformer 最核心的信息交互模块。它决定了 token 之间怎么通信；FFN 决定每个 token 的表示怎么被加工；residual 和 normalization 决定深层网络能不能稳定训练。
 
-原始 Transformer 使用正弦余弦位置编码：
+所以这篇只解决一个基础问题：attention 怎么让 token 互相看。下一步再看 Transformer 是怎么把 attention 组织成大模型架构的。
 
-$$
-PE_{(pos,2i)}=\sin\left(\frac{pos}{10000^{2i/d}}\right)
-$$
+## 几个点
 
-$$
-PE_{(pos,2i+1)}=\cos\left(\frac{pos}{10000^{2i/d}}\right)
-$$
-
-现代模型里也常见 learned positional embedding、RoPE 等位置编码方式。
-
-位置编码的核心目的很简单：让模型知道 token 的顺序和相对位置。
-
-## 8. Transformer 模块（Transformer block）的基本结构
-
-一个 Transformer block 通常包含：
-
-```text
-self-attention
--> residual connection
--> layer normalization
--> feed-forward network
--> residual connection
--> layer normalization
-```
-
-Feed-forward network 通常是对每个 token 独立应用的 MLP：
-
-$$
-FFN(x)=W_2\sigma(W_1x+b_1)+b_2
-$$
-
-Self-attention 负责 token 之间的信息交互，FFN 负责对每个 token 的表示做非线性变换。
-
-Residual connection 让深层网络更容易训练，LayerNorm 让表示尺度更稳定。
-
+- Attention 的核心是根据 query-key 相似度，从 value 里加权取信息。
+- Self-attention 让同一个序列内部的 token 互相建模。
+- Multi-head attention 给模型多个并行视角，不同 head 可以学不同关系。
+- Mask 很关键。尤其是 causal mask，它决定语言模型只能从左到右生成。
+- Attention weight 可以帮助理解信息流，但不要简单当成完整解释。
 
 ## 参考资料
 
