@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.6k 字
+          2.9k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          22 分钟
+          24 分钟
         
       </span>
     
@@ -412,10 +412,10 @@
     
       
       
-        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制与 Transformer"
+        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">深度学习笔记 05：注意力机制与 Transformer</span>
+          <span class="category-post">深度学习笔记 05：注意力机制</span>
         </a>
       
     
@@ -487,51 +487,57 @@
 <p>这条链路是 deep learning 的训练核心。</p>
 <h2 id="神经元neuron在做什么">1. 神经元（neuron）在做什么</h2>
 <p>一个最简单的 neuron 可以写成：</p>
-<p><span
-class="math display"><em>z</em> = <em>w</em><sup>⊤</sup><em>x</em> + <em>b</em></span></p>
-<p><span
-class="math display"><em>h</em> = <em>σ</em>(<em>z</em>)</span></p>
-<p>其中，<span class="math inline"><em>x</em></span> 是输入，<span
-class="math inline"><em>w</em></span> 是权重，<span
-class="math inline"><em>b</em></span> 是 bias，<span
-class="math inline"><em>σ</em></span> 是 activation function。</p>
+<p><span class="math display">\[
+z = w^\top x + b
+\]</span></p>
+<p><span class="math display">\[
+h = \sigma(z)
+\]</span></p>
+<p>其中，<span class="math inline">\(x\)</span> 是输入，<span
+class="math inline">\(w\)</span> 是权重，<span
+class="math inline">\(b\)</span> 是 bias，<span
+class="math inline">\(\sigma\)</span> 是 activation function。</p>
 <p>如果没有 activation，这就是线性模型的一部分；加上 activation
 后，它可以引入非线性。</p>
 <p>一个具体例子：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">x = [study_hours, sleep_hours]<br>w = [0.8, 0.3]<br>b = -2<br></code></pre></td></tr></table></figure>
 <p>这个 neuron
 可能在粗略判断“考试通过倾向”。学习时间和睡眠时间越高，<span
-class="math inline"><em>z</em></span> 越大，经过 sigmoid 后输出越接近
-1。</p>
+class="math inline">\(z\)</span> 越大，经过 sigmoid 后输出越接近 1。</p>
 <p>当然真实神经网络里的 neuron
 不会这么直接可解释，但这个例子能帮助理解它的基本计算。</p>
 <h2 id="层layer就是一组神经元">2. 层（layer）就是一组神经元</h2>
 <p>把多个 neuron 放在一起，就是一层。</p>
 <p>线性层通常写成：</p>
-<p><span
-class="math display"><em>z</em> = <em>W</em><em>x</em> + <em>b</em></span></p>
-<p><span
-class="math display"><em>h</em> = <em>σ</em>(<em>z</em>)</span></p>
-<p>这里 <span class="math inline"><em>W</em></span> 是矩阵，<span
-class="math inline"><em>b</em></span> 是向量。每一行权重可以看成一个
+<p><span class="math display">\[
+z = Wx + b
+\]</span></p>
+<p><span class="math display">\[
+h = \sigma(z)
+\]</span></p>
+<p>这里 <span class="math inline">\(W\)</span> 是矩阵，<span
+class="math inline">\(b\)</span> 是向量。每一行权重可以看成一个
 neuron。</p>
 <p>如果输入是 batch，写法会变成：</p>
-<p><span
-class="math display"><em>H</em> = <em>σ</em>(<em>X</em><em>W</em><sup>⊤</sup>+<em>b</em>)</span></p>
+<p><span class="math display">\[
+H = \sigma(XW^\top + b)
+\]</span></p>
 <p>实际框架里不会手动写每个 neuron，而是通过矩阵乘法一次算完整层。</p>
 <h2 id="多层感知机mlp">3. 多层感知机（MLP）</h2>
 <p>MLP 由多个 fully connected layer 组成。</p>
 <p>一个两层 MLP 可以写成：</p>
-<p><span
-class="math display"><em>h</em> = <em>σ</em>(<em>W</em><sub>1</sub><em>x</em>+<em>b</em><sub>1</sub>)</span></p>
-<p><span
-class="math display"><em>ŷ</em> = <em>W</em><sub>2</sub><em>h</em> + <em>b</em><sub>2</sub></span></p>
-<p>其中，<span class="math inline"><em>h</em></span> 是 hidden
+<p><span class="math display">\[
+h = \sigma(W_1x + b_1)
+\]</span></p>
+<p><span class="math display">\[
+\hat{y} = W_2h + b_2
+\]</span></p>
+<p>其中，<span class="math inline">\(h\)</span> 是 hidden
 representation。</p>
 <p>分类任务里，最后通常接 softmax：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 p(y=k|x) = \frac{e^{z_k}}{\sum_j e^{z_j}}
-$$</span></p>
+\]</span></p>
 <p>回归任务里，最后可以直接输出连续值。</p>
 <p>MLP
 的缺点是没有针对图像、序列、文本结构做特殊假设。它很通用，但也很“笨”：如果输入是图片，MLP
@@ -543,66 +549,72 @@ $$</span></p>
 <p>以二分类 MLP 为例：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">x<br>-&gt; linear layer<br>-&gt; ReLU<br>-&gt; linear layer<br>-&gt; sigmoid<br>-&gt; binary cross entropy loss<br></code></pre></td></tr></table></figure>
 <p>写成公式：</p>
-<p><span
-class="math display"><em>h</em> = ReLU(<em>W</em><sub>1</sub><em>x</em>+<em>b</em><sub>1</sub>)</span></p>
-<p><span
-class="math display"><em>ŷ</em> = <em>σ</em>(<em>W</em><sub>2</sub><em>h</em>+<em>b</em><sub>2</sub>)</span></p>
-<p><span
-class="math display"><em>L</em> =  − [<em>y</em>log(<em>ŷ</em>)+(1−<em>y</em>)log(1−<em>ŷ</em>)]</span></p>
+<p><span class="math display">\[
+h = \text{ReLU}(W_1x+b_1)
+\]</span></p>
+<p><span class="math display">\[
+\hat{y} = \sigma(W_2h+b_2)
+\]</span></p>
+<p><span class="math display">\[
+L = -[y\log(\hat{y}) + (1-y)\log(1-\hat{y})]
+\]</span></p>
 <p>Forward pass 只解决一个问题：当前参数下，模型预测得怎么样。</p>
 <p>但训练还需要知道：如果 loss 大，参数应该怎么改。</p>
 <h2 id="反向传播backpropagation">5. 反向传播（backpropagation）</h2>
 <p>Backpropagation 的核心是 chain rule。</p>
 <p>如果：</p>
-<p><span
-class="math display"><em>L</em> = <em>L</em>(<em>ŷ</em>),  <em>ŷ</em> = <em>f</em>(<em>h</em>),  <em>h</em> = <em>g</em>(<em>θ</em>)</span></p>
+<p><span class="math display">\[
+L = L(\hat{y}), \quad \hat{y}=f(h), \quad h=g(\theta)
+\]</span></p>
 <p>那么：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \frac{\partial L}{\partial \theta}
 =
 \frac{\partial L}{\partial \hat{y}}
 \frac{\partial \hat{y}}{\partial h}
 \frac{\partial h}{\partial \theta}
-$$</span></p>
+\]</span></p>
 <p>这就是反向传播的直觉：loss
 对前面参数的影响，要沿着计算路径一层层传回去。</p>
 <p>它不是一种神秘算法，本质上就是高效地在计算图上应用链式法则。</p>
 <h2 id="一个小计算图例子">6. 一个小计算图例子</h2>
 <p>看一个最简单的例子：</p>
-<p><span
-class="math display"><em>z</em> = <em>w</em><em>x</em> + <em>b</em></span></p>
-<p><span class="math display"><em>ŷ</em> = <em>z</em></span></p>
-<p><span
-class="math display"><em>L</em> = (<em>ŷ</em>−<em>y</em>)<sup>2</sup></span></p>
-<p>现在要求 <span class="math inline"><em>L</em></span> 对 <span
-class="math inline"><em>w</em></span> 的梯度。</p>
+<p><span class="math display">\[
+z = wx + b
+\]</span></p>
+<p><span class="math display">\[
+\hat{y} = z
+\]</span></p>
+<p><span class="math display">\[
+L = (\hat{y} - y)^2
+\]</span></p>
+<p>现在要求 <span class="math inline">\(L\)</span> 对 <span
+class="math inline">\(w\)</span> 的梯度。</p>
 <p>根据 chain rule：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \frac{\partial L}{\partial w}
 =
 \frac{\partial L}{\partial \hat{y}}
 \frac{\partial \hat{y}}{\partial z}
 \frac{\partial z}{\partial w}
-$$</span></p>
+\]</span></p>
 <p>分别计算：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \frac{\partial L}{\partial \hat{y}} = 2(\hat{y}-y)
-$$</span></p>
-<p><span class="math display">$$
+\]</span></p>
+<p><span class="math display">\[
 \frac{\partial \hat{y}}{\partial z} = 1
-$$</span></p>
-<p><span class="math display">$$
+\]</span></p>
+<p><span class="math display">\[
 \frac{\partial z}{\partial w} = x
-$$</span></p>
+\]</span></p>
 <p>所以：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \frac{\partial L}{\partial w} = 2(\hat{y}-y)x
-$$</span></p>
-<p>如果预测太大，<span
-class="math inline"><em>ŷ</em> − <em>y</em></span> 为正，梯度方向会让
-<span class="math inline"><em>w</em></span>
-下降；如果预测太小，梯度方向会让 <span
-class="math inline"><em>w</em></span>
+\]</span></p>
+<p>如果预测太大，<span class="math inline">\(\hat{y}-y\)</span>
+为正，梯度方向会让 <span class="math inline">\(w\)</span>
+下降；如果预测太小，梯度方向会让 <span class="math inline">\(w\)</span>
 上升。这个例子很简单，但多层网络也是同一个逻辑，只是计算图更大。</p>
 <h2 id="自动求导automatic-differentiation">7. 自动求导（automatic
 differentiation）</h2>
@@ -633,17 +645,17 @@ function）的作用</h2>
 <tbody>
 <tr class="odd">
 <td>Sigmoid</td>
-<td><span class="math inline">$\frac{1}{1+e^{-x}}$</span></td>
+<td><span class="math inline">\(\frac{1}{1+e^{-x}}\)</span></td>
 <td>输出在 0 到 1，容易梯度饱和</td>
 </tr>
 <tr class="even">
 <td>Tanh</td>
-<td><span class="math inline">tanh (<em>x</em>)</span></td>
+<td><span class="math inline">\(\tanh(x)\)</span></td>
 <td>输出在 -1 到 1，也可能饱和</td>
 </tr>
 <tr class="odd">
 <td>ReLU</td>
-<td><span class="math inline">max (0,<em>x</em>)</span></td>
+<td><span class="math inline">\(\max(0,x)\)</span></td>
 <td>简单高效，深度网络常用</td>
 </tr>
 <tr class="even">

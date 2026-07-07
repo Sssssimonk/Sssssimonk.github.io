@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.9k 字
+          3.1k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          24 分钟
+          26 分钟
         
       </span>
     
@@ -488,8 +488,9 @@
 fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。</p>
 <h2 id="base-model-为什么不能直接用">1. Base model 为什么不能直接用</h2>
 <p>Base model 的训练目标通常是 next token prediction：</p>
-<p><span
-class="math display">max<sub><em>θ</em></sub>∑<sub><em>t</em></sub>log <em>p</em><sub><em>θ</em></sub>(<em>x</em><sub><em>t</em></sub>∣<em>x</em><sub> &lt; <em>t</em></sub>)</span></p>
+<p><span class="math display">\[
+\max_\theta \sum_t \log p_\theta(x_t \mid x_{&lt;t})
+\]</span></p>
 <p>它学的是文本分布。</p>
 <p>如果给 base model 一个问题：</p>
 <blockquote>
@@ -498,11 +499,11 @@ class="math display">max<sub><em>θ</em></sub>∑<sub><em>t</em></sub>log <em>
 <p>它可能回答，也可能继续补全网页文本，或者生成一段类似问答数据的续写。问题不一定是它“不知道”，而是它没有被训练成稳定的
 instruction-following model。</p>
 <p>SFT 的目标就是把输入输出形式固定下来：</p>
-<p><span
-class="math display">max<sub><em>θ</em></sub>log <em>π</em><sub><em>θ</em></sub>(<em>y</em>∣<em>x</em>)</span></p>
-<p>其中 <span class="math inline"><em>x</em></span> 是
-instruction，<span class="math inline"><em>y</em></span>
-是高质量回答。</p>
+<p><span class="math display">\[
+\max_\theta \log \pi_\theta(y \mid x)
+\]</span></p>
+<p>其中 <span class="math inline">\(x\)</span> 是 instruction，<span
+class="math inline">\(y\)</span> 是高质量回答。</p>
 <h3 id="sft-具体学到了什么">SFT 具体学到了什么</h3>
 <p>SFT 不只是“灌知识”。</p>
 <p>它主要学这些行为：</p>
@@ -543,19 +544,23 @@ instruction，<span class="math inline"><em>y</em></span>
 差距很大，PEFT 可能不如 full fine-tuning。</p>
 <h3 id="lora低秩更新">LoRA：低秩更新</h3>
 <p>LoRA 的核心想法是：不要直接训练原始权重矩阵 <span
-class="math inline"><em>W</em></span>，而是冻结 <span
-class="math inline"><em>W</em></span>，只学习一个低秩更新：</p>
-<p><span
-class="math display"><em>W</em>′ = <em>W</em> + <em>Δ</em><em>W</em></span></p>
+class="math inline">\(W\)</span>，而是冻结 <span
+class="math inline">\(W\)</span>，只学习一个低秩更新：</p>
+<p><span class="math display">\[
+W&#39; = W + \Delta W
+\]</span></p>
 <p>其中：</p>
-<p><span
-class="math display"><em>Δ</em><em>W</em> = <em>B</em><em>A</em></span></p>
-<p>如果 <span
-class="math inline"><em>W</em> ∈ ℝ<sup><em>d</em> × <em>k</em></sup></span>，那么可以设：</p>
-<p><span
-class="math display"><em>B</em> ∈ ℝ<sup><em>d</em> × <em>r</em></sup>,  <em>A</em> ∈ ℝ<sup><em>r</em> × <em>k</em></sup>,  <em>r</em> ≪ min (<em>d</em>,<em>k</em>)</span></p>
-<p>训练参数从 <span class="math inline"><em>d</em><em>k</em></span> 变成
-<span class="math inline"><em>r</em>(<em>d</em>+<em>k</em>)</span>。</p>
+<p><span class="math display">\[
+\Delta W = BA
+\]</span></p>
+<p>如果 <span class="math inline">\(W \in \mathbb{R}^{d \times
+k}\)</span>，那么可以设：</p>
+<p><span class="math display">\[
+B \in \mathbb{R}^{d \times r}, \quad A \in \mathbb{R}^{r \times k},
+\quad r \ll \min(d,k)
+\]</span></p>
+<p>训练参数从 <span class="math inline">\(dk\)</span> 变成 <span
+class="math inline">\(r(d+k)\)</span>。</p>
 <p>直觉上，LoRA
 假设任务适配所需的权重变化不需要覆盖完整高维空间，而可以落在一个低秩子空间里。</p>
 <p>这不是说模型能力只剩低秩。Base model 的原始参数仍然在，LoRA
@@ -563,8 +568,8 @@ class="math display"><em>B</em> ∈ ℝ<sup><em>d</em> × <em>r</em></su
 <p><strong>LoRA 插在哪里</strong></p>
 <p>LoRA 常插在 Transformer 的线性层上，比如：</p>
 <ul>
-<li>attention 的 <span
-class="math inline"><em>W</em><sub><em>Q</em></sub>, <em>W</em><sub><em>K</em></sub>, <em>W</em><sub><em>V</em></sub>, <em>W</em><sub><em>O</em></sub></span></li>
+<li>attention 的 <span class="math inline">\(W_Q, W_K, W_V,
+W_O\)</span></li>
 <li>FFN 的 up projection / down projection</li>
 </ul>
 <p>具体插哪里会影响效果和成本。</p>
@@ -576,15 +581,16 @@ rate、数据质量都会显著影响效果。</p>
 理解成固定魔法。它是一个低成本适配工具，具体效果依赖配置。</p>
 <h3 id="lora-为什么推理时方便">LoRA 为什么推理时方便</h3>
 <p>LoRA 的更新是：</p>
-<p><span
-class="math display"><em>h</em> = <em>W</em><em>x</em> + <em>B</em><em>A</em><em>x</em></span></p>
-<p>训练时可以把 <span class="math inline"><em>B</em><em>A</em></span>
-当成旁路。</p>
+<p><span class="math display">\[
+h = Wx + BAx
+\]</span></p>
+<p>训练时可以把 <span class="math inline">\(BA\)</span> 当成旁路。</p>
 <p>部署时，如果只服务一个 adapter，可以把 <span
-class="math inline"><em>B</em><em>A</em></span> 合并回 <span
-class="math inline"><em>W</em></span>：</p>
-<p><span
-class="math display"><em>W</em><sub>merged</sub> = <em>W</em> + <em>B</em><em>A</em></span></p>
+class="math inline">\(BA\)</span> 合并回 <span
+class="math inline">\(W\)</span>：</p>
+<p><span class="math display">\[
+W_{\mathrm{merged}} = W + BA
+\]</span></p>
 <p>这样推理时不一定增加额外延迟。</p>
 <p>如果要服务多个 adapter，就可以保留 base model，按任务加载不同 LoRA
 权重。</p>
@@ -607,11 +613,13 @@ attention 时能读到这些可学习信息。</p>
 <h3 id="prompt-tuning-和-p-tuning">Prompt Tuning 和 P-Tuning</h3>
 <p>Prompt tuning 学的是输入 embedding 前面的 soft prompt。</p>
 <p>如果原输入是：</p>
-<p><span
-class="math display">[<em>x</em><sub>1</sub>,<em>x</em><sub>2</sub>,...,<em>x</em><sub><em>n</em></sub>]</span></p>
+<p><span class="math display">\[
+[x_1, x_2, ..., x_n]
+\]</span></p>
 <p>prompt tuning 会在前面拼上一组可学习向量：</p>
-<p><span
-class="math display">[<em>p</em><sub>1</sub>,<em>p</em><sub>2</sub>,...,<em>p</em><sub><em>m</em></sub>,<em>x</em><sub>1</sub>,<em>x</em><sub>2</sub>,...,<em>x</em><sub><em>n</em></sub>]</span></p>
+<p><span class="math display">\[
+[p_1, p_2, ..., p_m, x_1, x_2, ..., x_n]
+\]</span></p>
 <p>P-Tuning 则进一步用更复杂的方式生成或组织这些 continuous
 prompts，比如使用 MLP / LSTM 等 prompt encoder。</p>
 <p>它们的共同点是：冻结模型主体，只训练 prompt-like 参数。</p>

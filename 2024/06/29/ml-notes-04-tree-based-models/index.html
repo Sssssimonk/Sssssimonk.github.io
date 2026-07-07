@@ -550,11 +550,11 @@ tree）的基本想法</h2>
 前后到底变纯了多少”。</p>
 <p>在这里使用<strong>熵（entropy）</strong> 衡量不确定性：
 熵越低，节点越“纯”</p>
-<p><span
-class="math display"><em>H</em>(<em>S</em>) =  − ∑<sub><em>c</em></sub><em>p</em><sub><em>c</em></sub>log<sub>2</sub>(<em>p</em><sub><em>c</em></sub>)</span></p>
-<p>其中，<span
-class="math inline"><em>p</em><sub><em>c</em></sub></span> 是类别 <span
-class="math inline"><em>c</em></span> 在节点中的比例。</p>
+<p><span class="math display">\[
+H(S)=-\sum_{c}p_c\log_2(p_c)
+\]</span></p>
+<p>其中，<span class="math inline">\(p_c\)</span> 是类别 <span
+class="math inline">\(c\)</span> 在节点中的比例。</p>
 <p>二分类时，如果正负样本各一半，entropy
 最大；如果节点里全是同一类，entropy 为 0。</p>
 <p>例：</p>
@@ -584,9 +584,9 @@ class="math inline"><em>c</em></span> 在节点中的比例。</p>
 <h2 id="splitting-metrics">3. Splitting metrics</h2>
 <p><strong>信息增益（information gain）</strong></p>
 <p>Information Gain 衡量 split 后 entropy 降低了多少：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 IG(S,A)=H(S)-\sum_{v \in Values(A)}\frac{|S_v|}{|S|}H(S_v)
-$$</span></p>
+\]</span></p>
 <p>前半部分是 split 前的不确定性，后半部分是 split
 后各子节点不确定性的加权平均。</p>
 <p>如果 split 后子节点变得很纯，后半部分就小，information gain
@@ -597,15 +597,16 @@ $$</span></p>
 <p>比如用户 ID 这种特征，每个用户几乎都是唯一值。按用户 ID
 切，训练集上可以变得很纯，但完全没有泛化意义。</p>
 <p>Gain Ratio 会对这种情况做惩罚：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 GainRatio(S,A)=\frac{InformationGain(S,A)}{SplitInfo(S,A)}
-$$</span></p>
+\]</span></p>
 <p>C4.5 使用 gain ratio。直觉上，它不只看 split 后纯不纯，也看这个 split
 是不是把数据切得过于碎。</p>
 <p><strong>基尼指数（Gini index）</strong></p>
 <p>CART 分类树常用 Gini Index：</p>
-<p><span
-class="math display"><em>G</em><em>i</em><em>n</em><em>i</em>(<em>S</em>) = 1 − ∑<sub><em>c</em></sub><em>p</em><sub><em>c</em></sub><sup>2</sup></span></p>
+<p><span class="math display">\[
+Gini(S)=1-\sum_c p_c^2
+\]</span></p>
 <p>Gini 也衡量节点不纯度。节点越纯，Gini 越小。</p>
 <p>二分类时：</p>
 <table>

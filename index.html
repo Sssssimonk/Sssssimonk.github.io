@@ -300,7 +300,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Reading papers, tracing ideas, and writing down what actually works.,AI research notes, algorithm intuition, and engineering lessons."></span>
+            <span id="subtitle" data-typed-text="人类与AI的不同，在于Curiosity &amp; Empathy。,思考，是我们最强大的武器。"></span>
           
         </div>
 
@@ -905,15 +905,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
-          现代大模型笔记 03：长上下文，注意力、KV cache 与位置编码
+        <a href="/2025/09/20/modern-llm-notes-03-inference/" target="_self">
+          现代大模型笔记 03：LLM 推理与效率优化
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/20/modern-llm-notes-03-long-context/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/09/20/modern-llm-notes-03-inference/" target="_self">
         <div>
-          这一篇整理长上下文。 很多模型现在都会宣传 32K、128K、1M context window。这个数字很吸引人，但它很容易被误解。 长上下文不是“把 max length 参数调大”。真正困难的地方有三类：  attention 计算量变大 KV cache 显存变大 上下文变长后，模型未必能稳定用好信息  所以这篇重点不是列方法，而是看长上下文到底在解决什么瓶颈。 1. Self-atten
+          这一篇整理 LLM inference。 训练阶段关心的是怎么把参数学出来；推理阶段关心的是怎么把模型稳定、低延迟、高吞吐地跑起来。 LLM 推理不像普通分类模型那样一次 forward 就结束。它是自回归生成： 1prefill prompt -&gt; decode token 1 -&gt; decode token 2 -&gt; ... 所以它的系统瓶颈很特别：一边要算 attentio
         </div>
       </a>
 
@@ -954,15 +954,15 @@
             
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
-              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
-            
               <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
-            
-              <a href="/tags/RoPE/">#RoPE</a>
             
               <a href="/tags/KV-cache/">#KV cache</a>
             
-              <a href="/tags/%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87/">#长上下文</a>
+              <a href="/tags/%E6%8E%A8%E7%90%86%E4%BC%98%E5%8C%96/">#推理优化</a>
+            
+              <a href="/tags/vLLM/">#vLLM</a>
+            
+              <a href="/tags/DeepSpeed/">#DeepSpeed</a>
             
               <a href="/tags/FlashAttention/">#FlashAttention</a>
             
@@ -979,14 +979,14 @@
       <h2 class="index-header">
         
         <a href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
-          现代大模型笔记 01：Transformer 之后到底变了什么
+          现代大模型笔记 01：Transformer 架构与现代改进
         </a>
       </h2>
 
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
         <div>
-          transformer架构图  一切的一切，就从这个”变形金刚“开始的 1. 从 encoder-decoder 到 decoder-only 原始 Transformer是seq2seq架构，Encoder 负责读完整个输入句子，decoder 负责一步一步生成目标句子。 但现在很多通用语言模型，比如 GPT、LLaMA、Qwen、DeepSeek，主要采用 decoder-only 结构。
+          transformer架构图  这一篇整理 Transformer 架构本身，以及它在现代 LLM 里发生了哪些变化。 Attention 的基础公式已经在深度学习笔记里讲过了，这里不再重复推 Q/K/V。这里更关心： 1一个 Transformer block 长什么样，为什么现代 LLM 会改成现在这个形态。 1. 原始 Transformer 是 encoder-decoder 原始 T
         </div>
       </a>
 
@@ -1027,11 +1027,9 @@
             
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
-              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
+              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
             
               <a href="/tags/Transformer/">#Transformer</a>
-            
-              <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
             
               <a href="/tags/RoPE/">#RoPE</a>
             
@@ -1136,7 +1134,7 @@
       }
       var text = subtitle.getAttribute('data-typed-text');
       
-        var texts = ["Reading papers, tracing ideas, and writing down what actually works.","AI research notes, algorithm intuition, and engineering lessons."];
+        var texts = ["人类与AI的不同，在于Curiosity & Empathy。","思考，是我们最强大的武器。"];
         var idx = Math.floor(Math.random() * texts.length);
         typing(texts[idx]);
       

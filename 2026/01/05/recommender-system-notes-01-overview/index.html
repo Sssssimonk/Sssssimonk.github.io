@@ -483,11 +483,12 @@ item，但目标并不完全一样：</p>
 <p>给定用户、item、上下文，预测用户是否点击。</p>
 </blockquote>
 <p>形式上确实像分类问题：</p>
-<p><span
-class="math display"><em>ŷ</em> = <em>f</em><sub><em>θ</em></sub>(<em>u</em>,<em>i</em>,<em>c</em>)</span></p>
-<p>其中 <span class="math inline"><em>u</em></span> 是用户特征，<span
-class="math inline"><em>i</em></span> 是 item 特征，<span
-class="math inline"><em>c</em></span> 是上下文特征。</p>
+<p><span class="math display">\[
+\hat{y} = f_\theta(u, i, c)
+\]</span></p>
+<p>其中 <span class="math inline">\(u\)</span> 是用户特征，<span
+class="math inline">\(i\)</span> 是 item 特征，<span
+class="math inline">\(c\)</span> 是上下文特征。</p>
 <p>但推荐系统和普通分类有几个明显区别。</p>
 <p>第一，样本不是独立同分布的。用户的兴趣会变，item
 的热度会变，平台策略也会变。今天的点击分布不一定能代表明天。</p>
@@ -551,12 +552,11 @@ item 的内容，而是先利用用户行为形成的共现关系。</p>
 <p>矩阵分解可以看成协同过滤的一个更参数化版本。</p>
 <p>假设有一个用户-item 交互矩阵。矩阵里的每个元素表示用户对 item
 的偏好。矩阵分解会给每个用户和每个 item 学一个向量：</p>
-<p><span
-class="math display"><em>r̂</em><sub><em>u</em><em>i</em></sub> = <em>p</em><sub><em>u</em></sub><sup>⊤</sup><em>q</em><sub><em>i</em></sub></span></p>
-<p>其中 <span class="math inline"><em>p</em><sub><em>u</em></sub></span>
-是用户向量，<span
-class="math inline"><em>q</em><sub><em>i</em></sub></span> 是 item
-向量。</p>
+<p><span class="math display">\[
+\hat{r}_{ui} = p_u^\top q_i
+\]</span></p>
+<p>其中 <span class="math inline">\(p_u\)</span> 是用户向量，<span
+class="math inline">\(q_i\)</span> 是 item 向量。</p>
 <p>如果两个向量内积大，就说明模型认为这个用户更可能喜欢这个 item。</p>
 <p>这个思想后来几乎变成了推荐系统的基本语言：用户、item、类别、作者、广告主、query、上下文，都可以先变成
 embedding，再做匹配或排序。</p>
@@ -580,8 +580,9 @@ embedding，再做匹配或排序。</p>
 <li>多路召回：多个召回通道并行，每个通道覆盖不同兴趣。</li>
 </ul>
 <p>双塔模型可以写成：</p>
-<p><span
-class="math display"><em>s</em>(<em>u</em>,<em>i</em>) = <em>f</em><sub><em>θ</em></sub>(<em>u</em>)<sup>⊤</sup><em>g</em><sub><em>ϕ</em></sub>(<em>i</em>)</span></p>
+<p><span class="math display">\[
+s(u,i) = f_\theta(u)^\top g_\phi(i)
+\]</span></p>
 <p>用户塔输出用户向量，item 塔输出 item 向量，然后通过向量检索找
 top-k。</p>
 <p>双塔的优点是快。item 向量可以离线算好，线上只需要算用户向量，然后做

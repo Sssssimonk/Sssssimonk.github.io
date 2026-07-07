@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.2k 字
+          5.3k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          44 分钟
+          45 分钟
         
       </span>
     
@@ -509,16 +509,16 @@ reward。</p>
 <h2 id="dr.grpo重新看-normalization">2. Dr.GRPO：重新看
 normalization</h2>
 <p>GRPO 的 advantage 常写成：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 A_i = \frac{r_i - \mu}{\sigma}
-$$</span></p>
-<p>其中 <span class="math inline"><em>μ</em></span> 和 <span
-class="math inline"><em>σ</em></span> 是同一组 responses 的 reward
+\]</span></p>
+<p>其中 <span class="math inline">\(\mu\)</span> 和 <span
+class="math inline">\(\sigma\)</span> 是同一组 responses 的 reward
 均值和标准差。</p>
 <p>这个标准化看起来很自然，但它也会改变训练信号强度。</p>
-<p>如果组内 reward 差异很小，<span class="math inline"><em>σ</em></span>
+<p>如果组内 reward 差异很小，<span class="math inline">\(\sigma\)</span>
 很小，更新可能被放大或不稳定。</p>
-<p>如果组内全同，<span class="math inline"><em>σ</em></span> 接近
+<p>如果组内全同，<span class="math inline">\(\sigma\)</span> 接近
 0，训练信号又会失效。</p>
 <p>Dr.GRPO 这类方法的核心思路，是重新审视 group normalization
 是否真的合理，尤其是在二元 reward 场景里。</p>
@@ -610,17 +610,20 @@ confidence。</p>
 <h2 id="kto为什么不是-dpo-的简单替代">8. KTO：为什么不是 DPO
 的简单替代</h2>
 <p>DPO 需要 preference pair：</p>
-<p><span
-class="math display">(<em>x</em>,<em>y</em><sub><em>w</em></sub>,<em>y</em><sub><em>l</em></sub>)</span></p>
+<p><span class="math display">\[
+(x, y_w, y_l)
+\]</span></p>
 <p>也就是同一个 prompt 下，一个 chosen response，一个 rejected
 response。</p>
 <p>但真实产品数据经常不是这样。</p>
 <p>用户可能只是点了赞或踩：</p>
-<p><span
-class="math display">(<em>x</em>,<em>y</em>,desirable)</span></p>
+<p><span class="math display">\[
+(x, y, \mathrm{desirable})
+\]</span></p>
 <p>或者：</p>
-<p><span
-class="math display">(<em>x</em>,<em>y</em>,undesirable)</span></p>
+<p><span class="math display">\[
+(x, y, \mathrm{undesirable})
+\]</span></p>
 <p>没有配对 rejected response。</p>
 <p>KTO 的动机就是：能不能直接用这种 binary feedback 做 alignment？</p>
 <p>KTO 全称是 Kahneman-Tversky Optimization，借用了 prospect theory
@@ -628,15 +631,15 @@ class="math display">(<em>x</em>,<em>y</em>,undesirable)</span></p>
 <h2 id="kto-的-implied-reward">9. KTO 的 implied reward</h2>
 <p>KTO 也使用 policy 和 reference 的 log-ratio 来定义 implied
 reward：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 r_\theta(x,y) = \beta \log \frac{\pi_\theta(y \mid
 x)}{\pi_{\mathrm{ref}}(y \mid x)}
-$$</span></p>
+\]</span></p>
 <p>这个量表示：相对于 reference model，当前 policy 对这个 response
 的偏好提高了多少。</p>
-<p>如果 <span class="math inline"><em>y</em></span> 是
+<p>如果 <span class="math inline">\(y\)</span> 是
 desirable，应该提高它的 implied reward。</p>
-<p>如果 <span class="math inline"><em>y</em></span> 是
+<p>如果 <span class="math inline">\(y\)</span> 是
 undesirable，应该降低它的 implied reward。</p>
 <p>和 DPO 不同，KTO 不需要同一个 prompt 下同时有 chosen 和
 rejected。它只需要知道某个 response 是好还是坏。</p>
@@ -659,9 +662,8 @@ prompt？类别比例是否平衡？</p>
 <p>DPO 学的是 pairwise preference。</p>
 <p>它看的是：</p>
 <blockquote>
-<p>对同一个 prompt，<span
-class="math inline"><em>y</em><sub><em>w</em></sub></span> 应该比 <span
-class="math inline"><em>y</em><sub><em>l</em></sub></span> 更可能。</p>
+<p>对同一个 prompt，<span class="math inline">\(y_w\)</span> 应该比
+<span class="math inline">\(y_l\)</span> 更可能。</p>
 </blockquote>
 <p>KTO 学的是 binary desirability。</p>
 <p>它看的是：</p>

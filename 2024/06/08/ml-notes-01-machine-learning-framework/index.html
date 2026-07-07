@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.7k 字
+          2.8k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          23 分钟
+          24 分钟
         
       </span>
     
@@ -498,12 +498,13 @@
 <strong>泛化</strong>。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过的数据上仍然给出合理预测。</p>
 <h2 id="一个机器学习问题由什么组成">1. 一个机器学习问题由什么组成</h2>
 <p>最常见的机器学习问题可以写成：</p>
-<p><span
-class="math display"><em>ŷ</em> = <em>f</em><sub><em>θ</em></sub>(<em>x</em>)</span></p>
-<p>其中，<span class="math inline"><em>x</em></span> 是输入特征，<span
-class="math inline"><em>ŷ</em></span> 是模型预测，<span
-class="math inline"><em>f</em><sub><em>θ</em></sub></span> 是模型，<span
-class="math inline"><em>θ</em></span> 是模型参数。</p>
+<p><span class="math display">\[
+\hat{y} = f_\theta(x)
+\]</span></p>
+<p>其中，<span class="math inline">\(x\)</span> 是输入特征，<span
+class="math inline">\(\hat{y}\)</span> 是模型预测，<span
+class="math inline">\(f_\theta\)</span> 是模型，<span
+class="math inline">\(\theta\)</span> 是模型参数。</p>
 <figure>
 <img src="/img/ml1_overview.png" srcset="/img/loading.gif" lazyload alt="机器学习架构" />
 <figcaption aria-hidden="true">机器学习架构</figcaption>
@@ -526,25 +527,24 @@ model）</p>
 <p>可以看到根据是否有样本label可以分为supervised learning和unsupervised
 learning，并且可以继续细分为regression，classification（在某种情况下可以互相切换，比如regression拟合出的线就可以用来分类），clustering，再加上强化学习就组成我们广义下定义的机器学习。</p>
 <p>机器学习训练可以粗略理解成最小化 empirical risk：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \theta^* = \arg\min_\theta \frac{1}{n}\sum_{i=1}^{n} L(f_\theta(x_i),
 y_i)
-$$</span></p>
-<p>在所有可能的参数 <span class="math inline"><em>θ</em></span>
+\]</span></p>
+<p>在所有可能的参数 <span class="math inline">\(\theta\)</span>
 中，找到一组参数，让模型在训练数据上的平均 loss 尽可能小。</p>
 <h2 id="机器学习方向的分类">2. 机器学习方向的分类</h2>
 <p>机器学习通常先按有没有 label 来分。</p>
 <p><strong>Supervised Learning</strong>
-有明确的输入和目标输出。模型看到的是 <span
-class="math inline">(<em>x</em>,<em>y</em>)</span>，目标是学会从 <span
-class="math inline"><em>x</em></span> 预测 <span
-class="math inline"><em>y</em></span>。常见任务包括
+有明确的输入和目标输出。模型看到的是 <span class="math inline">\((x,
+y)\)</span>，目标是学会从 <span class="math inline">\(x\)</span> 预测
+<span class="math inline">\(y\)</span>。常见任务包括
 <strong>regression</strong> 和 <strong>classification</strong>。</p>
 <p>Regression 预测连续值，比如房价、温度、点击率。Classification
 预测类别，比如垃圾邮件识别、疾病诊断、图片分类。</p>
 <p><strong>Unsupervised Learning</strong> 没有明确的 label。模型只看到
 <span
-class="math inline"><em>x</em></span>，目标是发现数据内部结构。常见任务包括聚类
+class="math inline">\(x\)</span>，目标是发现数据内部结构。常见任务包括聚类
 clustering、dimensionality reduction 降维。</p>
 <p>简单说，supervised learning
 更像是在学一个带答案的映射函数，尝试让数据分布向真实的数据分布靠近。而unsupervised
@@ -570,13 +570,12 @@ learning
 <h3 id="判别模型-vs-生成模型">3. 判别模型 vs 生成模型</h3>
 <ul>
 <li><strong>判别模型</strong>：直接学习决策边界或条件概率 <span
-class="math inline"><em>P</em>(<em>y</em>|<em>x</em>)</span>，关注“给定输入，哪个类别最可能”。<br />
+class="math inline">\(P(y|x)\)</span>，关注“给定输入，哪个类别最可能”。<br />
 <em>例子</em>：KNN、逻辑回归、支持向量机、神经网络。<br />
 </li>
 <li><strong>生成模型</strong>：学习数据的联合分布 <span
-class="math inline"><em>P</em>(<em>x</em>,<em>y</em>)</span>，然后通过贝叶斯定理得到
-<span
-class="math inline"><em>P</em>(<em>y</em>|<em>x</em>)</span>。它能生成新样本，展示数据的底层结构。<br />
+class="math inline">\(P(x, y)\)</span>，然后通过贝叶斯定理得到 <span
+class="math inline">\(P(y|x)\)</span>。它能生成新样本，展示数据的底层结构。<br />
 <em>例子</em>：朴素贝叶斯、高斯混合模型、隐马尔可夫模型、生成对抗网络（GAN）。</li>
 </ul>
 <h3 id="基于距离-vs-基于记忆常用描述类别">4. 基于距离 vs

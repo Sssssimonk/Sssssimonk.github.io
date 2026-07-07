@@ -336,7 +336,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.7k 字
+          5.8k 字
         
       </span>
     
@@ -347,7 +347,7 @@
         
         
         
-          48 分钟
+          49 分钟
         
       </span>
     
@@ -499,8 +499,10 @@ signal。</p>
 student model。</p>
 <p>最简单的 supervised distillation 是让 student 模仿 teacher
 的输出：</p>
-<p><span
-class="math display">ℒ<sub><em>K</em><em>D</em></sub> = <em>D</em><sub><em>K</em><em>L</em></sub>(<em>p</em><sub>teacher</sub>(⋅∣<em>x</em>)||<em>p</em><sub>student</sub>(⋅∣<em>x</em>))</span></p>
+<p><span class="math display">\[
+\mathcal{L}_{KD} = D_{KL}(p_{\mathrm{teacher}}(\cdot \mid x) ||
+p_{\mathrm{student}}(\cdot \mid x))
+\]</span></p>
 <p>在 LLM 里，可以让 teacher 生成高质量 answers，然后 student 做
 SFT。</p>
 <p>这类方法的优点是简单。</p>
@@ -527,7 +529,9 @@ teacher 在这些 responses 或中间 token 上提供监督。</p>
 <h2 id="rlvr-的-sparse-reward-问题">3. RLVR 的 sparse reward 问题</h2>
 <p>以数学题为例。</p>
 <p>GRPO 可能只知道最终答案是否正确：</p>
-<p><span class="math display"><em>r</em>(<em>y</em>) ∈ {0, 1}</span></p>
+<p><span class="math display">\[
+r(y) \in \{0,1\}
+\]</span></p>
 <p>如果答案错了，模型不知道哪一步错。</p>
 <p>如果答案对了，模型也不知道中间哪些 token 真的关键。</p>
 <p>这种 scalar reward 很稀疏。</p>
@@ -539,20 +543,20 @@ token 位置，teacher 都可以给出概率分布或 log probability。</p>
 <p>一个简化的 OPD 流程可以写成：</p>
 <ol type="1">
 <li>从 prompt dataset 里取一批 prompts</li>
-<li>student policy <span
-class="math inline"><em>π</em><sub><em>θ</em></sub></span> 生成
+<li>student policy <span class="math inline">\(\pi_\theta\)</span> 生成
 responses</li>
-<li>teacher model <span
-class="math inline"><em>π</em><sub><em>T</em></sub></span> 对这些
+<li>teacher model <span class="math inline">\(\pi_T\)</span> 对这些
 on-policy responses 计算 token-level supervision</li>
 <li>student 用 distillation loss 更新</li>
 </ol>
 <p>如果 student 生成：</p>
-<p><span
-class="math display"><em>y</em> = (<em>y</em><sub>1</sub>,<em>y</em><sub>2</sub>,...,<em>y</em><sub><em>T</em></sub>)</span></p>
+<p><span class="math display">\[
+y = (y_1, y_2, ..., y_T)
+\]</span></p>
 <p>teacher 可以在每个位置给：</p>
-<p><span
-class="math display">log <em>π</em><sub><em>T</em></sub>(<em>y</em><sub><em>t</em></sub>∣<em>x</em>,<em>y</em><sub> &lt; <em>t</em></sub>)</span></p>
+<p><span class="math display">\[
+\log \pi_T(y_t \mid x, y_{&lt;t})
+\]</span></p>
 <p>student 则优化自己在这些 on-policy tokens 上的行为。</p>
 <p>这和纯 SFT 不一样。SFT 的 response 通常来自数据集；OPD 的 response
 来自 student 当前 policy。</p>
@@ -560,12 +564,14 @@ class="math display">log <em>π</em><sub><em>T</em></sub>(<em>y</em><sub><em>t
 <p>OPD 论文里经常会出现 KL objective。</p>
 <p>Forward KL 和 reverse KL 的行为不一样。</p>
 <p>Forward KL：</p>
-<p><span
-class="math display"><em>D</em><sub><em>K</em><em>L</em></sub>(<em>p</em><sub><em>T</em></sub>||<em>p</em><sub><em>θ</em></sub>)</span></p>
+<p><span class="math display">\[
+D_{KL}(p_T || p_\theta)
+\]</span></p>
 <p>倾向于让 student 覆盖 teacher 的分布。</p>
 <p>Reverse KL：</p>
-<p><span
-class="math display"><em>D</em><sub><em>K</em><em>L</em></sub>(<em>p</em><sub><em>θ</em></sub>||<em>p</em><sub><em>T</em></sub>)</span></p>
+<p><span class="math display">\[
+D_{KL}(p_\theta || p_T)
+\]</span></p>
 <p>倾向于让 student 避开 teacher 认为低概率的区域。</p>
 <p>在生成模型里，reverse KL 往往更 mode-seeking。它会鼓励 student
 更集中地落到 teacher 支持的高质量区域。</p>
@@ -575,9 +581,9 @@ class="math display"><em>D</em><sub><em>K</em><em>L</em></sub>(<em>p</em><sub><e
 <h2 id="opd-和-grpo-的核心差别">6. OPD 和 GRPO 的核心差别</h2>
 <p>GRPO 的训练信号通常是 response-level reward。</p>
 <p>比如：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 A_i = \frac{r_i - \mu}{\sigma}
-$$</span></p>
+\]</span></p>
 <p>它告诉模型：这一组 responses 里哪个更好。</p>
 <p>OPD 的训练信号来自 teacher 对 token distribution 的判断。</p>
 <p>它告诉模型：在 student 自己走到的上下文里，teacher

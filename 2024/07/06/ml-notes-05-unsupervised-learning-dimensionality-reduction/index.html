@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning） 无监督学习只有输入 x，没有标签 y。 比如有一批用户行为数据：    用户 访问次数 平均停留时间 购买次">
+    <meta name="description" content="这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 05：无监督学习与降维">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning） 无监督学习只有输入 x，没有标签 y。 比如有一批用户行为数据：    用户 访问次数 平均停留时间 购买次">
+<meta property="og:description" content="这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-07-06T14:00:00.000Z">
 <meta property="article:modified_time" content="2024-07-06T14:00:00.000Z">
@@ -492,9 +492,8 @@ label，模型知道自己要预测什么；无监督学习没有明确答案，
 clustering 和 dimensionality reduction。</p>
 <h2 id="什么是无监督学习unsupervised-learning">1.
 什么是无监督学习（unsupervised learning）</h2>
-<p>无监督学习只有输入 <span
-class="math inline"><em>x</em></span>，没有标签 <span
-class="math inline"><em>y</em></span>。</p>
+<p>无监督学习只有输入 <span class="math inline">\(x\)</span>，没有标签
+<span class="math inline">\(y\)</span>。</p>
 <p>比如有一批用户行为数据：</p>
 <table>
 <thead>
@@ -547,22 +546,20 @@ cluster，DBSCAN 偏向密度连通区域，hierarchical clustering
 更强调层级关系。</p>
 <h3 id="kmeans最经典的聚类方法">KMeans：最经典的聚类方法</h3>
 <p>KMeans 是最经典的 clustering 方法之一。它需要先指定 cluster 数量
-<span class="math inline"><em>K</em></span>。</p>
+<span class="math inline">\(K\)</span>。</p>
 <p>基本流程：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">1. 选择k个centroids<br>2. 计算每个点与centroids的距离<br>3. 将每个点分配给距离最近的centroid<br>4. 更新centroid位置<br>5. 重复3、4直到手链<br></code></pre></td></tr></table></figure>
 <p>目标可以理解为最小化簇内平方距离：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \sum_{k=1}^{K}\sum_{x_i \in C_k}\|x_i-\mu_k\|^2
-$$</span></p>
-<p>其中，<span
-class="math inline"><em>C</em><sub><em>k</em></sub></span> 是第 <span
-class="math inline"><em>k</em></span> 个 cluster，<span
-class="math inline"><em>μ</em><sub><em>k</em></sub></span> 是这个
-cluster 的中心。</p>
+\]</span></p>
+<p>其中，<span class="math inline">\(C_k\)</span> 是第 <span
+class="math inline">\(k\)</span> 个 cluster，<span
+class="math inline">\(\mu_k\)</span> 是这个 cluster 的中心。</p>
 <p>优点：实现简单</p>
 <p>KMeans 的问题：</p>
 <ul>
-<li>需要提前指定 <span class="math inline"><em>K</em></span></li>
+<li>需要提前指定 <span class="math inline">\(K\)</span></li>
 <li>对初始中心敏感</li>
 <li>对 outlier 敏感</li>
 <li>更适合接近球形的 cluster</li>
@@ -571,10 +568,10 @@ cluster 的中心。</p>
 <p><strong>关于怎么选 K</strong></p>
 <p>常见方法是 elbow method 和 silhouette score。</p>
 <p><strong>Elbow method</strong> 看不同 <span
-class="math inline"><em>K</em></span> 下的簇内误差。随着 <span
-class="math inline"><em>K</em></span> 增大，误差一定会下降，因为 cluster
+class="math inline">\(K\)</span> 下的簇内误差。随着 <span
+class="math inline">\(K\)</span> 增大，误差一定会下降，因为 cluster
 越多，样本离中心越近。但下降幅度会逐渐变小。拐点附近的 <span
-class="math inline"><em>K</em></span> 通常是一个候选。</p>
+class="math inline">\(K\)</span> 通常是一个候选。</p>
 <p><strong>Silhouette score</strong> 同时考虑样本离自己 cluster
 的距离，以及离其他 cluster 的距离。分数越高，说明样本更像自己
 cluster，而不像其他 cluster。</p>
@@ -696,9 +693,9 @@ variance。</p>
 <p>PCA 的几个注意点</p>
 <ul>
 <li>PCA 对 scale 敏感。一个特征范围是 <span
-class="math inline">[0,100000]</span>，另一个是 <span
-class="math inline">[0,1]</span>，如果不 standardize，大范围特征会主导
-principal components。</li>
+class="math inline">\([0,100000]\)</span>，另一个是 <span
+class="math inline">\([0,1]\)</span>，如果不
+standardize，大范围特征会主导 principal components。</li>
 <li>PCA 是线性降维。如果数据本身是复杂非线性结构，PCA
 可能表达不好。</li>
 <li>PCA

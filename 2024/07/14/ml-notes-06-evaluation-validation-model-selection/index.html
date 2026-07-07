@@ -497,36 +497,35 @@
 <h2 id="回归指标regression-metrics">2. 回归指标（regression
 metrics）</h2>
 <p>回归任务预测连续值，常见指标有 MSE、RMSE、MAE、<span
-class="math inline"><em>R</em><sup>2</sup></span>。</p>
+class="math inline">\(R^2\)</span>。</p>
 <h3 id="mse-和-rmse">MSE 和 RMSE</h3>
 <p>MSE：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 MSE=\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2
-$$</span></p>
+\]</span></p>
 <p>RMSE：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 RMSE=\sqrt{MSE}
-$$</span></p>
+\]</span></p>
 <p>MSE 对大误差更敏感，因为误差被平方。RMSE
 和原始目标变量单位一致，更容易解释。</p>
 <p>比如预测房价时，RMSE = 20 万，比 MSE = 400 亿更直观。</p>
 <h3 id="mae">MAE</h3>
 <p>MAE：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 MAE=\frac{1}{n}\sum_{i=1}^{n}|y_i-\hat{y}_i|
-$$</span></p>
+\]</span></p>
 <p>MAE 对 outlier 没有 MSE 那么敏感。</p>
 <p>如果数据里有少数极端样本，比如一两套超级豪宅，MSE
 会被这些样本强烈影响，MAE 会更稳一些。</p>
-<h3 id="r2"><span class="math inline"><em>R</em><sup>2</sup></span></h3>
-<p><span class="math inline"><em>R</em><sup>2</sup></span>
-衡量模型解释了多少目标变量的 variance：</p>
-<p><span class="math display">$$
+<h3 id="r2"><span class="math inline">\(R^2\)</span></h3>
+<p><span class="math inline">\(R^2\)</span> 衡量模型解释了多少目标变量的
+variance：</p>
+<p><span class="math display">\[
 R^2=1-\frac{\sum_i(y_i-\hat{y}_i)^2}{\sum_i(y_i-\bar{y})^2}
-$$</span></p>
+\]</span></p>
 <p>如果 <span
-class="math inline"><em>R</em><sup>2</sup> = 0.8</span>，可以粗略理解为模型解释了
-80%
+class="math inline">\(R^2=0.8\)</span>，可以粗略理解为模型解释了 80%
 的变化。它适合看整体拟合程度，但不一定能说明具体业务误差是否可接受。</p>
 <h2 id="分类指标classification-metrics">3. 分类指标（classification
 metrics）</h2>
@@ -554,29 +553,29 @@ metrics）</h2>
 </table>
 <p>TP 是真正例，FP 是假正例，FN 是假负例，TN 是真负例。</p>
 <h3 id="准确率accuracy">准确率（accuracy）</h3>
-<p><span class="math display">$$
+<p><span class="math display">\[
 Accuracy=\frac{TP+TN}{TP+TN+FP+FN}
-$$</span></p>
+\]</span></p>
 <p>Accuracy 直观，但在 imbalanced dataset 上容易误导。</p>
 <p>比如一个疾病数据集中，99% 都是阴性。模型全部预测阴性，也有 99%
 accuracy，但它完全找不到阳性病人。</p>
 <h3 id="精确率precision">精确率（precision）</h3>
-<p><span class="math display">$$
+<p><span class="math display">\[
 Precision=\frac{TP}{TP+FP}
-$$</span></p>
+\]</span></p>
 <p>Precision 关心预测为正的样本里，有多少是真的正。</p>
 <p>垃圾邮件识别里 precision
 很重要，因为把正常邮件误判成垃圾邮件会影响用户。</p>
 <h3 id="召回率recall">召回率（recall）</h3>
-<p><span class="math display">$$
+<p><span class="math display">\[
 Recall=\frac{TP}{TP+FN}
-$$</span></p>
+\]</span></p>
 <p>Recall 关心真实正样本里，有多少被找出来。</p>
 <p>疾病筛查里 recall 很重要，因为漏诊的代价可能很高。</p>
 <h3 id="f1-分数f1-score">F1 分数（F1 score）</h3>
-<p><span class="math display">$$
+<p><span class="math display">\[
 F1=2\cdot\frac{Precision\cdot Recall}{Precision+Recall}
-$$</span></p>
+\]</span></p>
 <p>F1 是 precision 和 recall
 的调和平均。它适合在两者都重要时作为综合指标。</p>
 <p>但 F1 也不是万能的。如果业务上 FP 和 FN 代价明显不同，还是要单独看
@@ -584,12 +583,12 @@ precision 和 recall。</p>
 <h2 id="roc-和-auc阈值变化下的分类表现">4. ROC 和
 AUC：阈值变化下的分类表现</h2>
 <p>ROC 曲线关注不同 threshold 下 TPR 和 FPR 的变化。</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 TPR=\frac{TP}{TP+FN}
-$$</span></p>
-<p><span class="math display">$$
+\]</span></p>
+<p><span class="math display">\[
 FPR=\frac{FP}{FP+TN}
-$$</span></p>
+\]</span></p>
 <p>AUC 是 ROC
 曲线下面积。它也可以理解为：随机抽一个正样本和一个负样本，模型把正样本排在负样本前面的概率。</p>
 <p>这就是为什么 AUC
@@ -658,8 +657,8 @@ curve 更能反映实际使用体验。</p>
 也会被间接过拟合。</p>
 <h3 id="k-fold-cross-validation">K-fold cross validation）</h3>
 <p>K-fold cross validation 把数据分成 <span
-class="math inline"><em>K</em></span> 份，每次用其中一份做
-validation，其余做 training，最后平均结果。</p>
+class="math inline">\(K\)</span> 份，每次用其中一份做 validation，其余做
+training，最后平均结果。</p>
 <p>它比单次 holdout 更稳定，尤其适合数据量不大的情况。</p>
 <p>缺点是训练成本更高。比如 5-fold 就要训练 5 次。</p>
 <h3 id="bootstrap">Bootstrap</h3>
@@ -679,7 +678,8 @@ validation，其余做 training，最后平均结果。</p>
 <h3 id="网格搜索grid-search">网格搜索（grid search）</h3>
 <p>Grid search 枚举所有组合。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">max_depth = [3, 5, 7]<br>learning_rate = [0.01, 0.1]<br></code></pre></td></tr></table></figure>
-<p>总共会试 <span class="math inline">3 × 2 = 6</span> 种组合。</p>
+<p>总共会试 <span class="math inline">\(3 \times 2 = 6\)</span>
+种组合。</p>
 <p>优点是简单直接，缺点是组合多时成本很高。</p>
 <h3 id="随机搜索random-search">随机搜索（random search）</h3>
 <p>Random search 从参数空间中随机采样。它经常比 grid search

@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.9k 字
+          6.1k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          50 分钟
+          51 分钟
         
       </span>
     
@@ -531,19 +531,21 @@ preference loss</li>
 <h2 id="ppo-clipping-的直觉">3. PPO clipping 的直觉</h2>
 <p>PPO 的核心是限制 policy 更新幅度。</p>
 <p>定义 probability ratio：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 r_t(\theta) = \frac{\pi_\theta(a_t \mid
 s_t)}{\pi_{\theta_{\mathrm{old}}}(a_t \mid s_t)}
-$$</span></p>
-<p>如果 <span
-class="math inline"><em>r</em><sub><em>t</em></sub>(<em>θ</em>)</span>
-太大，说明新 policy 比旧 policy 更倾向于采取这个 action。</p>
+\]</span></p>
+<p>如果 <span class="math inline">\(r_t(\theta)\)</span> 太大，说明新
+policy 比旧 policy 更倾向于采取这个 action。</p>
 <p>PPO 会把 ratio clip 到一个范围里：</p>
-<p><span
-class="math display">clip(<em>r</em><sub><em>t</em></sub>(<em>θ</em>),1−<em>ϵ</em>,1+<em>ϵ</em>)</span></p>
+<p><span class="math display">\[
+\mathrm{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)
+\]</span></p>
 <p>目标函数可以写成：</p>
-<p><span
-class="math display">ℒ<sub><em>P</em><em>P</em><em>O</em></sub> = 𝔼<sub><em>t</em></sub>[min(<em>r</em><sub><em>t</em></sub>(<em>θ</em>)<em>A</em><sub><em>t</em></sub>,clip(<em>r</em><sub><em>t</em></sub>(<em>θ</em>),1−<em>ϵ</em>,1+<em>ϵ</em>)<em>A</em><sub><em>t</em></sub>)]</span></p>
+<p><span class="math display">\[
+\mathcal{L}_{PPO} = \mathbb{E}_t[\min(r_t(\theta)A_t,
+\mathrm{clip}(r_t(\theta),1-\epsilon,1+\epsilon)A_t)]
+\]</span></p>
 <p>直觉上，PPO 在说：</p>
 <blockquote>
 <p>如果一个 action 好，可以提高它的概率，但不要一次提高太多；如果一个
@@ -576,30 +578,28 @@ model；OPD 用 teacher dense supervision 替代 sparse reward。</p>
 loss？</p>
 <p>DPO 数据通常是：</p>
 <ul>
-<li>prompt <span class="math inline"><em>x</em></span></li>
-<li>preferred response <span
-class="math inline"><em>y</em><sub><em>w</em></sub></span></li>
-<li>rejected response <span
-class="math inline"><em>y</em><sub><em>l</em></sub></span></li>
+<li>prompt <span class="math inline">\(x\)</span></li>
+<li>preferred response <span class="math inline">\(y_w\)</span></li>
+<li>rejected response <span class="math inline">\(y_l\)</span></li>
 </ul>
 <p>DPO 不需要在线采样。它直接用这些 preference pairs 训练 policy。</p>
 <h2 id="dpo-的-log-ratio">6. DPO 的 log-ratio</h2>
 <p>DPO 会比较 policy model 和 reference model 对 chosen/rejected
 的相对偏好。</p>
 <p>核心量是：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\mathrm{ref}}(y_w \mid x)} -
 \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\mathrm{ref}}(y_l \mid x)}
-$$</span></p>
+\]</span></p>
 <p>如果这个值变大，说明相对于 reference，当前 policy 更偏向 chosen
 而不是 rejected。</p>
 <p>DPO loss 可以写成：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \mathcal{L}_{DPO} = -\log \sigma \left(\beta \left[\log
 \frac{\pi_\theta(y_w \mid x)}{\pi_{\mathrm{ref}}(y_w \mid x)} - \log
 \frac{\pi_\theta(y_l \mid x)}{\pi_{\mathrm{ref}}(y_l \mid
 x)}\right]\right)
-$$</span></p>
+\]</span></p>
 <p>这个公式看起来复杂，其实直觉很简单：</p>
 <blockquote>
 <p>好回答的概率应该相对变高，差回答的概率应该相对变低，但变化要以
@@ -633,17 +633,19 @@ relative advantage</h2>
 <p>PPO 需要 value model 来估计 baseline。GRPO 不单独训练 value
 model，而是对同一个 prompt 采样一组 responses，用组内 reward
 的相对关系估计 advantage。</p>
-<p>对一个 prompt <span class="math inline"><em>x</em></span>，采样 <span
-class="math inline"><em>G</em></span> 个 responses：</p>
-<p><span
-class="math display">{<em>y</em><sub>1</sub>, <em>y</em><sub>2</sub>, ..., <em>y</em><sub><em>G</em></sub>}</span></p>
+<p>对一个 prompt <span class="math inline">\(x\)</span>，采样 <span
+class="math inline">\(G\)</span> 个 responses：</p>
+<p><span class="math display">\[
+\{y_1, y_2, ..., y_G\}
+\]</span></p>
 <p>每个 response 得到 reward：</p>
-<p><span
-class="math display">{<em>r</em><sub>1</sub>, <em>r</em><sub>2</sub>, ..., <em>r</em><sub><em>G</em></sub>}</span></p>
+<p><span class="math display">\[
+\{r_1, r_2, ..., r_G\}
+\]</span></p>
 <p>然后用组内均值和标准差归一化：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 A_i = \frac{r_i - \mathrm{mean}(r_1,...,r_G)}{\mathrm{std}(r_1,...,r_G)}
-$$</span></p>
+\]</span></p>
 <p>这就是 group relative 的意思。</p>
 <h2 id="grpo-为什么适合-reasoning">9. GRPO 为什么适合 reasoning</h2>
 <p>Reasoning 任务里，同一个问题可以采样多个解法。</p>

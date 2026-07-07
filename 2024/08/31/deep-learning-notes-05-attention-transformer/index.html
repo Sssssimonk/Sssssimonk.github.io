@@ -19,17 +19,16 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理注意力机制和 Transformer。它是 Deep Learning 章节和后面现代大模型章节之间的桥。 这篇不展开 GPT、BERT、MoE、RLHF 这些内容，只看 Transformer 为什么出现，以及 self-attention 到底在做什么。 可以先抓住一句话：  Attention 让模型在处理某个位置时，直接从其他位置取信息，而不是把所有历史信息都压进一个固定 hid">
+    <meta name="description" content="这一篇只整理 attention 本身。 Transformer block、Pre-Norm、FFN、RoPE、GQA 这些更偏模型架构的内容，放到现代大模型章节里讲。这里先把最核心的问题说清楚：  模型处理当前位置时，怎么从其他位置拿到有用信息。  1. RNN 的瓶颈 RNN 处理序列时，每个时间步依赖上一个 hidden state： \[ h_t &#x3D; f(x_t, h_{t-1}) \]">
 <meta property="og:type" content="article">
-<meta property="og:title" content="深度学习笔记 05：注意力机制与 Transformer">
+<meta property="og:title" content="深度学习笔记 05：注意力机制">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/08/31/deep-learning-notes-05-attention-transformer/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理注意力机制和 Transformer。它是 Deep Learning 章节和后面现代大模型章节之间的桥。 这篇不展开 GPT、BERT、MoE、RLHF 这些内容，只看 Transformer 为什么出现，以及 self-attention 到底在做什么。 可以先抓住一句话：  Attention 让模型在处理某个位置时，直接从其他位置取信息，而不是把所有历史信息都压进一个固定 hid">
+<meta property="og:description" content="这一篇只整理 attention 本身。 Transformer block、Pre-Norm、FFN、RoPE、GQA 这些更偏模型架构的内容，放到现代大模型章节里讲。这里先把最核心的问题说清楚：  模型处理当前位置时，怎么从其他位置拿到有用信息。  1. RNN 的瓶颈 RNN 处理序列时，每个时间步依赖上一个 hidden state： \[ h_t &#x3D; f(x_t, h_{t-1}) \]">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-08-31T14:00:00.000Z">
 <meta property="article:modified_time" content="2024-08-31T14:00:00.000Z">
 <meta property="article:author" content="Siyu Chen">
-<meta property="article:tag" content="Transformer">
 <meta property="article:tag" content="注意力机制">
 <meta property="article:tag" content="深度学习">
 <meta property="article:tag" content="笔记">
@@ -38,7 +37,7 @@
   
   
   
-  <title>深度学习笔记 05：注意力机制与 Transformer - Siyu Chen</title>
+  <title>深度学习笔记 05：注意力机制 - Siyu Chen</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +311,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="深度学习笔记 05：注意力机制与 Transformer"></span>
+            <span id="subtitle" data-typed-text="深度学习笔记 05：注意力机制"></span>
           
         </div>
 
@@ -335,7 +334,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.5k 字
+          3.1k 字
         
       </span>
     
@@ -346,7 +345,7 @@
         
         
         
-          22 分钟
+          26 分钟
         
       </span>
     
@@ -412,10 +411,10 @@
     
       
       
-        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制与 Transformer"
+        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制"
            class="list-group-item list-group-item-action
            active">
-          <span class="category-post">深度学习笔记 05：注意力机制与 Transformer</span>
+          <span class="category-post">深度学习笔记 05：注意力机制</span>
         </a>
       
     
@@ -473,43 +472,40 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">深度学习笔记 05：注意力机制与 Transformer</h1>
+            <h1 id="seo-header">深度学习笔记 05：注意力机制</h1>
             
             
               <div class="markdown-body">
                 
-                <p>这一篇整理注意力机制和 Transformer。它是 Deep Learning
-章节和后面现代大模型章节之间的桥。</p>
-<p>这篇不展开 GPT、BERT、MoE、RLHF 这些内容，只看 Transformer
-为什么出现，以及 self-attention 到底在做什么。</p>
-<p>可以先抓住一句话：</p>
+                <p>这一篇只整理 attention 本身。</p>
+<p>Transformer block、Pre-Norm、FFN、RoPE、GQA
+这些更偏模型架构的内容，放到现代大模型章节里讲。这里先把最核心的问题说清楚：</p>
 <blockquote>
-<p>Attention
-让模型在处理某个位置时，直接从其他位置取信息，而不是把所有历史信息都压进一个固定
-hidden state。</p>
+<p>模型处理当前位置时，怎么从其他位置拿到有用信息。</p>
 </blockquote>
 <h2 id="rnn-的瓶颈">1. RNN 的瓶颈</h2>
 <p>RNN 处理序列时，每个时间步依赖上一个 hidden state：</p>
-<p><span
-class="math display"><em>h</em><sub><em>t</em></sub> = <em>f</em>(<em>x</em><sub><em>t</em></sub>,<em>h</em><sub><em>t</em> − 1</sub>)</span></p>
+<p><span class="math display">\[
+h_t = f(x_t, h_{t-1})
+\]</span></p>
 <p>这带来两个问题。</p>
 <p>第一，长距离信息要经过很多步传递，容易衰减。</p>
-<p>第二，计算难以并行，因为第 <span
-class="math inline"><em>t</em></span> 步必须等第 <span
-class="math inline"><em>t</em> − 1</span> 步算完。</p>
-<p>比如翻译句子时，目标词可能需要关注源句中很远的词。RNN
+<p>第二，计算难以并行，因为第 <span class="math inline">\(t\)</span>
+步必须等第 <span class="math inline">\(t-1\)</span> 步算完。</p>
+<p>比如翻译一句话时，目标词可能需要关注源句中很远的词。RNN
 要把这些信息逐步压缩进 hidden state，压力很大。</p>
 <p>Attention 的想法是：不要只依赖最后一个 hidden
-state，而是让模型需要什么就去看什么。</p>
+state，而是让模型需要什么就直接去看什么。</p>
 <h2 id="注意力机制attention的直觉">2. 注意力机制（attention）的直觉</h2>
 <p>Attention 可以理解成一个信息检索过程。</p>
 <p>当模型处理当前位置时，它会问：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">当前 token 需要从哪些其他 token 获取信息？<br></code></pre></td></tr></table></figure>
-<p>比如句子：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">当前位置需要从哪些位置拿信息？<br></code></pre></td></tr></table></figure>
+<p>比如：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">The animal didn&#x27;t cross the street because it was too tired.<br></code></pre></td></tr></table></figure>
-<p>这里 “it” 指的是 “animal”，而不是 “street”。模型处理 “it”
-时，需要关注前面的 “animal”。</p>
-<p>Attention 就是在学习这种关联强度。</p>
+<p>这里 <code>it</code> 指的是 <code>animal</code>，不是
+<code>street</code>。模型处理 <code>it</code> 时，需要更关注前面的
+<code>animal</code>。</p>
+<p>Attention 学的就是这种关联强度。</p>
 <h2 id="查询键和值querykeyvalue">3.
 查询、键和值（query、key、value）</h2>
 <p>Attention 常用 query、key、value 来描述。</p>
@@ -520,33 +516,39 @@ state，而是让模型需要什么就去看什么。</p>
 <li>Value：每个位置真正携带的信息</li>
 </ul>
 <p>对每个 token，模型都会生成三个向量：</p>
-<p><span
-class="math display"><em>q</em><sub><em>i</em></sub> = <em>x</em><sub><em>i</em></sub><em>W</em><sub><em>Q</em></sub></span></p>
-<p><span
-class="math display"><em>k</em><sub><em>i</em></sub> = <em>x</em><sub><em>i</em></sub><em>W</em><sub><em>K</em></sub></span></p>
-<p><span
-class="math display"><em>v</em><sub><em>i</em></sub> = <em>x</em><sub><em>i</em></sub><em>W</em><sub><em>V</em></sub></span></p>
+<p><span class="math display">\[
+q_i = x_iW_Q
+\]</span></p>
+<p><span class="math display">\[
+k_i = x_iW_K
+\]</span></p>
+<p><span class="math display">\[
+v_i = x_iW_V
+\]</span></p>
 <p>当前位置的 query 会和所有位置的 key 做相似度计算，得到 attention
-score。</p>
+score。score 越高，说明当前位置越应该从那个位置取信息。</p>
 <h2 id="缩放点积注意力scaled-dot-product-attention">4.
 缩放点积注意力（scaled dot-product attention）</h2>
 <p>Transformer 里常用 scaled dot-product attention：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \text{Attention}(Q,K,V)
 =
 \text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
-$$</span></p>
+\]</span></p>
 <p>分成三步看：</p>
 <ol type="1">
-<li><span class="math inline"><em>Q</em><em>K</em><sup>⊤</sup></span>
-计算 query 和 key 的相似度</li>
-<li>除以 <span class="math inline">$\sqrt{d_k}$</span> 控制数值尺度</li>
-<li>softmax 得到权重，再对 <span class="math inline"><em>V</em></span>
+<li><span class="math inline">\(QK^\top\)</span> 计算 query 和 key
+的相似度</li>
+<li>除以 <span class="math inline">\(\sqrt{d_k}\)</span>
+控制数值尺度</li>
+<li>softmax 得到权重，再对 <span class="math inline">\(V\)</span>
 做加权平均</li>
 </ol>
-<p>为什么要除以 <span class="math inline">$\sqrt{d_k}$</span>？</p>
+<p>为什么要除以 <span class="math inline">\(\sqrt{d_k}\)</span>？</p>
 <p>如果向量维度很高，dot product 的数值可能变大，softmax
-会变得过于尖锐，梯度不稳定。缩放项可以缓解这个问题。</p>
+会变得过于尖锐。最后结果就是某一个 token 权重接近 1，其他 token 权重接近
+0，梯度也容易不稳定。</p>
+<p>缩放项不是为了改变 attention 的本质，而是让数值更稳。</p>
 <h2 id="自注意力self-attention序列内部互相看">5.
 自注意力（self-attention）：序列内部互相看</h2>
 <p>Self-attention 指 query、key、value 都来自同一个序列。</p>
@@ -555,50 +557,79 @@ $$</span></p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">The bank approved the loan.<br></code></pre></td></tr></table></figure>
 <p>和：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">The bank is near the river.<br></code></pre></td></tr></table></figure>
-<p>“bank” 的含义要靠上下文判断。Self-attention 让 “bank” 可以关注 “loan”
-或 “river”，从而形成不同语义表示。</p>
-<p>这也是 Transformer 适合语言建模的原因之一：每个 token
+<p><code>bank</code> 的含义要靠上下文判断。Self-attention 让
+<code>bank</code> 可以关注 <code>loan</code> 或
+<code>river</code>，从而形成不同语义表示。</p>
+<p>这也是 attention 很适合语言任务的原因：token
 的表示不是孤立的，而是上下文化的。</p>
-<h2 id="多头注意力multi-head-attention">6. 多头注意力（multi-head
+<h2 id="attention-matrix-在看什么">6. Attention matrix 在看什么</h2>
+<p>如果序列长度是 <span class="math inline">\(n\)</span>，那么 <span
+class="math inline">\(QK^\top\)</span> 会得到一个 <span
+class="math inline">\(n \times n\)</span> 的矩阵。</p>
+<p>第 <span class="math inline">\(i\)</span> 行可以理解成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">第 i 个 token 在看哪些 token<br></code></pre></td></tr></table></figure>
+<p>第 <span class="math inline">\(j\)</span> 列可以理解成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">哪些 token 在看第 j 个 token<br></code></pre></td></tr></table></figure>
+<p>这也是为什么 attention 常被拿来可视化。虽然不能把 attention weight
+直接等同于“模型解释”，但它至少能显示信息流的大致方向。</p>
+<p>一个简单例子：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">I gave the book to Alice because she likes reading.<br></code></pre></td></tr></table></figure>
+<p>处理 <code>she</code> 时，attention matrix 里对应那一行可能会给
+<code>Alice</code> 更高权重。这样模型才有机会把指代关系接上。</p>
+<h2 id="mask哪些位置不能看">7. Mask：哪些位置不能看</h2>
+<p>Attention 里经常会加 mask。</p>
+<p>Mask 的作用是：在 softmax 前把某些位置的 score
+变成很小的数，让它们的权重接近 0。</p>
+<p>最常见的是 causal mask。</p>
+<p>语言模型做 next token prediction 时，第 <span
+class="math inline">\(t\)</span> 个位置不能看未来
+token，否则训练就作弊了。</p>
+<p>所以 causal attention 会让第 <span class="math inline">\(t\)</span>
+个位置只能看 <span class="math inline">\(1\)</span> 到 <span
+class="math inline">\(t\)</span>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">token 1: 看 1<br>token 2: 看 1, 2<br>token 3: 看 1, 2, 3<br>token 4: 看 1, 2, 3, 4<br></code></pre></td></tr></table></figure>
+<p>如果没有 causal mask，模型预测下一个词时已经看到了答案，训练 loss
+会很好看，但推理时完全没法用。</p>
+<p>Padding mask 也是同类东西。batch 里不同句子长度不一样，短句后面补的
+padding token 不应该参与 attention。</p>
+<h2 id="多头注意力multi-head-attention">8. 多头注意力（multi-head
 attention）</h2>
 <p>Multi-head attention 不是只做一次 attention，而是并行做多组
 attention：</p>
-<p><span
-class="math display">head<sub><em>i</em></sub> = Attention(<em>Q</em><em>W</em><sub><em>i</em></sub><sup><em>Q</em></sup>,<em>K</em><em>W</em><sub><em>i</em></sub><sup><em>K</em></sup>,<em>V</em><em>W</em><sub><em>i</em></sub><sup><em>V</em></sup>)</span></p>
+<p><span class="math display">\[
+\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+\]</span></p>
 <p>然后把多个 head 拼接起来：</p>
-<p><span
-class="math display">MultiHead(<em>Q</em>,<em>K</em>,<em>V</em>) = Concat(head<sub>1</sub>,…,head<sub><em>h</em></sub>)<em>W</em><sup><em>O</em></sup></span></p>
+<p><span class="math display">\[
+\text{MultiHead}(Q,K,V)
+=
+\text{Concat}(\text{head}_1,\dots,\text{head}_h)W^O
+\]</span></p>
 <p>直觉上，不同 head 可以关注不同关系。</p>
-<p>一个 head 可能关注主谓关系，一个 head 可能关注指代关系，一个 head
-可能关注局部相邻 token。当然实际 head
-不一定这么干净可解释，但多头机制给了模型并行建模不同关系的能力。</p>
-<h2 id="位置编码positional-encodingtransformer-怎么知道顺序">7.
-位置编码（positional encoding）：Transformer 怎么知道顺序</h2>
-<p>Self-attention 本身不包含顺序信息。</p>
-<p>如果只看 attention 公式，输入 token
-换个顺序，模型并不会天然知道谁在前谁在后。</p>
-<p>所以 Transformer 需要加入 positional encoding。</p>
-<p>原始 Transformer 使用正弦余弦位置编码：</p>
-<p><span class="math display">$$
-PE_{(pos,2i)}=\sin\left(\frac{pos}{10000^{2i/d}}\right)
-$$</span></p>
-<p><span class="math display">$$
-PE_{(pos,2i+1)}=\cos\left(\frac{pos}{10000^{2i/d}}\right)
-$$</span></p>
-<p>现代模型里也常见 learned positional embedding、RoPE
-等位置编码方式。</p>
-<p>位置编码的核心目的很简单：让模型知道 token 的顺序和相对位置。</p>
-<h2 id="transformer-模块transformer-block的基本结构">8. Transformer
-模块（Transformer block）的基本结构</h2>
-<p>一个 Transformer block 通常包含：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">self-attention<br>-&gt; residual connection<br>-&gt; layer normalization<br>-&gt; feed-forward network<br>-&gt; residual connection<br>-&gt; layer normalization<br></code></pre></td></tr></table></figure>
-<p>Feed-forward network 通常是对每个 token 独立应用的 MLP：</p>
-<p><span
-class="math display"><em>F</em><em>F</em><em>N</em>(<em>x</em>) = <em>W</em><sub>2</sub><em>σ</em>(<em>W</em><sub>1</sub><em>x</em>+<em>b</em><sub>1</sub>) + <em>b</em><sub>2</sub></span></p>
-<p>Self-attention 负责 token 之间的信息交互，FFN 负责对每个 token
-的表示做非线性变换。</p>
-<p>Residual connection 让深层网络更容易训练，LayerNorm
-让表示尺度更稳定。</p>
+<p>一个 head 可能更关注局部搭配，一个 head 可能更关注指代关系，一个 head
+可能更关注句法结构。当然实际 head
+不一定这么干净可解释，但多头机制给了模型并行建模不同关系的空间。</p>
+<h2 id="attention-和-transformer-的关系">9. Attention 和 Transformer
+的关系</h2>
+<p>Attention 不是 Transformer 的全部。</p>
+<p>Transformer 还包括 residual connection、normalization、feed-forward
+network、position encoding 等结构。</p>
+<p>但 attention 是 Transformer 最核心的信息交互模块。它决定了 token
+之间怎么通信；FFN 决定每个 token 的表示怎么被加工；residual 和
+normalization 决定深层网络能不能稳定训练。</p>
+<p>所以这篇只解决一个基础问题：attention 怎么让 token 互相看。下一步再看
+Transformer 是怎么把 attention 组织成大模型架构的。</p>
+<h2 id="几个点">几个点</h2>
+<ul>
+<li>Attention 的核心是根据 query-key 相似度，从 value
+里加权取信息。</li>
+<li>Self-attention 让同一个序列内部的 token 互相建模。</li>
+<li>Multi-head attention 给模型多个并行视角，不同 head
+可以学不同关系。</li>
+<li>Mask 很关键。尤其是 causal
+mask，它决定语言模型只能从左到右生成。</li>
+<li>Attention weight 可以帮助理解信息流，但不要简单当成完整解释。</li>
+</ul>
 <h2 id="参考资料">参考资料</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1706.03762">Attention Is All You
@@ -650,8 +681,6 @@ Natural Language Processing with Deep Learning</a></li>
       
         <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/" class="print-no-link">#注意力机制</a>
       
-        <a href="/tags/Transformer/" class="print-no-link">#Transformer</a>
-      
         <a href="/tags/%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B/" class="print-no-link">#自注意力</a>
       
     </div>
@@ -666,9 +695,9 @@ Natural Language Processing with Deep Learning</a></li>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" title="现代大模型笔记 01：Transformer 之后到底变了什么">
+                      <a href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" title="现代大模型笔记 01：Transformer 架构与现代改进">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">现代大模型笔记 01：Transformer 之后到底变了什么</span>
+                        <span class="hidden-mobile">现代大模型笔记 01：Transformer 架构与现代改进</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     

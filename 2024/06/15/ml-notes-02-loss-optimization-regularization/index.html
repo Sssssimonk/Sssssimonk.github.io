@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.6k 字
+          3.9k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          31 分钟
+          33 分钟
         
       </span>
     
@@ -500,13 +500,11 @@ loss。</p>
 <p>不同任务会使用不同 loss，因为它们对“错误”的定义不同。</p>
 <h3 id="mse回归任务里最常见的-loss">MSE：回归任务里最常见的 loss</h3>
 <p>Mean Squared Error 常用于回归任务：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 J(\theta) = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
-$$</span></p>
-<p>其中，<span
-class="math inline"><em>y</em><sub><em>i</em></sub></span>
-是真实值，<span
-class="math inline"><em>ŷ</em><sub><em>i</em></sub></span>
+\]</span></p>
+<p>其中，<span class="math inline">\(y_i\)</span> 是真实值，<span
+class="math inline">\(\hat{y}_i\)</span>
 是预测值。预测和真实值差得越远，loss 越大。</p>
 <p>它惩罚预测值和真实值之间的平方误差。因为误差被平方，大误差会受到更大惩罚。</p>
 <p>例子：</p>
@@ -514,9 +512,9 @@ class="math inline"><em>ŷ</em><sub><em>i</em></sub></span>
 <thead>
 <tr class="header">
 <th style="text-align: right;">真实值 <span
-class="math inline"><em>y</em></span></th>
+class="math inline">\(y\)</span></th>
 <th style="text-align: right;">预测值 <span
-class="math inline"><em>ŷ</em></span></th>
+class="math inline">\(\hat{y}\)</span></th>
 <th style="text-align: right;">误差</th>
 <th style="text-align: right;">平方误差</th>
 </tr>
@@ -543,12 +541,13 @@ class="math inline"><em>ŷ</em></span></th>
 <h3 id="二元交叉熵binary-cross-entropy二分类任务">二元交叉熵（binary
 cross entropy）：二分类任务</h3>
 <p>二分类中，模型通常输出样本属于正类的概率 <span
-class="math inline"><em>ŷ</em></span>：</p>
-<p><span
-class="math display"><em>L</em>(<em>y</em>,<em>ŷ</em>) =  − [<em>y</em>log(<em>ŷ</em>)+(1−<em>y</em>)log(1−<em>ŷ</em>)]</span></p>
-<p>如果真实标签 <span
-class="math inline"><em>y</em> = 1</span>，这个式子会变成 <span
-class="math inline"> − log (<em>ŷ</em>)</span>。模型给正确类别的概率越低，loss
+class="math inline">\(\hat{y}\)</span>：</p>
+<p><span class="math display">\[
+L(y, \hat{y}) = -[y\log(\hat{y}) + (1-y)\log(1-\hat{y})]
+\]</span></p>
+<p>如果真实标签 <span class="math inline">\(y=1\)</span>，这个式子会变成
+<span
+class="math inline">\(-\log(\hat{y})\)</span>。模型给正确类别的概率越低，loss
 越大。</p>
 <p>比如一封邮件确实是垃圾邮件。如果模型预测“是垃圾邮件”的概率是
 0.9，loss 很小；如果只给 0.1，loss 会很大。Cross entropy
@@ -558,14 +557,14 @@ class="math inline"> − log (<em>ŷ</em>)</span>。模型给正确类别
 id="多类交叉熵categorical-cross-entropy多分类任务">多类交叉熵（categorical
 cross entropy）：多分类任务</h3>
 <p>多分类任务常用 softmax 把 logits 转成概率分布：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \text{softmax}(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{K}e^{z_j}}
-$$</span></p>
+\]</span></p>
 <p>再用 cross entropy 计算损失：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 L(y, \hat{y}) = -\sum_{j=1}^{K} y_j \log(\hat{y}_j)
-$$</span></p>
-<p>如果 <span class="math inline"><em>y</em></span> 是 one-hot
+\]</span></p>
+<p>如果 <span class="math inline">\(y\)</span> 是 one-hot
 label，这个式子本质上就是取正确类别概率的负对数。</p>
 <p>实现时一般会对 logits 做数值稳定处理，例如先减去最大值：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">softmax</span>(<span class="hljs-params">logits</span>):<br>    logits = logits - np.<span class="hljs-built_in">max</span>(logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br>    exp_logits = np.exp(logits)<br>    <span class="hljs-keyword">return</span> exp_logits / np.<span class="hljs-built_in">sum</span>(exp_logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">mean_squared_error</span>(<span class="hljs-params">y_true, y_pred</span>):<br>    <span class="hljs-keyword">return</span> np.mean((y_true - y_pred)**<span class="hljs-number">2</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">binary_cross_entropy</span>(<span class="hljs-params">y_true, y_pred</span>):<br>    <span class="hljs-keyword">return</span> -np.mean(y_true * np.log(y_pred) + (<span class="hljs-number">1</span> - y_true) * np.log(<span class="hljs-number">1</span> - y_pred))<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cross_entropy</span>(<span class="hljs-params">y_pred, y_true</span>):<br>    eps = <span class="hljs-number">1e-12</span><br>    y_pred = np.clip(y_pred, eps, <span class="hljs-number">1.0</span> - eps)<br>    <span class="hljs-keyword">return</span> -np.mean(np.<span class="hljs-built_in">sum</span>(y_true * np.log(y_pred), axis=<span class="hljs-number">1</span>))<br></code></pre></td></tr></table></figure>
@@ -575,11 +574,12 @@ logits，应该先 softmax，而不是直接拿 logits 当概率。</p>
 descent）：模型如何改参数</h2>
 <p>有了 loss 后，训练的目标就是找到让 loss 更小的参数。</p>
 <p>Gradient descent 的更新规则是：</p>
-<p><span
-class="math display"><em>θ</em><sub>new</sub> = <em>θ</em><sub>old</sub> − <em>α</em>∇<em>J</em>(<em>θ</em>)</span></p>
-<p>其中，<span class="math inline"><em>θ</em></span> 是模型参数，<span
-class="math inline"><em>α</em></span> 是 learning rate，<span
-class="math inline">∇<em>J</em>(<em>θ</em>)</span> 是 loss
+<p><span class="math display">\[
+\theta_{\text{new}} = \theta_{\text{old}} - \alpha \nabla J(\theta)
+\]</span></p>
+<p>其中，<span class="math inline">\(\theta\)</span> 是模型参数，<span
+class="math inline">\(\alpha\)</span> 是 learning rate，<span
+class="math inline">\(\nabla J(\theta)\)</span> 是 loss
 function对参数的梯度。</p>
 <p>直觉上，梯度指向 loss 增长最快的方向，所以参数更新要往反方向走。</p>
 <p>训练时可以把流程想成：</p>
@@ -588,21 +588,24 @@ function对参数的梯度。</p>
 正则化（regularization）：限制模型复杂度</h2>
 <p>Regularization的主要作用是限制模型为了降低训练误差而使用过于复杂的参数，增加模型的泛化能力。</p>
 <p>常见方式是在原本 loss 后面加一个惩罚项：</p>
-<p><span
-class="math display"><em>J</em><sub>regularized</sub>(<em>θ</em>) = <em>J</em>(<em>θ</em>) + <em>λ</em><em>R</em>(<em>θ</em>)</span></p>
-<p>其中，<span class="math inline"><em>R</em>(<em>θ</em>)</span> 是
-regularization term，<span class="math inline"><em>λ</em></span>
+<p><span class="math display">\[
+J_{\text{regularized}}(\theta) = J(\theta) + \lambda R(\theta)
+\]</span></p>
+<p>其中，<span class="math inline">\(R(\theta)\)</span> 是
+regularization term，<span class="math inline">\(\lambda\)</span>
 控制正则化强度。</p>
 <h3 id="l1-正则化l1-regularization">L1 正则化（L1 regularization）</h3>
 <p>L1 正则使用参数绝对值之和：</p>
-<p><span
-class="math display"><em>R</em>(<em>θ</em>) = ∑<sub><em>i</em></sub>|<em>θ</em><sub><em>i</em></sub>|</span></p>
+<p><span class="math display">\[
+R(\theta) = \sum_i |\theta_i|
+\]</span></p>
 <p>它的特点是容易让部分参数变成0（可以变成0），因此可以产生稀疏性，也常被用于特征选择。</p>
 <p>直觉上，如果一个特征贡献不大，L1 会倾向于直接把它的权重压到 0。</p>
 <h3 id="l2-正则化l2-regularization">L2 正则化（L2 regularization）</h3>
 <p>L2 正则使用参数平方和：</p>
-<p><span
-class="math display"><em>R</em>(<em>θ</em>) = ∑<sub><em>i</em></sub><em>θ</em><sub><em>i</em></sub><sup>2</sup></span></p>
+<p><span class="math display">\[
+R(\theta) = \sum_i \theta_i^2
+\]</span></p>
 <p>它会让参数变小，但通常不会直接变成 0。L2
 更像是在鼓励模型使用更平滑、更小的权重。</p>
 <p>很多时候提到的 weight decay 和 L2 regularization
@@ -700,13 +703,13 @@ Statistical Learning</a></li>
       
         <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
       
-        <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/" class="print-no-link">#正则化</a>
-      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
         <a href="/tags/%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/" class="print-no-link">#损失函数</a>
       
         <a href="/tags/%E4%BC%98%E5%8C%96/" class="print-no-link">#优化</a>
+      
+        <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/" class="print-no-link">#正则化</a>
       
     </div>
   

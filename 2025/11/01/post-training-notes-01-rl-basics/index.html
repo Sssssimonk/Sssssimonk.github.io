@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.2k 字
+          4.4k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          36 分钟
+          37 分钟
         
       </span>
     
@@ -486,10 +486,11 @@ verifier、测试用例或者答案匹配器给出反馈。</p>
 <p>有一说一，传统RL学起来真有点烧脑子的😓</p>
 <h2 id="语言模型里的-policy-是什么">语言模型里的 policy 是什么</h2>
 <p>在 RL 里，policy 通常写成：</p>
-<p><span
-class="math display"><em>π</em><sub><em>θ</em></sub>(<em>a</em>∣<em>s</em>)</span></p>
-<p>它表示在状态 <span class="math inline"><em>s</em></span> 下采取动作
-<span class="math inline"><em>a</em></span> 的概率。</p>
+<p><span class="math display">\[
+\pi_\theta(a \mid s)
+\]</span></p>
+<p>它表示在状态 <span class="math inline">\(s\)</span> 下采取动作 <span
+class="math inline">\(a\)</span> 的概率。</p>
 <p>放到语言模型里，可以这样对应：</p>
 <ul>
 <li>状态（state）：当前 prompt 加上已经生成的 tokens</li>
@@ -497,18 +498,19 @@ class="math display"><em>π</em><sub><em>θ</em></sub>(<em>a</em>∣<em>s</em>)<
 <li>policy：语言模型给下一个 token 的概率分布</li>
 </ul>
 <p>如果把完整回答看成一个 token 序列：</p>
-<p><span
-class="math display"><em>y</em> = (<em>y</em><sub>1</sub>,<em>y</em><sub>2</sub>,...,<em>y</em><sub><em>T</em></sub>)</span></p>
+<p><span class="math display">\[
+y = (y_1, y_2, ..., y_T)
+\]</span></p>
 <p>那么模型生成这个回答的概率是：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \pi_\theta(y \mid x) = \prod_{t=1}^{T} \pi_\theta(y_t \mid x, y_{&lt;t})
-$$</span></p>
-<p>其中 <span class="math inline"><em>x</em></span> 是 prompt。</p>
+\]</span></p>
+<p>其中 <span class="math inline">\(x\)</span> 是 prompt。</p>
 <p>这也是为什么很多后训练算法会用 log probability：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \log \pi_\theta(y \mid x) = \sum_{t=1}^{T} \log \pi_\theta(y_t \mid x,
 y_{&lt;t})
-$$</span></p>
+\]</span></p>
 <p>因为整段 response 的概率是 token 概率连乘，直接乘容易数值很小，取 log
 后就变成求和。</p>
 <h2 id="token-level-action-和-response-level-action">Token-level action
@@ -530,8 +532,9 @@ rejected response 的 log probability。</p>
 <h2 id="reward后训练真正优化的目标">Reward：后训练真正优化的目标</h2>
 <p>Reward 可以来自很多地方。</p>
 <p>在人类偏好场景里，reward 可能来自 reward model：</p>
-<p><span
-class="math display"><em>r</em><sub><em>ϕ</em></sub>(<em>x</em>,<em>y</em>)</span></p>
+<p><span class="math display">\[
+r_\phi(x, y)
+\]</span></p>
 <p>它输入 prompt 和 response，输出一个标量分数。</p>
 <p>在 reasoning / coding 场景里，reward 经常是 verifiable reward：</p>
 <ul>
@@ -554,17 +557,19 @@ rewards。</p>
 </ul>
 <h2 id="returnvalue-和-advantage">4. Return、value 和 advantage</h2>
 <p>在一般 RL 里，return 是从当前时刻往后能拿到的累计 reward：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 G_t = \sum_{k=t}^{T} \gamma^{k-t} r_k
-$$</span></p>
+\]</span></p>
 <p>LLM 后训练里，很多任务只有最终
 reward，所以可以粗略理解为整段回答的得分。</p>
 <p>Value function 估计的是某个状态下未来能拿到多少 reward：</p>
-<p><span
-class="math display"><em>V</em><sup><em>π</em></sup>(<em>s</em>) = 𝔼<sub><em>π</em></sub>[<em>G</em><sub><em>t</em></sub>∣<em>s</em><sub><em>t</em></sub>=<em>s</em>]</span></p>
+<p><span class="math display">\[
+V^\pi(s) = \mathbb{E}_{\pi}[G_t \mid s_t=s]
+\]</span></p>
 <p>Advantage 衡量的是某个 action 比平均水平好多少：</p>
-<p><span
-class="math display"><em>A</em><sub><em>t</em></sub> = <em>G</em><sub><em>t</em></sub> − <em>V</em><sup><em>π</em></sup>(<em>s</em><sub><em>t</em></sub>)</span></p>
+<p><span class="math display">\[
+A_t = G_t - V^\pi(s_t)
+\]</span></p>
 <p>这个量很重要。</p>
 <p>如果一个回答得分是 0.8，不一定说明它很值得加强。也许这个 prompt
 很简单，随便生成都能 0.8。</p>
@@ -574,11 +579,11 @@ class="math display"><em>A</em><sub><em>t</em></sub> = <em>G</em><sub><em>t<
 response 到底更好还是更差。</p>
 <h2 id="policy-gradient-的直觉">Policy gradient 的直觉</h2>
 <p>Policy gradient 的经典形式可以写成：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \nabla_\theta J(\theta) =
 \underset{\pi_\theta}{\mathbb{E}}[\nabla_\theta \log \pi_\theta(a \mid
 s) A(s,a)]
-$$</span></p>
+\]</span></p>
 <p>放到 LLM 里，可以粗略理解成：</p>
 <blockquote>
 <p>如果某个 response 的 advantage 为正，就提高它的生成概率；如果
@@ -592,11 +597,12 @@ probability，不是直接给最终答案加分。</p>
 <h2 id="kl-constraint为什么需要-reference-model">KL
 constraint：为什么需要 reference model</h2>
 <p>后训练里通常会保留一个 reference model，记作 <span
-class="math inline"><em>π</em><sub>ref</sub></span>。</p>
+class="math inline">\(\pi_{\mathrm{ref}}\)</span>。</p>
 <p>它通常是 SFT 后的模型，或者训练开始前的 policy snapshot。</p>
 <p>更新 policy 时，会惩罚当前模型和 reference model 的差异：</p>
-<p><span
-class="math display"><em>D</em><sub><em>K</em><em>L</em></sub>(<em>π</em><sub><em>θ</em></sub>||<em>π</em><sub>ref</sub>)</span></p>
+<p><span class="math display">\[
+D_{KL}(\pi_\theta || \pi_{\mathrm{ref}})
+\]</span></p>
 <p>直觉上，KL constraint 在说：</p>
 <blockquote>
 <p>可以朝高 reward 方向走，但不要走到完全不像原来的模型。</p>
@@ -607,9 +613,11 @@ class="math display"><em>D</em><sub><em>K</em><em>L</em></sub>(<em>π</em><sub><
 偏好自信语气，模型就更容易胡说；verifier
 只看最终答案，模型可能学会投机格式。</p>
 <p>所以后训练不是简单最大化 reward，而是：</p>
-<p><span
-class="math display">max<sub><em>θ</em></sub>𝔼[<em>r</em>(<em>x</em>,<em>y</em>)] − <em>β</em><em>D</em><sub><em>K</em><em>L</em></sub>(<em>π</em><sub><em>θ</em></sub>||<em>π</em><sub>ref</sub>)</span></p>
-<p>这里 <span class="math inline"><em>β</em></span> 控制 reward
+<p><span class="math display">\[
+\max_\theta \mathbb{E}[r(x,y)] - \beta D_{KL}(\pi_\theta ||
+\pi_{\mathrm{ref}})
+\]</span></p>
+<p>这里 <span class="math inline">\(\beta\)</span> 控制 reward
 优化和保持原模型分布之间的平衡。</p>
 <h2 id="on-policy-和-off-policy">On-policy 和 off-policy</h2>
 <p>On-policy 指训练数据来自当前 policy。</p>

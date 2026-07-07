@@ -333,7 +333,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.6k 字
+          2.8k 字
         
       </span>
     
@@ -344,7 +344,7 @@
         
         
         
-          23 分钟
+          24 分钟
         
       </span>
     
@@ -410,10 +410,10 @@
     
       
       
-        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制与 Transformer"
+        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">深度学习笔记 05：注意力机制与 Transformer</span>
+          <span class="category-post">深度学习笔记 05：注意力机制</span>
         </a>
       
     
@@ -486,18 +486,19 @@
 把“特征怎么来”这个问题也变成了可训练的部分。</p>
 <h2 id="神经网络仍然是函数">1. 神经网络仍然是函数</h2>
 <p>神经网络本质上还是一个函数：</p>
-<p><span
-class="math display"><em>ŷ</em> = <em>f</em><sub><em>θ</em></sub>(<em>x</em>)</span></p>
-<p>其中，<span class="math inline"><em>x</em></span> 是输入，<span
-class="math inline"><em>ŷ</em></span> 是预测，<span
-class="math inline"><em>θ</em></span> 是网络参数。</p>
+<p><span class="math display">\[
+\hat{y} = f_\theta(x)
+\]</span></p>
+<p>其中，<span class="math inline">\(x\)</span> 是输入，<span
+class="math inline">\(\hat{y}\)</span> 是预测，<span
+class="math inline">\(\theta\)</span> 是网络参数。</p>
 <p>训练的目标仍然是找一组参数，让模型预测更接近真实标签：</p>
-<p><span
-class="math display"><em>θ</em><sup>*</sup> = arg min<sub><em>θ</em></sub><em>L</em>(<em>f</em><sub><em>θ</em></sub>(<em>x</em>),<em>y</em>)</span></p>
+<p><span class="math display">\[
+\theta^* = \arg\min_\theta L(f_\theta(x), y)
+\]</span></p>
 <p>所以 deep learning 没有跳出机器学习的基本框架。它仍然是：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">input<br>-&gt; model prediction<br>-&gt; loss<br>-&gt; gradient<br>-&gt; parameter update<br></code></pre></td></tr></table></figure>
-<p>区别在于 <span
-class="math inline"><em>f</em><sub><em>θ</em></sub></span>
+<p>区别在于 <span class="math inline">\(f_\theta\)</span>
 变得很灵活，可以由很多层可学习变换组成。</p>
 <h2 id="从人工特征到表示学习representation-learning">2.
 从人工特征到表示学习（representation learning）</h2>
@@ -545,32 +546,38 @@ loss 和 gradient 学出来的。</p>
 <p>这些数字本身没有人类可读含义，但它们让模型可以计算相似度、组合上下文、做预测。</p>
 <h2 id="为什么要多层">4. 为什么要多层</h2>
 <p>单层线性模型表达能力有限：</p>
-<p><span
-class="math display"><em>ŷ</em> = <em>W</em><em>x</em> + <em>b</em></span></p>
+<p><span class="math display">\[
+\hat{y} = Wx + b
+\]</span></p>
 <p>如果数据关系本身很复杂，只靠一个线性变换很难表达。</p>
 <p>多层网络的想法是把简单变换组合起来：</p>
-<p><span
-class="math display"><em>h</em><sub>1</sub> = <em>σ</em>(<em>W</em><sub>1</sub><em>x</em>+<em>b</em><sub>1</sub>)</span></p>
-<p><span
-class="math display"><em>h</em><sub>2</sub> = <em>σ</em>(<em>W</em><sub>2</sub><em>h</em><sub>1</sub>+<em>b</em><sub>2</sub>)</span></p>
-<p><span
-class="math display"><em>ŷ</em> = <em>W</em><sub>3</sub><em>h</em><sub>2</sub> + <em>b</em><sub>3</sub></span></p>
+<p><span class="math display">\[
+h_1 = \sigma(W_1x + b_1)
+\]</span></p>
+<p><span class="math display">\[
+h_2 = \sigma(W_2h_1 + b_2)
+\]</span></p>
+<p><span class="math display">\[
+\hat{y} = W_3h_2 + b_3
+\]</span></p>
 <p>每一层都在前一层表示的基础上再做一次变换。这样模型可以逐步把原始输入变成更适合任务的表示。</p>
 <p>一个简单例子：判断图片里有没有车。第一层不太可能直接学“车”，它更可能学边缘；中间层组合边缘形成轮子、车窗；后面层再组合成车的整体概念。</p>
 <h2 id="非线性为什么重要">5. 非线性为什么重要</h2>
 <p>如果没有 activation
 function，多层线性网络仍然等价于一个线性模型。</p>
 <p>比如：</p>
-<p><span
-class="math display"><em>h</em> = <em>W</em><sub>1</sub><em>x</em></span></p>
-<p><span
-class="math display"><em>ŷ</em> = <em>W</em><sub>2</sub><em>h</em> = <em>W</em><sub>2</sub><em>W</em><sub>1</sub><em>x</em></span></p>
-<p>这里 <span
-class="math inline"><em>W</em><sub>2</sub><em>W</em><sub>1</sub></span>
+<p><span class="math display">\[
+h = W_1x
+\]</span></p>
+<p><span class="math display">\[
+\hat{y} = W_2h = W_2W_1x
+\]</span></p>
+<p>这里 <span class="math inline">\(W_2W_1\)</span>
 仍然只是一个新的矩阵。堆很多层也没有本质变化。</p>
 <p>所以神经网络需要在层与层之间加入非线性函数：</p>
-<p><span
-class="math display"><em>h</em> = <em>σ</em>(<em>W</em><em>x</em>+<em>b</em>)</span></p>
+<p><span class="math display">\[
+h = \sigma(Wx+b)
+\]</span></p>
 <p>常见 activation 有 ReLU、sigmoid、tanh。现代深度网络里 ReLU
 及其变体很常见，因为它简单、梯度更稳定、训练效率高。</p>
 <h2 id="端到端学习end-to-end-learning">6. 端到端学习（end-to-end

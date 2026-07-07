@@ -300,7 +300,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Reading papers, tracing ideas, and writing down what actually works.,AI research notes, algorithm intuition, and engineering lessons."></span>
+            <span id="subtitle" data-typed-text="人类与AI的不同，在于Curiosity &amp; Empathy。,思考，是我们最强大的武器。"></span>
           
         </div>
 
@@ -338,14 +338,14 @@
       <h2 class="index-header">
         
         <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" target="_self">
-          深度学习笔记 05：注意力机制与 Transformer
+          深度学习笔记 05：注意力机制
         </a>
       </h2>
 
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/31/deep-learning-notes-05-attention-transformer/" target="_self">
         <div>
-          这一篇整理注意力机制和 Transformer。它是 Deep Learning 章节和后面现代大模型章节之间的桥。 这篇不展开 GPT、BERT、MoE、RLHF 这些内容，只看 Transformer 为什么出现，以及 self-attention 到底在做什么。 可以先抓住一句话：  Attention 让模型在处理某个位置时，直接从其他位置取信息，而不是把所有历史信息都压进一个固定 hid
+          这一篇只整理 attention 本身。 Transformer block、Pre-Norm、FFN、RoPE、GQA 这些更偏模型架构的内容，放到现代大模型章节里讲。这里先把最核心的问题说清楚：  模型处理当前位置时，怎么从其他位置拿到有用信息。  1. RNN 的瓶颈 RNN 处理序列时，每个时间步依赖上一个 hidden state： \[ h_t = f(x_t, h_{t-1}) \]
         </div>
       </a>
 
@@ -389,8 +389,6 @@
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
               <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
-            
-              <a href="/tags/Transformer/">#Transformer</a>
             
               <a href="/tags/%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B/">#自注意力</a>
             
@@ -528,9 +526,9 @@
             
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
-              <a href="/tags/%E4%BC%98%E5%8C%96%E5%99%A8/">#优化器</a>
-            
               <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/">#正则化</a>
+            
+              <a href="/tags/%E4%BC%98%E5%8C%96%E5%99%A8/">#优化器</a>
             
           </div>
         
@@ -755,7 +753,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
         <div>
-          这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning） 无监督学习只有输入 x，没有标签 y。 比如有一批用户行为数据：    用户 访问次数 平均停留时间 购买次
+          这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均
         </div>
       </a>
 
@@ -893,7 +891,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/22/ml-notes-03-supervised-learning/" target="_self">
         <div>
-          1. 线性回归（linear regression）：用线性函数做预测 Linear regression 用来预测连续值。最简单的一维形式是： ŷ = wx + b 多维特征时写成： ŷ = w1x1 + w2x2 + ... + wdxd + b 比如房价预测中，x1 是面积，x2 是房龄，x3 是距离地铁的距离。模型会学习每个特征对应的权重 wi。如果 w1 很大，说明面积对预测房价影响
+          1. 线性回归（linear regression）：用线性函数做预测 Linear regression 用来预测连续值。最简单的一维形式是： \[ \hat{y} = wx + b \] 多维特征时写成： \[ \hat{y} = w_1x_1 + w_2x_2 + ... + w_dx_d + b \] 比如房价预测中，\(x_1\) 是面积，\(x_2\) 是房龄，\(x_3\) 是距离地
         </div>
       </a>
 
@@ -1003,13 +1001,13 @@
             
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
-              <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/">#正则化</a>
-            
               <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
             
               <a href="/tags/%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/">#损失函数</a>
             
               <a href="/tags/%E4%BC%98%E5%8C%96/">#优化</a>
+            
+              <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/">#正则化</a>
             
           </div>
         
@@ -1110,7 +1108,7 @@
       }
       var text = subtitle.getAttribute('data-typed-text');
       
-        var texts = ["Reading papers, tracing ideas, and writing down what actually works.","AI research notes, algorithm intuition, and engineering lessons."];
+        var texts = ["人类与AI的不同，在于Curiosity & Empathy。","思考，是我们最强大的武器。"];
         var idx = Math.floor(Math.random() * texts.length);
         typing(texts[idx]);
       

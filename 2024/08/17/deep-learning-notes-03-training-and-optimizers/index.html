@@ -334,7 +334,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.6k 字
+          4.9k 字
         
       </span>
     
@@ -345,7 +345,7 @@
         
         
         
-          39 分钟
+          42 分钟
         
       </span>
     
@@ -411,10 +411,10 @@
     
       
       
-        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制与 Transformer"
+        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">深度学习笔记 05：注意力机制与 Transformer</span>
+          <span class="category-post">深度学习笔记 05：注意力机制</span>
         </a>
       
     
@@ -489,11 +489,14 @@ gradients。</p>
 <p>如果每一层的梯度因子都大于 1，多层相乘后会越来越大，这就是 exploding
 gradients。</p>
 <p>一个粗略例子：</p>
-<p><span
-class="math display">0.5<sup>20</sup> ≈ 9.5 × 10<sup>−7</sup></span></p>
+<p><span class="math display">\[
+0.5^{20} \approx 9.5 \times 10^{-7}
+\]</span></p>
 <p>如果反向传播里连续乘很多个 0.5，前面层几乎收不到有效梯度。</p>
 <p>反过来：</p>
-<p><span class="math display">1.5<sup>20</sup> ≈ 3325</span></p>
+<p><span class="math display">\[
+1.5^{20} \approx 3325
+\]</span></p>
 <p>如果连续乘很多个大于 1 的因子，梯度可能爆炸，训练变得不稳定。</p>
 <p>这也是为什么 deep network
 不是简单“多堆几层”就行。层数变深后，梯度能不能稳定传过去本身就是问题。</p>
@@ -510,13 +513,12 @@ activation，核心想法是让每层输入输出的方差保持相对稳定。<
 <h2 id="归一化normalization">3. 归一化（normalization）</h2>
 <p>Normalization 的作用是让中间表示的分布更稳定。</p>
 <p>Batch Normalization 通常对 batch 维度做归一化：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \hat{x} = \frac{x-\mu_B}{\sqrt{\sigma_B^2+\epsilon}}
-$$</span></p>
-<p>其中，<span
-class="math inline"><em>μ</em><sub><em>B</em></sub></span> 和 <span
-class="math inline"><em>σ</em><sub><em>B</em></sub><sup>2</sup></span>
-是当前 batch 的均值和方差。</p>
+\]</span></p>
+<p>其中，<span class="math inline">\(\mu_B\)</span> 和 <span
+class="math inline">\(\sigma_B^2\)</span> 是当前 batch
+的均值和方差。</p>
 <p>BatchNorm 在 CNN 里很常见。它能让训练更稳定，也允许使用更大的
 learning rate。</p>
 <p>Layer Normalization 则通常对单个样本内部的 hidden dimension
@@ -571,11 +573,12 @@ scheduler</h2>
 太大，更新可能过猛。Warmup 让模型先稳定进入训练状态。</p>
 <h2 id="sgd最基础的随机梯度下降">6. SGD：最基础的随机梯度下降</h2>
 <p>Stochastic Gradient Descent 使用 mini-batch gradient 更新参数：</p>
-<p><span
-class="math display"><em>θ</em><sub><em>t</em> + 1</sub> = <em>θ</em><sub><em>t</em></sub> − <em>η</em><em>g</em><sub><em>t</em></sub></span></p>
-<p>其中，<span class="math inline"><em>η</em></span> 是 learning
-rate，<span class="math inline"><em>g</em><sub><em>t</em></sub></span>
-是当前 mini-batch 上的 gradient。</p>
+<p><span class="math display">\[
+\theta_{t+1} = \theta_t - \eta g_t
+\]</span></p>
+<p>其中，<span class="math inline">\(\eta\)</span> 是 learning
+rate，<span class="math inline">\(g_t\)</span> 是当前 mini-batch 上的
+gradient。</p>
 <p>SGD 的优点是简单、泛化表现常常不错。缺点是更新方向受当前 batch
 影响，可能噪声较大，收敛也可能比较慢。</p>
 <p>比如 loss surface 像一个狭长山谷，SGD
@@ -585,14 +588,14 @@ rate，<span class="math inline"><em>g</em><sub><em>t</em></sub></span>
 <p>Momentum 的想法是：不要只看当前
 gradient，也看过去一段时间的更新方向。</p>
 <p>常见形式：</p>
-<p><span
-class="math display"><em>v</em><sub><em>t</em></sub> = <em>β</em><em>v</em><sub><em>t</em> − 1</sub> + <em>g</em><sub><em>t</em></sub></span></p>
-<p><span
-class="math display"><em>θ</em><sub><em>t</em> + 1</sub> = <em>θ</em><sub><em>t</em></sub> − <em>η</em><em>v</em><sub><em>t</em></sub></span></p>
-<p>其中，<span
-class="math inline"><em>v</em><sub><em>t</em></sub></span> 是
-velocity，<span class="math inline"><em>β</em></span>
-控制保留多少历史方向。</p>
+<p><span class="math display">\[
+v_t = \beta v_{t-1} + g_t
+\]</span></p>
+<p><span class="math display">\[
+\theta_{t+1} = \theta_t - \eta v_t
+\]</span></p>
+<p>其中，<span class="math inline">\(v_t\)</span> 是 velocity，<span
+class="math inline">\(\beta\)</span> 控制保留多少历史方向。</p>
 <p>直觉上，如果多个 step 的 gradient 方向一致，Momentum
 会加速；如果某个方向来回震荡，正负更新会互相抵消。</p>
 <p>这很像推一个球下山。SGD 每一步都只看当前坡度，Momentum
@@ -600,45 +603,47 @@ velocity，<span class="math inline"><em>β</em></span>
 <h2 id="rmsprop给每个参数自适应学习率">8.
 RMSProp：给每个参数自适应学习率</h2>
 <p>RMSProp 关注的是每个参数最近 gradient 的平方平均。</p>
-<p><span
-class="math display"><em>s</em><sub><em>t</em></sub> = <em>ρ</em><em>s</em><sub><em>t</em> − 1</sub> + (1−<em>ρ</em>)<em>g</em><sub><em>t</em></sub><sup>2</sup></span></p>
-<p><span class="math display">$$
+<p><span class="math display">\[
+s_t = \rho s_{t-1} + (1-\rho)g_t^2
+\]</span></p>
+<p><span class="math display">\[
 \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{s_t}+\epsilon}g_t
-$$</span></p>
+\]</span></p>
 <p>如果某个参数的 gradient 一直很大，<span
-class="math inline"><em>s</em><sub><em>t</em></sub></span>
+class="math inline">\(s_t\)</span>
 会变大，于是它的有效学习率会变小。</p>
 <p>如果某个参数的 gradient 一直很小，<span
-class="math inline"><em>s</em><sub><em>t</em></sub></span>
-小，有效学习率相对更大。</p>
+class="math inline">\(s_t\)</span> 小，有效学习率相对更大。</p>
 <p>RMSProp
 的直觉是：不同参数不一定应该用同一个步长。频繁大幅变化的方向要走得谨慎，变化小的方向可以走得相对积极。</p>
 <h2 id="adam动量法momentum-rmsprop">9. Adam：动量法（momentum）+
 RMSProp</h2>
 <p>Adam 可以看作把 Momentum 和 RMSProp 结合起来。</p>
 <p>它维护一阶矩估计：</p>
-<p><span
-class="math display"><em>m</em><sub><em>t</em></sub> = <em>β</em><sub>1</sub><em>m</em><sub><em>t</em> − 1</sub> + (1−<em>β</em><sub>1</sub>)<em>g</em><sub><em>t</em></sub></span></p>
+<p><span class="math display">\[
+m_t = \beta_1 m_{t-1} + (1-\beta_1)g_t
+\]</span></p>
 <p>也维护二阶矩估计：</p>
-<p><span
-class="math display"><em>v</em><sub><em>t</em></sub> = <em>β</em><sub>2</sub><em>v</em><sub><em>t</em> − 1</sub> + (1−<em>β</em><sub>2</sub>)<em>g</em><sub><em>t</em></sub><sup>2</sup></span></p>
+<p><span class="math display">\[
+v_t = \beta_2 v_{t-1} + (1-\beta_2)g_t^2
+\]</span></p>
 <p>然后做 bias correction：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \hat{m}_t = \frac{m_t}{1-\beta_1^t}
-$$</span></p>
-<p><span class="math display">$$
+\]</span></p>
+<p><span class="math display">\[
 \hat{v}_t = \frac{v_t}{1-\beta_2^t}
-$$</span></p>
+\]</span></p>
 <p>最后更新：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \theta_{t+1} = \theta_t - \eta
 \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\epsilon}
-$$</span></p>
+\]</span></p>
 <p>Adam 的直觉：</p>
 <ul>
-<li><span class="math inline"><em>m</em><sub><em>t</em></sub></span> 像
+<li><span class="math inline">\(m_t\)</span> 像
 Momentum，记录梯度方向的滑动平均</li>
-<li><span class="math inline"><em>v</em><sub><em>t</em></sub></span> 像
+<li><span class="math inline">\(v_t\)</span> 像
 RMSProp，记录梯度平方的滑动平均</li>
 <li>分母让每个参数有自适应步长</li>
 </ul>
@@ -651,31 +656,34 @@ RMSProp，记录梯度平方的滑动平均</li>
 <p>AdamW 是理解现代训练时很重要的优化器。</p>
 <p>先看 Adam 里常见的 L2 regularization。如果把 L2 penalty 加到 loss
 里：</p>
-<p><span class="math display">$$
-L'(\theta)=L(\theta)+\frac{\lambda}{2}\|\theta\|^2
-$$</span></p>
+<p><span class="math display">\[
+L&#39;(\theta)=L(\theta)+\frac{\lambda}{2}\|\theta\|^2
+\]</span></p>
 <p>那么梯度会变成：</p>
-<p><span
-class="math display"><em>g</em>′<sub><em>t</em></sub> = <em>g</em><sub><em>t</em></sub> + <em>λ</em><em>θ</em><sub><em>t</em></sub></span></p>
+<p><span class="math display">\[
+g&#39;_t = g_t + \lambda \theta_t
+\]</span></p>
 <p>在 SGD 里，这和 weight decay 基本等价：</p>
-<p><span
-class="math display"><em>θ</em><sub><em>t</em> + 1</sub> = <em>θ</em><sub><em>t</em></sub> − <em>η</em>(<em>g</em><sub><em>t</em></sub>+<em>λ</em><em>θ</em><sub><em>t</em></sub>)</span></p>
+<p><span class="math display">\[
+\theta_{t+1} = \theta_t - \eta(g_t + \lambda\theta_t)
+\]</span></p>
 <p>可以整理成：</p>
-<p><span
-class="math display"><em>θ</em><sub><em>t</em> + 1</sub> = (1−<em>η</em><em>λ</em>)<em>θ</em><sub><em>t</em></sub> − <em>η</em><em>g</em><sub><em>t</em></sub></span></p>
+<p><span class="math display">\[
+\theta_{t+1} = (1-\eta\lambda)\theta_t - \eta g_t
+\]</span></p>
 <p>也就是每步先把权重衰减一点，再按 gradient 更新。</p>
 <p>但在 Adam 里，情况不一样。Adam 会用二阶矩 <span
-class="math inline">$\sqrt{\hat{v}_t}$</span> 对梯度做自适应缩放。如果把
-<span
-class="math inline"><em>λ</em><em>θ</em><sub><em>t</em></sub></span>
-混进 gradient，它也会被 Adam 的自适应项缩放。</p>
+class="math inline">\(\sqrt{\hat{v}_t}\)</span>
+对梯度做自适应缩放。如果把 <span
+class="math inline">\(\lambda\theta_t\)</span> 混进 gradient，它也会被
+Adam 的自适应项缩放。</p>
 <p>这样 weight decay
 就不再是“统一把权重变小”，而是和每个参数的梯度历史纠缠在一起。</p>
 <p>AdamW 的做法是把 weight decay 从 gradient update 里解耦出来：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \theta_{t+1} = \theta_t - \eta
 \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\epsilon} - \eta\lambda\theta_t
-$$</span></p>
+\]</span></p>
 <p>也可以理解成：</p>
 <ul>
 <li>Adam update: use gradient statistics to update parameters</li>
@@ -800,9 +808,9 @@ Networks Part 3</a></li>
       
         <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
       
-        <a href="/tags/%E4%BC%98%E5%8C%96%E5%99%A8/" class="print-no-link">#优化器</a>
-      
         <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/" class="print-no-link">#正则化</a>
+      
+        <a href="/tags/%E4%BC%98%E5%8C%96%E5%99%A8/" class="print-no-link">#优化器</a>
       
     </div>
   

@@ -449,10 +449,10 @@
 </ol>
 <p>后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。</p>
 <p>一个简单的公式示例：</p>
-<p><span class="math display">$$
+<p><span class="math display">\[
 \mathcal{L}(\theta) = - \sum_{t=1}^{T} \log p_\theta(y_t \mid y_{&lt;t},
 x)
-$$</span></p>
+\]</span></p>
 <p>一个代码块示例：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">summarize_claim</span>(<span class="hljs-params">paper</span>):<br>    <span class="hljs-keyword">return</span> &#123;<br>        <span class="hljs-string">&quot;problem&quot;</span>: paper.problem,<br>        <span class="hljs-string">&quot;method&quot;</span>: paper.method,<br>        <span class="hljs-string">&quot;evidence&quot;</span>: paper.experiments,<br>        <span class="hljs-string">&quot;my_take&quot;</span>: paper.limitations,<br>    &#125;<br></code></pre></td></tr></table></figure>
 

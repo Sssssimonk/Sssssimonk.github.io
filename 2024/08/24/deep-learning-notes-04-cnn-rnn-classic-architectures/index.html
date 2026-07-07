@@ -413,10 +413,10 @@
     
       
       
-        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制与 Transformer"
+        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">深度学习笔记 05：注意力机制与 Transformer</span>
+          <span class="category-post">深度学习笔记 05：注意力机制</span>
         </a>
       
     
@@ -510,7 +510,7 @@
 <p>图像有很强的局部结构。一个像素通常和周围像素关系更大，而不是和很远的像素关系同等重要。</p>
 <p>CNN 使用 convolution kernel 在图像上滑动：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">small kernel<br>-&gt; slide over image<br>-&gt; produce feature map<br></code></pre></td></tr></table></figure>
-<p>比如一个 <span class="math inline">3 × 3</span> kernel
+<p>比如一个 <span class="math inline">\(3 \times 3\)</span> kernel
 每次只看局部区域。它可以检测边缘、角点、纹理等局部 pattern。</p>
 <p>如果某个 kernel
 学会检测垂直边缘，那么它可以在整张图上重复使用。同一个边缘检测器不需要为每个位置单独学一套参数。</p>
@@ -569,31 +569,31 @@ convolution 来完成下采样。</p>
 ResNet：为什么残差连接（residual connection）重要</h2>
 <p>网络变深后，训练会变难。一个问题是：更深的网络理论上表达能力更强，但实际训练时可能反而效果变差。</p>
 <p>ResNet 的核心是 residual connection：</p>
-<p><span
-class="math display"><em>y</em> = <em>F</em>(<em>x</em>) + <em>x</em></span></p>
+<p><span class="math display">\[
+y = F(x) + x
+\]</span></p>
 <p>模型不直接学习完整映射 <span
-class="math inline"><em>H</em>(<em>x</em>)</span>，而是学习
-residual：</p>
-<p><span
-class="math display"><em>F</em>(<em>x</em>) = <em>H</em>(<em>x</em>) − <em>x</em></span></p>
+class="math inline">\(H(x)\)</span>，而是学习 residual：</p>
+<p><span class="math display">\[
+F(x) = H(x) - x
+\]</span></p>
 <p>直觉上，如果某几层暂时不需要做复杂变换，模型可以让 <span
-class="math inline"><em>F</em>(<em>x</em>)</span> 接近 0，这样输出接近
-<span
-class="math inline"><em>x</em></span>。这让深层网络更容易优化。</p>
+class="math inline">\(F(x)\)</span> 接近 0，这样输出接近 <span
+class="math inline">\(x\)</span>。这让深层网络更容易优化。</p>
 <p>Residual connection
 也让梯度可以更直接地传回前面层。这个思想后来不只用于 CNN，也广泛出现在
 Transformer 里。</p>
 <h2 id="rnn处理序列的基本思路">6. RNN：处理序列的基本思路</h2>
 <p>RNN 用 hidden state 记录过去信息。</p>
 <p>最基本形式：</p>
-<p><span
-class="math display"><em>h</em><sub><em>t</em></sub> = <em>ϕ</em>(<em>W</em><sub><em>x</em></sub><em>x</em><sub><em>t</em></sub>+<em>W</em><sub><em>h</em></sub><em>h</em><sub><em>t</em> − 1</sub>+<em>b</em>)</span></p>
-<p><span
-class="math display"><em>y</em><sub><em>t</em></sub> = <em>W</em><sub><em>y</em></sub><em>h</em><sub><em>t</em></sub></span></p>
-<p>其中，<span
-class="math inline"><em>x</em><sub><em>t</em></sub></span>
-是当前时间步输入，<span
-class="math inline"><em>h</em><sub><em>t</em> − 1</sub></span>
+<p><span class="math display">\[
+h_t = \phi(W_xx_t + W_hh_{t-1} + b)
+\]</span></p>
+<p><span class="math display">\[
+y_t = W_yh_t
+\]</span></p>
+<p>其中，<span class="math inline">\(x_t\)</span>
+是当前时间步输入，<span class="math inline">\(h_{t-1}\)</span>
 是上一个时间步的 hidden state。</p>
 <p>比如句子：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">I really like this movie<br></code></pre></td></tr></table></figure>
@@ -742,9 +742,9 @@ into Deep Learning: Recurrent Neural Networks</a></li>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制与 Transformer">
+                      <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" title="深度学习笔记 05：注意力机制">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">深度学习笔记 05：注意力机制与 Transformer</span>
+                        <span class="hidden-mobile">深度学习笔记 05：注意力机制</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
