@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback  1. GRPO 的基本问题 GR">
+    <meta name="description" content="这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback  GRPO 的基本问题 GRPO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="后训练笔记 04：GRPO变体与DPO变体">
 <meta property="og:url" content="https://sssssimonk.github.io/2025/11/22/post-training-notes-04-grpo-variants-and-kto/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback  1. GRPO 的基本问题 GR">
+<meta property="og:description" content="这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback  GRPO 的基本问题 GRPO">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-11-22T13:30:00.000Z">
 <meta property="article:modified_time" content="2025-11-22T13:30:00.000Z">
@@ -348,7 +348,7 @@
         
         
         
-          45 分钟
+          44 分钟
         
       </span>
     
@@ -488,7 +488,7 @@ sampling、advantage、clipping、sequence-level 更新做改造</li>
 <li>KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成
 binary feedback</li>
 </ul>
-<h2 id="grpo-的基本问题">1. GRPO 的基本问题</h2>
+<h2 id="grpo-的基本问题">GRPO 的基本问题</h2>
 <p>GRPO 的基础想法很清楚：同一个prompt采样多个 responses，用组内 reward
 相对值估计 advantage。</p>
 <p>但真实训练里会遇到几个问题。</p>
@@ -506,8 +506,7 @@ reward。</p>
 <p>RL 更新会影响 routing、专家激活和序列分布，sequence-level
 稳定性变得更重要。</p>
 <p>GRPO 变体基本都在修这些问题。</p>
-<h2 id="dr.grpo重新看-normalization">2. Dr.GRPO：重新看
-normalization</h2>
+<h2 id="dr.grpo重新看-normalization">Dr.GRPO：重新看 normalization</h2>
 <p>GRPO 的 advantage 常写成：</p>
 <p><span class="math display">\[
 A_i = \frac{r_i - \mu}{\sigma}
@@ -527,7 +526,7 @@ class="math inline">\(\sigma\)</span> 是同一组 responses 的 reward
 <p>如果全对或全错，没有分歧，就没有可学习的相对信号。</p>
 <p>如果一半对一半错，分歧最大，训练信号最强。</p>
 <p>这说明 GRPO 的学习重点其实被 group disagreement 控制了。</p>
-<h2 id="dapodynamic-sampling-和-clipping">3. DAPO：dynamic sampling 和
+<h2 id="dapodynamic-sampling-和-clipping">DAPO：dynamic sampling 和
 clipping</h2>
 <p>DAPO 可以理解成对 GRPO 训练细节的进一步修补。</p>
 <p>它关注两个问题：</p>
@@ -545,7 +544,7 @@ clipping</h2>
 token、所有阶段。模型训练初期和后期需要的更新幅度不同，高置信 token
 和低置信 token 也不同。</p>
 <p>所以 DAPO 这类方法会尝试让 sampling 和 clipping 更动态。</p>
-<h2 id="gspo从-token-level-到-sequence-level">4. GSPO：从 token-level 到
+<h2 id="gspo从-token-level-到-sequence-level">GSPO：从 token-level 到
 sequence-level</h2>
 <p>GSPO 是 Group Sequence Policy Optimization。</p>
 <p>它的一个重要变化是把优化从 token-level ratio 推向 sequence-level
@@ -565,7 +564,7 @@ ratio，就可能出现不匹配。</p>
 <p>GRPO 问的是“这组回答里哪个更好”；GSPO
 进一步问“整段回答作为一个整体，应该怎样被加强或削弱”。</p>
 </blockquote>
-<h2 id="dcpodynamic-clipping">5. DCPO：dynamic clipping</h2>
+<h2 id="dcpodynamic-clipping">DCPO：dynamic clipping</h2>
 <p>DCPO 关注的是 GRPO 里的 zero gradient 和 clipping 问题。</p>
 <p>在 PPO/GRPO 类目标里，clipping 是为了防止 policy 更新过猛。</p>
 <p>但 clipping 太强会损失训练信号。</p>
@@ -579,7 +578,7 @@ response，也不能有效学习。</p>
 <blockquote>
 <p>该限制的地方限制，该学习的地方不要过早截断。</p>
 </blockquote>
-<h2 id="dra-grpo把-diversity-纳入-reward">6. DRA-GRPO：把 diversity 纳入
+<h2 id="dra-grpo把-diversity-纳入-reward">DRA-GRPO：把 diversity 纳入
 reward</h2>
 <p>GRPO 采样一组 responses，但如果这些 responses
 高度相似，组内比较的价值有限。</p>
@@ -592,7 +591,7 @@ reward</h2>
 试图让训练信号不仅看正确性，也看候选之间的语义差异和探索价值。</p>
 <p>这对 reasoning
 很重要。因为模型不是只需要记住一个答案，而是要学习更可靠的解题路径。</p>
-<h2 id="grpo-变体的共同主线">7. GRPO 变体的共同主线</h2>
+<h2 id="grpo-变体的共同主线">GRPO 变体的共同主线</h2>
 <p>这些方法名字很多，但不要被缩写带跑。</p>
 <p>它们基本在改四件事。</p>
 <p>第一，采样。</p>
@@ -607,7 +606,7 @@ sequence-level，固定还是动态。</p>
 <p>只看最终答案，还是加入格式、长度、过程、diversity、verifier
 confidence。</p>
 <p>理解这四个维度，比记住每个方法缩写更有用。</p>
-<h2 id="kto为什么不是-dpo-的简单替代">8. KTO：为什么不是 DPO
+<h2 id="kto为什么不是-dpo-的简单替代">KTO：为什么不是 DPO
 的简单替代</h2>
 <p>DPO 需要 preference pair：</p>
 <p><span class="math display">\[
@@ -628,7 +627,7 @@ response。</p>
 <p>KTO 的动机就是：能不能直接用这种 binary feedback 做 alignment？</p>
 <p>KTO 全称是 Kahneman-Tversky Optimization，借用了 prospect theory
 里的损失厌恶、参考点等想法。</p>
-<h2 id="kto-的-implied-reward">9. KTO 的 implied reward</h2>
+<h2 id="kto-的-implied-reward">KTO 的 implied reward</h2>
 <p>KTO 也使用 policy 和 reference 的 log-ratio 来定义 implied
 reward：</p>
 <p><span class="math display">\[
@@ -644,7 +643,7 @@ undesirable，应该降低它的 implied reward。</p>
 <p>和 DPO 不同，KTO 不需要同一个 prompt 下同时有 chosen 和
 rejected。它只需要知道某个 response 是好还是坏。</p>
 <p>这在真实数据里更容易获得。</p>
-<h2 id="kto-的参考点">10. KTO 的参考点</h2>
+<h2 id="kto-的参考点">KTO 的参考点</h2>
 <p>KTO 不只是把好样本推高、坏样本压低。</p>
 <p>它引入 reference point，类似 prospect theory
 里人们不是看绝对收益，而是看相对某个参考点的 gain/loss。</p>
@@ -658,7 +657,7 @@ response，希望它比参考点更差。</p>
 数据分布是否匹配？好样本和坏样本是否来自相同类型
 prompt？类别比例是否平衡？</p>
 <p>如果点赞数据和点踩数据分布差很多，模型可能学到数据分布偏差，而不是偏好本身。</p>
-<h2 id="dpo-和-kto-的区别">11. DPO 和 KTO 的区别</h2>
+<h2 id="dpo-和-kto-的区别">DPO 和 KTO 的区别</h2>
 <p>DPO 学的是 pairwise preference。</p>
 <p>它看的是：</p>
 <blockquote>
@@ -675,7 +674,7 @@ prompt？类别比例是否平衡？</p>
 <p>所以两者不是谁完全替代谁，而是数据形态不同。</p>
 <p>如果有高质量 pairwise preference，DPO 很自然。</p>
 <p>如果只有线上 thumbs up / thumbs down，KTO 更合适。</p>
-<h2 id="kto-和-grpo-的区别">12. KTO 和 GRPO 的区别</h2>
+<h2 id="kto-和-grpo-的区别">KTO 和 GRPO 的区别</h2>
 <p>KTO 不是 RLVR。</p>
 <p>它不需要对同一个 prompt 采样一组 responses，也不依赖 verifier 给
 reward。</p>
@@ -685,7 +684,7 @@ reward。</p>
 的场景。</p>
 <p>所以不要把 KTO 放进 GRPO 变体里。它应该放在 direct preference
 optimization 这条线。</p>
-<h2 id="读-grpo-变体论文时看什么">13. 读 GRPO 变体论文时看什么</h2>
+<h2 id="读-grpo-变体论文时看什么">读 GRPO 变体论文时看什么</h2>
 <p>我会看这些问题：</p>
 <ul>
 <li>它改的是 sampling、advantage、clipping，还是 reward？</li>
@@ -699,7 +698,7 @@ optimization 这条线。</p>
 </ul>
 <p>很多变体会在 benchmark 上提升，但可能用了更复杂的采样、筛选、reward
 shaping。要看清楚收益来自算法本身，还是额外工程。</p>
-<h2 id="读-kto-论文时看什么">14. 读 KTO 论文时看什么</h2>
+<h2 id="读-kto-论文时看什么">读 KTO 论文时看什么</h2>
 <p>我会看这些问题：</p>
 <ul>
 <li>数据是 pairwise preference 还是 binary feedback？</li>
@@ -712,7 +711,7 @@ shaping。要看清楚收益来自算法本身，还是额外工程。</p>
 </ul>
 <p>KTO 的价值不只是 loss 公式，而是它放宽了数据要求。</p>
 <p>在真实系统里，二元反馈通常比 pairwise preference 更容易拿到。</p>
-<h2 id="小结">15. 小结</h2>
+<h2 id="小结">小结</h2>
 <p>GRPO 变体主要在修 RLVR
 训练信号的问题：采样、advantage、clipping、sequence-level 稳定性。</p>
 <p>KTO 则是在修偏好数据形态的问题：从成对偏好变成二元反馈。</p>

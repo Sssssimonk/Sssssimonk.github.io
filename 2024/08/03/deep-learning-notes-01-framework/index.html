@@ -484,7 +484,7 @@
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">traditional ML:<br>image -&gt; hand-crafted features -&gt; classifier -&gt; label<br><br>deep learning:<br>image -&gt; neural network -&gt; label<br></code></pre></td></tr></table></figure>
 <p>这里不是说传统 ML 不重要，而是 deep learning
 把“特征怎么来”这个问题也变成了可训练的部分。</p>
-<h2 id="神经网络仍然是函数">1. 神经网络仍然是函数</h2>
+<h2 id="神经网络仍然是函数">神经网络仍然是函数</h2>
 <p>神经网络本质上还是一个函数：</p>
 <p><span class="math display">\[
 \hat{y} = f_\theta(x)
@@ -500,8 +500,9 @@ class="math inline">\(\theta\)</span> 是网络参数。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">input<br>-&gt; model prediction<br>-&gt; loss<br>-&gt; gradient<br>-&gt; parameter update<br></code></pre></td></tr></table></figure>
 <p>区别在于 <span class="math inline">\(f_\theta\)</span>
 变得很灵活，可以由很多层可学习变换组成。</p>
-<h2 id="从人工特征到表示学习representation-learning">2.
-从人工特征到表示学习（representation learning）</h2>
+<h2
+id="从人工特征到表示学习representation-learning">从人工特征到表示学习（representation
+learning）</h2>
 <p>传统机器学习里，特征工程经常决定上限。</p>
 <p>比如判断一封邮件是不是垃圾邮件，可能会手动构造这些特征：</p>
 <table>
@@ -535,7 +536,7 @@ class="math inline">\(\theta\)</span> 是网络参数。</p>
 <p>以图像为例，早期层可能学边缘和纹理，中间层学局部形状，后面层学更接近语义的结构。这个过程不是人为写规则，而是通过
 loss 和 gradient 学出来的。</p>
 <p>这就是 representation learning。</p>
-<h2 id="什么叫表示representation">3. 什么叫表示（representation）</h2>
+<h2 id="什么叫表示representation">什么叫表示（representation）</h2>
 <p>Representation 可以理解成模型内部对输入的重新编码。</p>
 <p>假设输入是一张图片，原始像素只是一个大矩阵。对模型来说，像素本身不直接等于“猫”“狗”“车”。网络需要把像素变成更有用的中间特征：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">pixels<br>-&gt; edges / textures<br>-&gt; parts<br>-&gt; object-level features<br>-&gt; prediction<br></code></pre></td></tr></table></figure>
@@ -544,7 +545,7 @@ loss 和 gradient 学出来的。</p>
 <p>比如：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">&quot;king&quot; -&gt; [0.21, -0.18, 0.73, ...]<br>&quot;queen&quot; -&gt; [0.19, -0.11, 0.69, ...]<br></code></pre></td></tr></table></figure>
 <p>这些数字本身没有人类可读含义，但它们让模型可以计算相似度、组合上下文、做预测。</p>
-<h2 id="为什么要多层">4. 为什么要多层</h2>
+<h2 id="为什么要多层">为什么要多层</h2>
 <p>单层线性模型表达能力有限：</p>
 <p><span class="math display">\[
 \hat{y} = Wx + b
@@ -562,7 +563,7 @@ h_2 = \sigma(W_2h_1 + b_2)
 \]</span></p>
 <p>每一层都在前一层表示的基础上再做一次变换。这样模型可以逐步把原始输入变成更适合任务的表示。</p>
 <p>一个简单例子：判断图片里有没有车。第一层不太可能直接学“车”，它更可能学边缘；中间层组合边缘形成轮子、车窗；后面层再组合成车的整体概念。</p>
-<h2 id="非线性为什么重要">5. 非线性为什么重要</h2>
+<h2 id="非线性为什么重要">非线性为什么重要</h2>
 <p>如果没有 activation
 function，多层线性网络仍然等价于一个线性模型。</p>
 <p>比如：</p>
@@ -580,7 +581,7 @@ h = \sigma(Wx+b)
 \]</span></p>
 <p>常见 activation 有 ReLU、sigmoid、tanh。现代深度网络里 ReLU
 及其变体很常见，因为它简单、梯度更稳定、训练效率高。</p>
-<h2 id="端到端学习end-to-end-learning">6. 端到端学习（end-to-end
+<h2 id="端到端学习end-to-end-learning">端到端学习（end-to-end
 learning）</h2>
 <p>End-to-end learning 指模型从输入到输出整体一起训练。</p>
 <p>比如语音识别：</p>
@@ -597,7 +598,7 @@ learning）</h2>
 </ul>
 <p>所以 end-to-end
 不是永远更好，只是当数据和算力足够时，它可以减少人工特征设计的限制。</p>
-<h2 id="深度学习的成功条件">7. 深度学习的成功条件</h2>
+<h2 id="深度学习的成功条件">深度学习的成功条件</h2>
 <p>Deep learning
 不是单靠一个想法突然成功。它通常需要几个条件同时出现：</p>
 <table>
@@ -633,7 +634,7 @@ learning）</h2>
 <p>如果数据很少、任务很简单，传统机器学习模型可能仍然更合适。Deep
 learning
 的优势通常在原始输入复杂、人工特征难设计、数据规模足够大的场景里更明显。</p>
-<h2 id="几个点">8. 几个点</h2>
+<h2 id="几个点">几个点</h2>
 <p>Deep learning
 不是另一个完全独立的范式，它还是机器学习，只是模型函数更复杂，并且把表示也纳入学习过程。</p>
 <p>Representation learning 是理解 deep learning

@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理最基础的神经网络：多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。 可以先抓住一句话：  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 1. 神经元（neuron）在做什么 一个最简单的">
+    <meta name="description" content="这一篇整理最基础的神经网络：多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。 可以先抓住一句话：  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 神经元（neuron）在做什么 一个最简单的 neu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深度学习笔记 02：MLP、前向传播与反向传播">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理最基础的神经网络：多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。 可以先抓住一句话：  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 1. 神经元（neuron）在做什么 一个最简单的">
+<meta property="og:description" content="这一篇整理最基础的神经网络：多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。 可以先抓住一句话：  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 神经元（neuron）在做什么 一个最简单的 neu">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-08-10T12:30:00.000Z">
 <meta property="article:modified_time" content="2024-08-10T12:30:00.000Z">
@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.9k 字
+          2.8k 字
         
       </span>
     
@@ -485,7 +485,7 @@
 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。</p>
 </blockquote>
 <p>这条链路是 deep learning 的训练核心。</p>
-<h2 id="神经元neuron在做什么">1. 神经元（neuron）在做什么</h2>
+<h2 id="神经元neuron在做什么">神经元（neuron）在做什么</h2>
 <p>一个最简单的 neuron 可以写成：</p>
 <p><span class="math display">\[
 z = w^\top x + b
@@ -506,7 +506,7 @@ class="math inline">\(\sigma\)</span> 是 activation function。</p>
 class="math inline">\(z\)</span> 越大，经过 sigmoid 后输出越接近 1。</p>
 <p>当然真实神经网络里的 neuron
 不会这么直接可解释，但这个例子能帮助理解它的基本计算。</p>
-<h2 id="层layer就是一组神经元">2. 层（layer）就是一组神经元</h2>
+<h2 id="层layer就是一组神经元">层（layer）就是一组神经元</h2>
 <p>把多个 neuron 放在一起，就是一层。</p>
 <p>线性层通常写成：</p>
 <p><span class="math display">\[
@@ -523,7 +523,7 @@ neuron。</p>
 H = \sigma(XW^\top + b)
 \]</span></p>
 <p>实际框架里不会手动写每个 neuron，而是通过矩阵乘法一次算完整层。</p>
-<h2 id="多层感知机mlp">3. 多层感知机（MLP）</h2>
+<h2 id="多层感知机mlp">多层感知机（MLP）</h2>
 <p>MLP 由多个 fully connected layer 组成。</p>
 <p>一个两层 MLP 可以写成：</p>
 <p><span class="math display">\[
@@ -544,7 +544,7 @@ p(y=k|x) = \frac{e^{z_k}}{\sum_j e^{z_j}}
 不知道相邻像素之间有局部关系；如果输入是序列，MLP 不知道 token
 顺序有意义。</p>
 <p>所以后面才会出现 CNN、RNN、Transformer 这些结构。</p>
-<h2 id="前向传播forward-pass">4. 前向传播（forward pass）</h2>
+<h2 id="前向传播forward-pass">前向传播（forward pass）</h2>
 <p>Forward pass 就是从输入一路算到输出和 loss。</p>
 <p>以二分类 MLP 为例：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">x<br>-&gt; linear layer<br>-&gt; ReLU<br>-&gt; linear layer<br>-&gt; sigmoid<br>-&gt; binary cross entropy loss<br></code></pre></td></tr></table></figure>
@@ -560,7 +560,7 @@ L = -[y\log(\hat{y}) + (1-y)\log(1-\hat{y})]
 \]</span></p>
 <p>Forward pass 只解决一个问题：当前参数下，模型预测得怎么样。</p>
 <p>但训练还需要知道：如果 loss 大，参数应该怎么改。</p>
-<h2 id="反向传播backpropagation">5. 反向传播（backpropagation）</h2>
+<h2 id="反向传播backpropagation">反向传播（backpropagation）</h2>
 <p>Backpropagation 的核心是 chain rule。</p>
 <p>如果：</p>
 <p><span class="math display">\[
@@ -577,7 +577,7 @@ L = L(\hat{y}), \quad \hat{y}=f(h), \quad h=g(\theta)
 <p>这就是反向传播的直觉：loss
 对前面参数的影响，要沿着计算路径一层层传回去。</p>
 <p>它不是一种神秘算法，本质上就是高效地在计算图上应用链式法则。</p>
-<h2 id="一个小计算图例子">6. 一个小计算图例子</h2>
+<h2 id="一个小计算图例子">一个小计算图例子</h2>
 <p>看一个最简单的例子：</p>
 <p><span class="math display">\[
 z = wx + b
@@ -616,7 +616,7 @@ class="math inline">\(w\)</span> 的梯度。</p>
 为正，梯度方向会让 <span class="math inline">\(w\)</span>
 下降；如果预测太小，梯度方向会让 <span class="math inline">\(w\)</span>
 上升。这个例子很简单，但多层网络也是同一个逻辑，只是计算图更大。</p>
-<h2 id="自动求导automatic-differentiation">7. 自动求导（automatic
+<h2 id="自动求导automatic-differentiation">自动求导（automatic
 differentiation）</h2>
 <p>实际训练时通常不会手动推导每个参数的梯度。PyTorch、TensorFlow
 这类框架会构建计算图，然后自动反向传播。</p>
@@ -630,7 +630,7 @@ differentiation）</h2>
 </ul>
 <p><code>zero_grad()</code> 也很重要，因为 PyTorch 默认会累积
 gradient。如果不清零，下一轮的 gradient 会叠加到上一轮上。</p>
-<h2 id="激活函数activation-function的作用">8. 激活函数（activation
+<h2 id="激活函数activation-function的作用">激活函数（activation
 function）的作用</h2>
 <p>Activation function 提供非线性。</p>
 <p>常见 activation：</p>

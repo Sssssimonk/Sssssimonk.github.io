@@ -494,7 +494,7 @@ reward。</p>
 </blockquote>
 <p>所以 OPD 的关键词是：on-policy、teacher、distillation、dense
 signal。</p>
-<h2 id="普通-distillation-是什么">1. 普通 distillation 是什么</h2>
+<h2 id="普通-distillation-是什么">普通 distillation 是什么</h2>
 <p>Knowledge distillation 的基本想法是：用强 teacher model 指导弱
 student model。</p>
 <p>最简单的 supervised distillation 是让 student 模仿 teacher
@@ -510,7 +510,7 @@ SFT。</p>
 或静态数据集，不一定来自 student 当前会生成的分布。</p>
 <p>这会带来一个问题：student
 在推理时遇到的状态，可能和训练时看到的不一样。</p>
-<h2 id="为什么需要-on-policy">2. 为什么需要 on-policy</h2>
+<h2 id="为什么需要-on-policy">为什么需要 on-policy</h2>
 <p>语言模型生成是自回归的。</p>
 <p>一旦前面某个 token 偏了，后面的上下文就变成 student
 自己制造出来的分布。</p>
@@ -526,7 +526,7 @@ teacher 在这些 responses 或中间 token 上提供监督。</p>
 </blockquote>
 <p>这点和 RL 类似。PPO/GRPO 也是在当前 policy 的 outputs 上学习。</p>
 <p>区别在于，RL 用 reward；OPD 用 teacher distribution。</p>
-<h2 id="rlvr-的-sparse-reward-问题">3. RLVR 的 sparse reward 问题</h2>
+<h2 id="rlvr-的-sparse-reward-问题">RLVR 的 sparse reward 问题</h2>
 <p>以数学题为例。</p>
 <p>GRPO 可能只知道最终答案是否正确：</p>
 <p><span class="math display">\[
@@ -539,7 +539,7 @@ r(y) \in \{0,1\}
 token 位置，teacher 都可以给出概率分布或 log probability。</p>
 <p>这样 student 不只是知道整段 response 好不好，而是能看到 teacher
 在每个位置上更倾向什么。</p>
-<h2 id="opd-的基本流程">4. OPD 的基本流程</h2>
+<h2 id="opd-的基本流程">OPD 的基本流程</h2>
 <p>一个简化的 OPD 流程可以写成：</p>
 <ol type="1">
 <li>从 prompt dataset 里取一批 prompts</li>
@@ -560,7 +560,7 @@ y = (y_1, y_2, ..., y_T)
 <p>student 则优化自己在这些 on-policy tokens 上的行为。</p>
 <p>这和纯 SFT 不一样。SFT 的 response 通常来自数据集；OPD 的 response
 来自 student 当前 policy。</p>
-<h2 id="reverse-kl-的直觉">5. Reverse KL 的直觉</h2>
+<h2 id="reverse-kl-的直觉">Reverse KL 的直觉</h2>
 <p>OPD 论文里经常会出现 KL objective。</p>
 <p>Forward KL 和 reverse KL 的行为不一样。</p>
 <p>Forward KL：</p>
@@ -578,7 +578,7 @@ D_{KL}(p_\theta || p_T)
 <p>这对后训练很有吸引力，因为 student 的 on-policy rollout
 可能包含很多质量一般的 token。Teacher 的 dense signal
 可以把它往更好的区域拉。</p>
-<h2 id="opd-和-grpo-的核心差别">6. OPD 和 GRPO 的核心差别</h2>
+<h2 id="opd-和-grpo-的核心差别">OPD 和 GRPO 的核心差别</h2>
 <p>GRPO 的训练信号通常是 response-level reward。</p>
 <p>比如：</p>
 <p><span class="math display">\[
@@ -595,14 +595,14 @@ A_i = \frac{r_i - \mu}{\sigma}
 </ul>
 <p>这也是 OPD 可能更高效的原因。Scalar reward 只在终点给信号，teacher
 distribution 可以在每一步给信号。</p>
-<h2 id="opd-和-sft-的核心差别">7. OPD 和 SFT 的核心差别</h2>
+<h2 id="opd-和-sft-的核心差别">OPD 和 SFT 的核心差别</h2>
 <p>SFT 是在静态数据上模仿。</p>
 <p>OPD 是在 student 当前 rollout 上蒸馏。</p>
 <p>如果 student 已经接近 teacher，SFT 可能足够。</p>
 <p>如果 student 会生成很多偏离 teacher 的中间状态，OPD 更有价值，因为
 teacher 可以在这些状态上给反馈。</p>
 <p>这有点像老师批改学生自己的草稿，而不是只给学生看范文。</p>
-<h2 id="online-opd-的成本">8. Online OPD 的成本</h2>
+<h2 id="online-opd-的成本">Online OPD 的成本</h2>
 <p>标准 OPD 的一个问题是成本。</p>
 <p>训练时需要 student rollout，然后 teacher 对这些 rollouts 计算
 supervision。</p>
@@ -617,8 +617,8 @@ supervision。</p>
 </ul>
 <p>所以 OPD 虽然训练信号更密集，但系统上并不轻。</p>
 <p>这也是 Lightning OPD、StableOPD、f-OPD 这些工作的背景。</p>
-<h2 id="lightning-opd把-online-teacher-变成-offline">9. Lightning
-OPD：把 online teacher 变成 offline</h2>
+<h2 id="lightning-opd把-online-teacher-变成-offline">Lightning OPD：把
+online teacher 变成 offline</h2>
 <p>Lightning OPD 关注一个问题：能不能不用 live teacher server？</p>
 <p>它的思路是 offline on-policy distillation。</p>
 <p>核心是预计算 teacher log-probabilities，然后训练时复用。</p>
@@ -628,8 +628,7 @@ student rollouts 的分布不一致，就可能引入不可消除的 gradient bi
 <p>Lightning OPD 的一个重要结论是：只要保持 teacher consistency，offline
 OPD 可以接近 standard OPD 的 optimum，同时显著降低系统成本。</p>
 <p>这对个人或学术实验很重要。因为 live teacher server 是很高的门槛。</p>
-<h2 id="stableopd长度膨胀和重复崩溃">10.
-StableOPD：长度膨胀和重复崩溃</h2>
+<h2 id="stableopd长度膨胀和重复崩溃">StableOPD：长度膨胀和重复崩溃</h2>
 <p>OPD 也有自己的失败模式。</p>
 <p>一个问题是 length inflation。</p>
 <p>Student on-policy rollouts 可能越来越长，训练目标又在这些 rollouts
@@ -640,8 +639,7 @@ trajectories。这会造成 biased gradient signal。</p>
 rollout mixture distillation 稳定训练。</p>
 <p>直觉上，它在防止 student 被自己的坏 rollout 分布拖走。</p>
 <p>这说明 OPD 虽然不用 scalar reward，但仍然有 policy drift 问题。</p>
-<h2 id="f-opd异步训练里的-freshness">11. f-OPD：异步训练里的
-freshness</h2>
+<h2 id="f-opd异步训练里的-freshness">f-OPD：异步训练里的 freshness</h2>
 <p>大规模训练通常不是完全同步的。</p>
 <p>Rollout 生成、teacher 计算、student 更新可能是异步执行。</p>
 <p>这会带来 stale sample 问题。</p>
@@ -656,7 +654,7 @@ freshness score 来判断样本是否还可靠。</p>
 </blockquote>
 <p>这对 long-horizon agentic tasks
 尤其重要。任务越长，轨迹越复杂，staleness 的影响越大。</p>
-<h2 id="opd-适合什么任务">12. OPD 适合什么任务</h2>
+<h2 id="opd-适合什么任务">OPD 适合什么任务</h2>
 <p>OPD 适合这些场景：</p>
 <ul>
 <li>有强 teacher model</li>
@@ -672,7 +670,7 @@ OPD。</p>
 <p>如果 teacher 推理成本太高，系统负担很重。</p>
 <p>如果 student rollout 质量太差，teacher supervision
 可能长期在很差的状态上补救，训练效率不一定高。</p>
-<h2 id="opd-和-rl-能不能结合">13. OPD 和 RL 能不能结合</h2>
+<h2 id="opd-和-rl-能不能结合">OPD 和 RL 能不能结合</h2>
 <p>可以。</p>
 <p>OPD 和 RLVR 不是互斥关系。</p>
 <p>一种可能是先用 OPD 做 dense behavior shaping，让 student 接近 teacher
@@ -682,7 +680,7 @@ OPD。</p>
 reward 走向奇怪分布。</p>
 <p>也可以把 OPD 看成一种替代 sparse reward 的中间路线：它不像 SFT
 那么离线，也不像 RL 那么依赖 scalar reward。</p>
-<h2 id="opd-的风险">14. OPD 的风险</h2>
+<h2 id="opd-的风险">OPD 的风险</h2>
 <p>第一，teacher bias。</p>
 <p>Student 会继承 teacher 的偏好和错误。</p>
 <p>第二，teacher ceiling。</p>
@@ -695,7 +693,7 @@ reward 走向奇怪分布。</p>
 <p>异步训练时，rollout 和 supervision 可能过期。</p>
 <p>所以 OPD 不是“比 RL 更简单”的万能方法。它只是把问题从 reward design
 转移到 teacher supervision 和系统效率上。</p>
-<h2 id="读-opd-论文时看什么">15. 读 OPD 论文时看什么</h2>
+<h2 id="读-opd-论文时看什么">读 OPD 论文时看什么</h2>
 <p>我会看这些问题：</p>
 <ul>
 <li>Teacher model 是什么</li>
@@ -712,7 +710,7 @@ reward 走向奇怪分布。</p>
 </ul>
 <p>尤其要注意 compute。OPD 如果性能提升但 teacher
 成本巨大，实际价值要重新评估。</p>
-<h2 id="小结">16. 小结</h2>
+<h2 id="小结">小结</h2>
 <p>OPD 可以理解成一条介于 SFT 和 RLVR 之间的后训练路线。</p>
 <p>SFT 在静态数据上模仿。</p>
 <p>GRPO 在 on-policy samples 上用 scalar reward 学。</p>

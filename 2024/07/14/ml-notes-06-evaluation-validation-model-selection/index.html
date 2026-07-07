@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不">
+    <meta name="description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 评估指标不是装饰 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不是越多">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 06：评估、验证与模型选择">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/07/14/ml-notes-06-evaluation-validation-model-selection/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 1. 评估指标不是装饰 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不">
+<meta property="og:description" content="这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 评估指标不是装饰 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不是越多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-07-14T14:30:00.000Z">
 <meta property="article:modified_time" content="2024-07-14T14:30:00.000Z">
@@ -489,13 +489,12 @@
                 
                 <p>这一篇整理模型评估、验证和模型选择。训练 loss
 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。</p>
-<h2 id="评估指标不是装饰">1. 评估指标不是装饰</h2>
+<h2 id="评估指标不是装饰">评估指标不是装饰</h2>
 <p>模型评估的核心问题是：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">这个模型在真正关心的场景里，到底有没有变好？<br></code></pre></td></tr></table></figure>
 <p>不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。</p>
 <p>所以指标不是越多越好，而是要对应任务代价。</p>
-<h2 id="回归指标regression-metrics">2. 回归指标（regression
-metrics）</h2>
+<h2 id="回归指标regression-metrics">回归指标（regression metrics）</h2>
 <p>回归任务预测连续值，常见指标有 MSE、RMSE、MAE、<span
 class="math inline">\(R^2\)</span>。</p>
 <h3 id="mse-和-rmse">MSE 和 RMSE</h3>
@@ -527,7 +526,7 @@ R^2=1-\frac{\sum_i(y_i-\hat{y}_i)^2}{\sum_i(y_i-\bar{y})^2}
 <p>如果 <span
 class="math inline">\(R^2=0.8\)</span>，可以粗略理解为模型解释了 80%
 的变化。它适合看整体拟合程度，但不一定能说明具体业务误差是否可接受。</p>
-<h2 id="分类指标classification-metrics">3. 分类指标（classification
+<h2 id="分类指标classification-metrics">分类指标（classification
 metrics）</h2>
 <p>分类任务常见指标都可以从 confusion matrix 出发。</p>
 <table>
@@ -580,7 +579,7 @@ F1=2\cdot\frac{Precision\cdot Recall}{Precision+Recall}
 的调和平均。它适合在两者都重要时作为综合指标。</p>
 <p>但 F1 也不是万能的。如果业务上 FP 和 FN 代价明显不同，还是要单独看
 precision 和 recall。</p>
-<h2 id="roc-和-auc阈值变化下的分类表现">4. ROC 和
+<h2 id="roc-和-auc阈值变化下的分类表现">ROC 和
 AUC：阈值变化下的分类表现</h2>
 <p>ROC 曲线关注不同 threshold 下 TPR 和 FPR 的变化。</p>
 <p><span class="math display">\[
@@ -628,14 +627,14 @@ score，业务再根据 threshold 或排序位置使用这个 score。</p>
 </table>
 <p>AUC 关心的是正样本是否整体排在负样本前面，而不是某个固定 threshold
 下分对了多少。</p>
-<h2 id="pr-曲线pr-curve">5. PR 曲线（PR curve）</h2>
+<h2 id="pr-曲线pr-curve">PR 曲线（PR curve）</h2>
 <p>PR Curve 的横轴是 recall，纵轴是 precision。</p>
 <p>在正负样本极度不平衡时，PR curve 往往比 ROC curve 更敏感。</p>
 <p>比如欺诈检测里，正样本非常少。ROC-AUC 可能看起来还不错，但 precision
 可能很低：模型找出一堆“疑似欺诈”，里面真正欺诈的比例很小。这个时候 PR
 curve 更能反映实际使用体验。</p>
-<h2 id="类别不平衡数据集imbalanced-dataset">6.
-类别不平衡数据集（imbalanced dataset）</h2>
+<h2 id="类别不平衡数据集imbalanced-dataset">类别不平衡数据集（imbalanced
+dataset）</h2>
 <p>类别不平衡时，accuracy 通常不够。</p>
 <p>常见处理方式：</p>
 <ul>
@@ -647,8 +646,8 @@ curve 更能反映实际使用体验。</p>
 </ul>
 <p>一个例子：阳性率只有 1% 的疾病筛查。模型如果全部预测阴性，accuracy 是
 99%，但 recall 是 0。这种模型没有实际价值。</p>
-<h2 id="验证validation怎么可靠地估计泛化能力">7.
-验证（validation）：怎么可靠地估计泛化能力</h2>
+<h2
+id="验证validation怎么可靠地估计泛化能力">验证（validation）：怎么可靠地估计泛化能力</h2>
 <p>训练集表现不能代表泛化能力，所以需要 validation。</p>
 <h3 id="holdout-validation">holdout validation</h3>
 <p>最常见方式是 train / validation / test split。</p>
@@ -665,7 +664,7 @@ training，最后平均结果。</p>
 <p>Bootstrap
 是有放回采样。每次从原始数据中采出一个同样大小的数据集，有些样本会重复，有些样本不会被采到。没被采到的样本可以用于评估。</p>
 <p>它在统计估计里很常见，但日常模型训练中更常用 holdout 和 K-fold。</p>
-<h2 id="模型选择model-selection">8. 模型选择（model selection）</h2>
+<h2 id="模型选择model-selection">模型选择（model selection）</h2>
 <p>Model selection 不只是选模型类型，也包括选超参数。</p>
 <p>比如：</p>
 <ul>
@@ -692,7 +691,7 @@ optimization）</h3>
 会根据已有实验结果，估计哪些参数区域更可能好，然后优先尝试这些区域。</p>
 <p>它比 random search
 更聪明，但实现和调试更复杂。小任务里不一定需要，上规模后才更有价值。</p>
-<h2 id="数据泄漏data-leakage">9. 数据泄漏（data leakage）</h2>
+<h2 id="数据泄漏data-leakage">数据泄漏（data leakage）</h2>
 <p>Data leakage
 是评估里最危险的问题之一。它指训练过程中用了不该提前知道的信息。</p>
 <p>例子：预测用户未来是否流失，但 feature
@@ -701,7 +700,7 @@ optimization）</h3>
 test set 的统计信息已经泄漏到了 training process。正确做法是只在
 training set 上 fit scaler，再 apply 到 validation/test set。</p>
 <p>Data leakage 会让离线评估虚高，线上效果崩掉。</p>
-<h2 id="几个点">10. 几个点</h2>
+<h2 id="几个点">几个点</h2>
 <p>Accuracy 不适合严重类别不平衡的问题。</p>
 <p>Precision 和 recall 要结合 FP/FN
 的业务代价看，不要机械比较谁更大。</p>

@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 1. 决策树（decision tree）的基本想法 Decision Tree 每一步都在问一个问题：  这个 feat">
+    <meta name="description" content="这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 决策树（decision tree）的基本想法 Decision Tree 每一步都在问一个问题：  这个 feature">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 04：树模型">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/06/29/ml-notes-04-tree-based-models/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 1. 决策树（decision tree）的基本想法 Decision Tree 每一步都在问一个问题：  这个 feat">
+<meta property="og:description" content="这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 决策树（decision tree）的基本想法 Decision Tree 每一步都在问一个问题：  这个 feature">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-06-29T13:30:00.000Z">
 <meta property="article:modified_time" content="2024-06-29T13:30:00.000Z">
@@ -491,7 +491,7 @@
 models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易
 overfit，所以实际中经常用 ensemble tree models，比如 Random
 Forest、GBDT、XGBoost。</p>
-<h2 id="决策树decision-tree的基本想法">1. 决策树（decision
+<h2 id="决策树decision-tree的基本想法">决策树（decision
 tree）的基本想法</h2>
 <p>Decision Tree 每一步都在问一个问题：</p>
 <blockquote>
@@ -501,8 +501,8 @@ tree）的基本想法</h2>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">访问次数 &gt; 10 ?<br>    yes -&gt; 停留时间 &gt; 5 分钟 ?<br>    no  -&gt; 预测不购买<br></code></pre></td></tr></table></figure>
 <p>每个内部节点是一个 split rule，每个叶子节点给出最终预测。</p>
 <p>分类树希望叶子节点里的类别尽量单一；回归树希望叶子节点里的目标值尽量接近。</p>
-<h2 id="如何切分数据信息什么叫节点更纯">2.
-如何切分数据信息，什么叫节点更“纯”</h2>
+<h2
+id="如何切分数据信息什么叫节点更纯">如何切分数据信息，什么叫节点更“纯”</h2>
 <p>假设一个节点里有 10 个样本：</p>
 <table>
 <thead>
@@ -581,7 +581,7 @@ class="math inline">\(c\)</span> 在节点中的比例。</p>
 </tbody>
 </table>
 <p>Entropy 越低，节点越纯。</p>
-<h2 id="splitting-metrics">3. Splitting metrics</h2>
+<h2 id="splitting-metrics">Splitting metrics</h2>
 <p><strong>信息增益（information gain）</strong></p>
 <p>Information Gain 衡量 split 后 entropy 降低了多少：</p>
 <p><span class="math display">\[
@@ -633,7 +633,7 @@ Gini(S)=1-\sum_c p_c^2
 </table>
 <p>Gini 和 entropy 的目标很接近：都希望 split
 后子节点更纯。实际使用中，Gini 计算更简单一些。</p>
-<h2 id="id3c4.5cart">4. ID3、C4.5、CART</h2>
+<h2 id="id3c4.5cart">ID3、C4.5、CART</h2>
 <p>三类树的区别：</p>
 <table>
 <thead>
@@ -682,7 +682,7 @@ split，直到叶子节点里只剩很少样本，甚至每个叶子只对应一
 <p><strong>Pre-pruning</strong>：树还没长完就提前停止，比如限制最大深度。</p>
 <p><strong>Post-pruning</strong>：先长出一棵比较完整的树，再从底部往上剪掉泛化收益不大的分支。</p>
 <p>简单说，剪枝就是不让树把训练集记得太细。</p>
-<h2 id="多棵树的组合">5.多棵树的组合</h2>
+<h2 id="多棵树的组合">多棵树的组合</h2>
 <p><strong>Bagging：随机森林（random forest）</strong></p>
 <p>Random Forest 属于 Bagging 方法。它训练很多棵 decision
 tree，然后让它们投票或取平均。</p>

@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.1k 字
+          6k 字
         
       </span>
     
@@ -492,7 +492,7 @@ RL。</p>
 <p>PPO、DPO、GRPO
 的核心区别，不是公式长得像不像，而是训练信号从哪里来。</p>
 </blockquote>
-<h2 id="三种训练信号">1. 三种训练信号</h2>
+<h2 id="三种训练信号">三种训练信号</h2>
 <p>PPO 的训练信号来自 reward model 或 verifier，再加 value model 估计
 advantage。</p>
 <p>DPO 的训练信号来自 preference pair，也就是 chosen response 和
@@ -509,7 +509,7 @@ preference loss</li>
 -&gt; policy update</li>
 </ul>
 <p>如果只看名字，很容易觉得都是“对齐算法”。但从工程角度看，它们需要的模型、数据、采样方式完全不同。</p>
-<h2 id="ppo经典-rlhf-路线">2. PPO：经典 RLHF 路线</h2>
+<h2 id="ppo经典-rlhf-路线">PPO：经典 RLHF 路线</h2>
 <p>PPO 原本是通用强化学习算法，后来被用在 RLHF 里。</p>
 <p>在 LLM RLHF 中，通常会有四个模型角色：</p>
 <ul>
@@ -528,7 +528,7 @@ preference loss</li>
 </ol>
 <p>PPO 的目标不是简单让 reward 最大，而是在 reward
 和分布约束之间平衡。</p>
-<h2 id="ppo-clipping-的直觉">3. PPO clipping 的直觉</h2>
+<h2 id="ppo-clipping-的直觉">PPO clipping 的直觉</h2>
 <p>PPO 的核心是限制 policy 更新幅度。</p>
 <p>定义 probability ratio：</p>
 <p><span class="math display">\[
@@ -553,7 +553,7 @@ action 差，可以降低它的概率，但也不要一次降太多。</p>
 </blockquote>
 <p>语言模型是很脆弱的分布。更新过猛，模型可能学到 reward model
 的漏洞，或者输出风格突然崩掉。</p>
-<h2 id="ppo-为什么复杂">4. PPO 为什么复杂</h2>
+<h2 id="ppo-为什么复杂">PPO 为什么复杂</h2>
 <p>PPO 的问题不是理论上不能用，而是系统上很重。</p>
 <p>它通常需要：</p>
 <ul>
@@ -570,7 +570,7 @@ action 差，可以降低它的概率，但也不要一次降太多。</p>
 reward/value/reference，训练链路会非常重。</p>
 <p>所以后面出现了很多“简化 PPO”的路线：DPO 直接避开 RL；GRPO 去掉 value
 model；OPD 用 teacher dense supervision 替代 sparse reward。</p>
-<h2 id="dpo直接从偏好对学习">5. DPO：直接从偏好对学习</h2>
+<h2 id="dpo直接从偏好对学习">DPO：直接从偏好对学习</h2>
 <p>DPO 的出发点很漂亮。</p>
 <p>经典 RLHF 里，人类偏好先训练 reward model，再用 PPO 优化 policy。</p>
 <p>DPO 认为：如果 reward model 和最优 policy
@@ -583,7 +583,7 @@ loss？</p>
 <li>rejected response <span class="math inline">\(y_l\)</span></li>
 </ul>
 <p>DPO 不需要在线采样。它直接用这些 preference pairs 训练 policy。</p>
-<h2 id="dpo-的-log-ratio">6. DPO 的 log-ratio</h2>
+<h2 id="dpo-的-log-ratio">DPO 的 log-ratio</h2>
 <p>DPO 会比较 policy model 和 reference model 对 chosen/rejected
 的相对偏好。</p>
 <p>核心量是：</p>
@@ -607,7 +607,7 @@ reference model 为锚。</p>
 </blockquote>
 <p>Reference model 在这里也很重要。它防止 policy 只是盲目拉高 chosen
 的绝对概率，而是关注相对 reference 的偏好变化。</p>
-<h2 id="dpo-的优点和局限">7. DPO 的优点和局限</h2>
+<h2 id="dpo-的优点和局限">DPO 的优点和局限</h2>
 <p>DPO 的优点很明显：</p>
 <ul>
 <li>不需要训练 reward model</li>
@@ -626,7 +626,7 @@ on-policy 方法。</p>
 只是很差的回答，模型学到的边界可能很粗；如果 chosen 和 rejected
 差异太小，训练信号也可能不稳定。</p>
 <p>所以 DPO 很适合偏好对齐，但不是所有 post-training 问题的终点。</p>
-<h2 id="grpo从-ppo-到-group-relative-advantage">8. GRPO：从 PPO 到 group
+<h2 id="grpo从-ppo-到-group-relative-advantage">GRPO：从 PPO 到 group
 relative advantage</h2>
 <p>GRPO 是 Group Relative Policy Optimization。</p>
 <p>它可以看成 PPO 在 reasoning / RLVR 场景下的一种简化。</p>
@@ -647,7 +647,7 @@ class="math inline">\(G\)</span> 个 responses：</p>
 A_i = \frac{r_i - \mathrm{mean}(r_1,...,r_G)}{\mathrm{std}(r_1,...,r_G)}
 \]</span></p>
 <p>这就是 group relative 的意思。</p>
-<h2 id="grpo-为什么适合-reasoning">9. GRPO 为什么适合 reasoning</h2>
+<h2 id="grpo-为什么适合-reasoning">GRPO 为什么适合 reasoning</h2>
 <p>Reasoning 任务里，同一个问题可以采样多个解法。</p>
 <p>比如一道数学题，模型生成 8 个 responses，其中 3 个答案对，5
 个答案错。</p>
@@ -663,7 +663,7 @@ advantage 为负。</p>
 <li>格式题可以规则检查</li>
 </ul>
 <p>所以 GRPO 和 RLVR 很搭。</p>
-<h2 id="grpo-的核心代价">10. GRPO 的核心代价</h2>
+<h2 id="grpo-的核心代价">GRPO 的核心代价</h2>
 <p>GRPO 省掉了 value model，但它不是免费。</p>
 <p>它需要对每个 prompt 采样多个 responses。</p>
 <p>如果 group size 是 8，训练时生成成本就明显增加。</p>
@@ -674,7 +674,7 @@ advantage 为负。</p>
 全错。它们都不能很好地区分哪些轨迹更值得加强。</p>
 <p>这也是后面 GRPO 变体要解决的问题之一：怎样让采样、reward、advantage
 更有效。</p>
-<h2 id="ppodpogrpo-的关键差别">11. PPO、DPO、GRPO 的关键差别</h2>
+<h2 id="ppodpogrpo-的关键差别">PPO、DPO、GRPO 的关键差别</h2>
 <p>可以从四个维度比较。</p>
 <p>第一，是否在线采样。</p>
 <p>PPO 和 GRPO 通常需要在线采样；DPO 不需要。</p>
@@ -688,7 +688,7 @@ advantage 为负。</p>
 <p>DPO 用 chosen/rejected 的偏好差。</p>
 <p>GRPO 用同一 prompt 下多个 responses 的相对 reward。</p>
 <p>这几个差别决定了工程成本和适用场景。</p>
-<h2 id="三者分别适合什么">12. 三者分别适合什么</h2>
+<h2 id="三者分别适合什么">三者分别适合什么</h2>
 <p>PPO 适合经典 RLHF 场景：已经有 reward model，希望在线优化
 policy，并且有足够工程资源。</p>
 <p>DPO 适合偏好数据充足的场景：有 chosen/rejected
@@ -701,8 +701,8 @@ log-ratio。</p>
 <p>再理解 PPO，因为它是 RLHF 的经典路线。</p>
 <p>最后理解 GRPO，因为它建立在 RL 直觉上，同时更贴近 DeepSeek-R1 这类
 reasoning model。</p>
-<h2 id="为什么-dpo-不是-rl但又和-rlhf-有关系">13. 为什么 DPO 不是
-RL，但又和 RLHF 有关系</h2>
+<h2 id="为什么-dpo-不是-rl但又和-rlhf-有关系">为什么 DPO 不是 RL，但又和
+RLHF 有关系</h2>
 <p>DPO 经常被放在 RLHF 的替代方法里，但它本身不是在线 RL。</p>
 <p>它不采样当前 policy 的新 outputs 来计算 reward，也不做环境交互。</p>
 <p>但 DPO 和 RLHF 有理论联系：DPO 从 reward model
@@ -712,7 +712,7 @@ RL，但又和 RLHF 有关系</h2>
 <p>把“先学 reward，再优化 policy”的两步合成一个监督式目标。</p>
 </blockquote>
 <p>这也是为什么 DPO 训练起来像 SFT，但作用却更接近偏好对齐。</p>
-<h2 id="为什么-grpo-不是简单版-ppo">14. 为什么 GRPO 不是简单版 PPO</h2>
+<h2 id="为什么-grpo-不是简单版-ppo">为什么 GRPO 不是简单版 PPO</h2>
 <p>GRPO 省掉 value model，但它引入了 group sampling。</p>
 <p>它不是“PPO 少一个模型”这么简单。</p>
 <p>PPO 的 baseline 来自 value model。</p>
@@ -730,7 +730,7 @@ RL，但又和 RLHF 有关系</h2>
 <li>KL penalty 怎么加</li>
 </ul>
 <p>这些细节决定了 GRPO 是否稳定。</p>
-<h2 id="读-ppo-dpo-grpo-论文时看什么">15. 读 PPO / DPO / GRPO
+<h2 id="读-ppo-dpo-grpo-论文时看什么">读 PPO / DPO / GRPO
 论文时看什么</h2>
 <p>我会看这些问题：</p>
 <ul>
@@ -747,7 +747,7 @@ RL，但又和 RLHF 有关系</h2>
 </ul>
 <p>很多方法 benchmark
 看起来提升，但可能是采样更多、输出更长、筛选更强带来的。读的时候要把训练方法和推理策略分开看。</p>
-<h2 id="小结">16. 小结</h2>
+<h2 id="小结">小结</h2>
 <p>PPO、DPO、GRPO 是三条不同的后训练路线。</p>
 <p>PPO 是经典 RLHF：强大但重。</p>
 <p>DPO 是直接偏好优化：简单稳定，但依赖 preference pairs。</p>

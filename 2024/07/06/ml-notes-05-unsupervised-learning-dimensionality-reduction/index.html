@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均">
+    <meta name="description" content="这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均停留时">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 05：无监督学习与降维">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 1. 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均">
+<meta property="og:description" content="这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均停留时">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-07-06T14:00:00.000Z">
 <meta property="article:modified_time" content="2024-07-06T14:00:00.000Z">
@@ -490,8 +490,9 @@
                 <p>这一篇整理无监督学习和降维。监督学习有
 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是
 clustering 和 dimensionality reduction。</p>
-<h2 id="什么是无监督学习unsupervised-learning">1.
-什么是无监督学习（unsupervised learning）</h2>
+<h2
+id="什么是无监督学习unsupervised-learning">什么是无监督学习（unsupervised
+learning）</h2>
 <p>无监督学习只有输入 <span class="math inline">\(x\)</span>，没有标签
 <span class="math inline">\(y\)</span>。</p>
 <p>比如有一批用户行为数据：</p>
@@ -535,8 +536,8 @@ clustering 和 dimensionality reduction。</p>
 比较像。这就是 clustering 的典型使用场景。</p>
 <p>无监督学习不是为了直接预测
 label，而是为了整理数据：哪些样本相似，数据有没有低维结构，有没有异常点。</p>
-<h2 id="聚类clustering把相似样本放在一起">2.
-聚类（clustering）：把相似样本放在一起</h2>
+<h2
+id="聚类clustering把相似样本放在一起">聚类（clustering）：把相似样本放在一起</h2>
 <p>Clustering
 的目标是把样本分成若干组，让同一组内部尽量相似，不同组之间尽量不同。</p>
 <p>但这里有一个麻烦：没有
@@ -667,8 +668,8 @@ cluster 数。缺点是计算成本高，大数据上不一定适合。</p>
 </table>
 <p>KMeans 更像是在找中心点，DBSCAN 更像是在找密度连通区域，hierarchical
 clustering 更像是在整理样本之间的层级关系。</p>
-<h2 id="降维dimensionality-reduction为什么要降维">3.
-降维（dimensionality reduction）：为什么要降维</h2>
+<h2 id="降维dimensionality-reduction为什么要降维">降维（dimensionality
+reduction）：为什么要降维</h2>
 <p>降维的目标是把高维数据变成低维表示，同时尽量保留重要信息。</p>
 <p>常见动机：</p>
 <ul>

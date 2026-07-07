@@ -468,7 +468,7 @@
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">prefill prompt -&gt; decode token 1 -&gt; decode token 2 -&gt; ...<br></code></pre></td></tr></table></figure>
 <p>所以它的系统瓶颈很特别：一边要算 attention，一边要维护 KV
 cache，一边还要处理请求长度不一、到达时间不一、输出长度不一的问题。</p>
-<h2 id="先分清-prefill-和-decode">1. 先分清 prefill 和 decode</h2>
+<h2 id="先分清-prefill-和-decode">先分清 prefill 和 decode</h2>
 <p>LLM 推理可以拆成两个阶段。</p>
 <p>Prefill 阶段：一次性处理 prompt，把输入 token 的 hidden states 和 KV
 cache 算出来。</p>
@@ -485,7 +485,7 @@ token，但要反复读历史 KV cache。输出越长，decode 越贵。</p>
 <li>是 prompt 太长，还是输出太长？</li>
 <li>是单请求 latency 重要，还是整体 throughput 重要？</li>
 </ul>
-<h2 id="kv-cache-是推理的核心状态">2. KV cache 是推理的核心状态</h2>
+<h2 id="kv-cache-是推理的核心状态">KV cache 是推理的核心状态</h2>
 <p>自回归生成时，第 <span class="math inline">\(t\)</span>
 步要用前面所有 token 的 key 和 value。</p>
 <p>如果每一步都重新计算前面所有 token，成本会爆炸。</p>
@@ -504,7 +504,7 @@ query，然后和缓存里的 key/value 做 attention。</p>
 <p>第二，它是动态的。每个请求长度不同，生成长度也不同，cache
 会不断增长和释放。</p>
 <p>所以 LLM serving 的很多创新，本质上都是在管理 KV cache。</p>
-<h2 id="continuous-batching请求不是凑齐一批再跑">3. Continuous
+<h2 id="continuous-batching请求不是凑齐一批再跑">Continuous
 batching：请求不是凑齐一批再跑</h2>
 <p>传统 batching 很简单：凑一批请求，一起 forward。</p>
 <p>但 LLM 生成长度不一样。如果一个请求只生成 20 token，另一个请求要生成
@@ -517,7 +517,7 @@ batch，同时把新来的请求插进来，把结束的请求移出去。</p>
 <p>这也是为什么推理引擎比裸 PyTorch generate
 复杂很多。真正的瓶颈不只是单次 forward 快不快，而是调度器能不能持续把
 GPU 填满。</p>
-<h2 id="vllm-和-pagedattention把-kv-cache-当内存系统管理">4. vLLM 和
+<h2 id="vllm-和-pagedattention把-kv-cache-当内存系统管理">vLLM 和
 PagedAttention：把 KV cache 当内存系统管理</h2>
 <p>vLLM 最核心的想法是 PagedAttention。</p>
 <p>问题背景是：KV cache
@@ -536,8 +536,9 @@ API、量化、分布式推理这些问题做工程整合。</p>
 <blockquote>
 <p>用系统工程方法解决 LLM serving 里的动态内存和动态调度问题。</p>
 </blockquote>
-<h2 id="flashattention-解决的是-attention-kernel-的-io-问题">5.
-FlashAttention 解决的是 attention kernel 的 IO 问题</h2>
+<h2
+id="flashattention-解决的是-attention-kernel-的-io-问题">FlashAttention
+解决的是 attention kernel 的 IO 问题</h2>
 <p>FlashAttention 经常和 vLLM 一起被提到，但它解决的问题不同。</p>
 <p>标准 attention 可能会把 <span class="math inline">\(QK^\top\)</span>
 这样的中间矩阵写入 HBM，再读回来做 softmax 和乘 <span
@@ -553,8 +554,9 @@ SRAM，减少 HBM 读写。</p>
 <li>vLLM/PagedAttention：优化很多请求的 KV cache 怎么存、怎么调度</li>
 </ul>
 <p>这两个层次不一样，但在实际 inference system 里会一起出现。</p>
-<h2 id="deepspeed-inference模型并行kernel-injection-和量化">6.
-DeepSpeed-Inference：模型并行、kernel injection 和量化</h2>
+<h2
+id="deepspeed-inference模型并行kernel-injection-和量化">DeepSpeed-Inference：模型并行、kernel
+injection 和量化</h2>
 <p>DeepSpeed 最早更常被当成训练优化框架，比如 ZeRO。</p>
 <p>但 DeepSpeed-Inference 关注的是 transformer 推理。</p>
 <p>它的核心能力可以粗略拆成三类。</p>
@@ -579,7 +581,7 @@ kernel。</p>
 </blockquote>
 <p>实际选型时要看场景是离线批量推理、在线 API
 服务，还是多机大模型部署。</p>
-<h2 id="分布式推理的几种并行">7. 分布式推理的几种并行</h2>
+<h2 id="分布式推理的几种并行">分布式推理的几种并行</h2>
 <p>大模型推理里常见几种并行方式。</p>
 <p>Tensor parallelism：把单层里的大矩阵切到多张 GPU 上。比如一个 linear
 layer 的权重按列或行切分。好处是单层计算变小；代价是每层都要通信。</p>
@@ -597,7 +599,7 @@ token routing 会带来不均衡和通信。</p>
 <p>如果模型单卡放不下，先考虑 tensor parallel。</p>
 <p>如果模型层数很多、显存压力大，pipeline parallel 也会进来。</p>
 <p>如果是 MoE，expert parallel 基本绕不开。</p>
-<h2 id="量化省显存也省带宽">8. 量化：省显存，也省带宽</h2>
+<h2 id="量化省显存也省带宽">量化：省显存，也省带宽</h2>
 <p>推理时很多瓶颈不是算力，而是显存带宽。</p>
 <p>权重越大，从显存读权重越贵。KV cache 越大，每步 decode 读 cache
 越贵。</p>
@@ -614,7 +616,7 @@ token routing 会带来不均衡和通信。</p>
 <p>如果 kernel 不好、反量化开销大、batch
 太小、瓶颈不在带宽，速度可能不明显。</p>
 <p>所以量化要看三个东西：精度掉多少、显存省多少、实际吞吐提升多少。</p>
-<h2 id="speculative-decoding用小模型帮大模型起草">9. Speculative
+<h2 id="speculative-decoding用小模型帮大模型起草">Speculative
 decoding：用小模型帮大模型起草</h2>
 <p>Speculative decoding 的直觉是：让一个便宜的 draft model
 先生成几个候选 token，再让大模型一次性验证。</p>
@@ -629,7 +631,7 @@ token。</p>
 分布差异大，也可能收益下降。</p>
 <p>所以它的关键不是“有没有 draft
 model”，而是接受率和额外成本之间是否划算。</p>
-<h2 id="long-context-只是推理效率问题的一部分">10. Long context
+<h2 id="long-context-只是推理效率问题的一部分">Long context
 只是推理效率问题的一部分</h2>
 <p>长上下文当然重要，但它不是唯一主线。</p>
 <p>长 prompt 会放大 prefill 成本。</p>
@@ -643,8 +645,7 @@ model”，而是接受率和额外成本之间是否划算。</p>
 <p>Needle-in-a-haystack
 这类评测解决的是模型能不能用好长上下文的问题。</p>
 <p>这三件事相关，但不是同一件事。</p>
-<h2 id="读推理优化论文或文档时看什么">11.
-读推理优化论文或文档时看什么</h2>
+<h2 id="读推理优化论文或文档时看什么">读推理优化论文或文档时看什么</h2>
 <p>我会看这些问题：</p>
 <ul>
 <li>优化的是 prefill、decode，还是 serving 调度？</li>
@@ -661,7 +662,7 @@ model”，而是接受率和额外成本之间是否划算。</p>
 <p>很多推理优化看起来都在“加速 LLM”，但实际目标差很多。一个方法提升 long
 prompt prefill，不一定提升短 prompt
 高并发服务。一个方法提升吞吐，不一定降低单请求延迟。</p>
-<h2 id="几个点">12. 几个点</h2>
+<h2 id="几个点">几个点</h2>
 <ul>
 <li>LLM inference 要先分 prefill 和 decode，两者瓶颈不同。</li>
 <li>KV cache 是推理系统的核心状态，长上下文和高并发都会把它放大。</li>

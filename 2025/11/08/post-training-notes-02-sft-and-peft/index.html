@@ -486,7 +486,7 @@
 的作用就是先把模型拉到一个“能正常当助手”的状态。</p>
 <p>PEFT则是SFT的一种解法（即parameter <strong>efficient</strong>
 fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。</p>
-<h2 id="base-model-为什么不能直接用">1. Base model 为什么不能直接用</h2>
+<h2 id="base-model-为什么不能直接用">Base model 为什么不能直接用</h2>
 <p>Base model 的训练目标通常是 next token prediction：</p>
 <p><span class="math display">\[
 \max_\theta \sum_t \log p_\theta(x_t \mid x_{&lt;t})
@@ -526,7 +526,7 @@ class="math inline">\(y\)</span> 是高质量回答。</p>
 只能模仿目标答案，不能表达偏好排序。</p>
 <p>Full fine-tuning 的成本很大，全参数微调会更新模型所有参数。</p>
 <p>这就是 PEFT 出现的背景：不改全部参数，只训练小模块。</p>
-<h2 id="peft-的基本想法">5. PEFT 的基本想法</h2>
+<h2 id="peft-的基本想法">PEFT 的基本想法</h2>
 <p>PEFT 是 parameter-efficient fine-tuning。</p>
 <p>核心想法是：</p>
 <blockquote>
@@ -641,7 +641,7 @@ LoRA 对生成任务更灵活，工程生态也更成熟。</p>
 <p>如果数据太窄，模型会过拟合某种格式。</p>
 <p>如果数据里充满“当然可以，下面是……”这种套话，模型会变得很像客服脚本。</p>
 <p>所以 SFT 的核心不是把 loss 跑低，而是把模型行为拉到你想要的区域。</p>
-<h2 id="小结">16. 小结</h2>
+<h2 id="小结">小结</h2>
 <p>SFT 是后训练的入口。它让 base model 从“会续写”变成“会回答”。</p>
 <p>PEFT 是低成本适配工具。LoRA、Prefix Tuning、P-Tuning
 都是在减少可训练参数，但它们改模型的方式不同。</p>
