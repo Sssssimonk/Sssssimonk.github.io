@@ -16,33 +16,25 @@ category_bar: true
 
 ![transformer架构图](/img/transformer_architecture.png)
 
-这一篇整理 Transformer 架构本身，以及它在现代 LLM 里发生了哪些变化。
+本篇整理Transformer架构以及它在现代 LLM 里发生了哪些变化。
+从图中可以看到，几个核心的步骤分别是：
+1. word embedding
+2. positional embedding
+3. 注意力机制
+4. Residual Connect
+5. Normalization
+6. FFN
 
-Attention 的基础公式已经在深度学习笔记里讲过了，这里不再重复推 Q/K/V。这里更关心：
-
-```text
-一个 Transformer block 长什么样，为什么现代 LLM 会改成现在这个形态。
-```
-
-## 原始 Transformer 是 encoder-decoder
+## 原始 Transformer的encoder-decoder结构
 
 原始 Transformer 是 seq2seq 架构。
 
-Encoder 负责读完整个输入句子，decoder 负责一步一步生成目标句子。
+Encoder 负责读完整个输入句子输出一个隐藏向量给decoder，decoder负责一步一步生成目标句子。
 
-这个结构很适合机器翻译：
 
-```text
-source sentence -> encoder -> decoder -> target sentence
-```
+Encoder里是bidirectional self-attention，每个 token 可以看完整输入。Decoder 里是 causal self-attention，加上cross-attention 去看encoder输出。
 
-Encoder 里是 bidirectional self-attention，每个 token 可以看完整输入。
-
-Decoder 里是 causal self-attention，加上 cross-attention 去看 encoder 输出。
-
-所以原始 Transformer 不是 GPT 现在这种纯 decoder-only 架构。
-
-## 为什么现代 LLM 多用 decoder-only
+> 那为什么现代 LLM 多用 decoder-only
 
 GPT、LLaMA、Qwen、DeepSeek 这类通用语言模型，大多采用 decoder-only。
 
@@ -52,35 +44,8 @@ $$
 p(x_t \mid x_1, x_2, ..., x_{t-1})
 $$
 
-翻译、问答、总结、代码生成、数学推理，都可以改写成：
 
-```text
-前面是一段 prompt，后面继续生成答案
-```
-
-这个形式简单，而且和大规模自监督预训练天然对齐。
-
-BERT 这类 encoder-only 模型更像是在理解一整段文本；GPT 这类 decoder-only 模型更像是在从左到右生成文本。
-
-Decoder-only 不一定在所有任务上都“结构最优”，但它足够统一，容易扩展，也方便把不同任务都塞进同一个生成接口里。
-
-## Causal mask 决定了生成形态
-
-Decoder-only 模型使用 causal self-attention。
-
-普通 self-attention 中，每个 token 可以看见所有 token。但语言生成时，当前位置不能偷看未来 token，否则 next token prediction 就变成作弊。
-
-所以 causal attention 会加 mask，让第 $t$ 个位置只能关注 $1$ 到 $t$ 的 token。
-
-如果 prompt 是：
-
-```text
-The cat sits on the
-```
-
-模型预测下一个词时，只能看见这段前缀，不能提前看见答案。
-
-这个 mask 看起来只是训练细节，但它决定了 LLM 的能力形态：模型不是一次性把完整答案算出来，而是一步一步生成。前面生成偏了，后面就会被带偏。
+主要是形式简单，而且和大规模**自监督**预训练天然对齐。
 
 ## Transformer block：attention + FFN + 残差
 
@@ -108,7 +73,7 @@ $$
 
 如果没有 residual，几十层、上百层模型很难稳定训练。Residual path 可以理解成一条信息和梯度的主干通路，每个 block 在上面叠加修改。
 
-## Pre-Norm：深层模型更稳
+### Normalization：深层模型更稳
 
 原始 Transformer 使用 Post-Norm，大概形式是：
 
@@ -128,7 +93,7 @@ Pre-Norm 的好处是深层模型训练更稳定。直觉上，residual path 更
 
 所以在现代 LLM 里，Pre-Norm 基本成了主流选择。
 
-## RMSNorm：保留尺度控制，少做一点计算
+**RMSNorm：保留尺度控制，少做一点计算** 
 
 LayerNorm 会减均值、除标准差：
 
@@ -154,19 +119,19 @@ $$
 
 第二，它保留了最关键的稳定性作用：控制 activation 的尺度。
 
-所以很多现代 LLM 用 RMSNorm 替代 LayerNorm。
 
-## FFN：从 ReLU 到 SwiGLU，再到 MoE
+### FFN：从ReLU 到 SwiGLU，再到 MoE
 
-Transformer block 里除了 attention，还有 FFN。
+Transformer block 里除了 attention，还有FFN。
 
-原始 Transformer 用的是：
-
+原始 Transformer 用的是ReLu作为激活函数，后续有相应的改进，比如Leaky ReLU，GeLU之类的，目的是让更多的残差（信息）通过梯度来更新参数。
 $$
 \mathrm{FFN}(x)=W_2\sigma(W_1x+b_1)+b_2
 $$
 
-现代 LLM 常用 gated FFN，比如 SwiGLU：
+随着技术进步，SwiGLU进入了视野：
+SwiGLU主要有两个组成部分，Swish 和GLU。
+
 
 $$
 \mathrm{SwiGLU}(x)
@@ -177,18 +142,19 @@ $$
 再接一个输出投影。
 
 Gating 的直觉是：模型不只是对特征做非线性变换，还学会哪些通道该打开、哪些通道该压下去。
-
 如果把 FFN 看成每个 token 独立做一次特征加工，那么 SwiGLU 相当于给这次加工加了一个动态开关。
 
-MoE 可以看成 FFN 的进一步扩展：不是每个 token 都走同一个大 MLP，而是路由到少数 experts。这样可以增加总参数量，但每个 token 的实际计算量不一定同比增加。
+MoE 可以看成 FFN 的进一步扩展：不是每个 token 都走同一个大 MLP，而是路由到少数 experts。这样可以增加总参数量，但每个 token 的实际计算量不一定同比增加。后续文章中会文门提到
 
-## RoPE：把位置信息放进 attention score
+## RoPe 位置编码
 
 Self-attention 本身不包含顺序信息。对 attention 来说，如果不加位置编码，`A B C` 和 `C B A` 很难区分谁在前谁在后。
 
-原始 Transformer 用 absolute positional encoding，把位置向量加到 token embedding 上。
+原始 Transformer用absolute positional encoding，直接把位置向量加到 token embedding 上。
 
-现代 LLM 常用 RoPE，也就是 rotary position embedding。它不是简单把位置向量加进去，而是在 query 和 key 上做旋转，使 attention score 自然带上相对位置信息。
+现代 LLM 常用 RoPE，也就是 rotary position embedding。最早来自于苏剑林的Reformer工作。[RoPe解读博客链接](https://spaces.ac.cn/archives/8265/comment-page-1)
+
+它不是简单把位置向量加进去，而是在 query 和 key 上做旋转，使 attention score 自然带上相对位置信息。而且这种方式天然适合长度外度，可以通过一些方式让模型理解**超出训练长度的**文本
 
 可以粗略理解成：
 
@@ -198,11 +164,9 @@ q_m^\top k_n
 \text{content similarity with relative position } (m-n)
 $$
 
-RoPE 的好处是相对位置关系更自然，也更适合一定程度的位置外推。
 
-但 RoPE scaling 不等于模型自动会用超长上下文。位置能编码是一回事，模型能不能从 100K token 里稳定找证据，是另一回事。
 
-## MHA、MQA、GQA、MLA：注意力结构也在服务推理效率
+### 注意力机制的变迁
 
 标准 multi-head attention 里，每个 head 都有自己的 $Q, K, V$。
 
@@ -217,17 +181,93 @@ RoPE 的好处是相对位置关系更自然，也更适合一定程度的位置
 - GQA：一组 query heads 共享一组 K/V，在效果和成本之间折中
 - MLA：把 K/V 压到 latent 表示里缓存，需要时再恢复，进一步降低 KV cache
 
-这里要注意：这些改动看起来是 attention 架构变化，但背后很多时候是在优化 inference memory footprint。
+下为MHA的简易实现
+```python
+import torch.nn as nn
+import torch
 
-模型结构不是只为训练 loss 服务，也要为推理吞吐和显存服务。
+class MHA(nn.Module):
 
-## 几个点
+    def __init__(self, head_num, hidden_size):
+        super().__init__(self)
 
-- 原始 Transformer 是 encoder-decoder，现代通用 LLM 多是 decoder-only。
-- Decoder-only 的核心目标是 next token prediction，causal mask 决定它从左到右生成。
-- Transformer block 不是只有 attention，还包括 FFN、residual、normalization。
-- Pre-Norm、RMSNorm、SwiGLU 这些改动主要服务训练稳定性和计算效率。
-- MQA、GQA、MLA 这类注意力变化，和 KV cache、推理成本强相关。
+        self.head_num = head_num
+        self.hidden_size = hidden_size
+        self.head_dim = hidden_size // head_num
+
+        self.q = torch.Linear(hidden_size, hidden_size)
+        self.k
+        self.v
+
+        self.o
+
+
+    def forward(self, hidden_state, masking=None, use_cache=True, past_kv):
+        # 0. 设置dk, batch_size
+        # 1. 变化qkv，拆分出多头
+        # 2. 拼接kv cache
+        # 3. 计算attention score
+        # 4. 加入masking
+        # 5. 计算attention output
+        # 6. 计算attention prob
+        # 7. 计算output，拼接多头
+
+        batch_size = hidden_state.size(0)
+        d_k = torch.sqrt(self.head_dim)
+
+        q = self.q(hidden_state)
+        k = self.k(hidden_state)
+        v = self.v(hidden_state)
+
+        # [batch, seq_len, hidden_size]
+        q = q.view(batch_size, -1, self.head_num, self.head_dim).tranpose(1, 2)
+        # [batch, head_num, seq_len, head_dim]
+        k = k.view(batch_size, -1, self.head_num, self.head_dim).tranpose(1, 2)
+        v
+
+        if kv_cache:
+            past_k, past_v = past_kv
+            k = torch.cat([past_k, k], dim=2)
+            v = torch.cat([past_v, v], dim=2)
+
+        past_kv = (k, v)
+
+        attention_score = torch.matmul(q, k.tranpose(-1, -2)) / d_k
+
+        if masking:
+            attention_score += masking
+
+        attention_prob = torch.softmax(attention_score, dim = -1)
+        attention_output = torch.matmul(attention_prob, v)
+
+        o = torch.view(attention_output)
+
+        o = self.o(attention_output)
+
+
+        q = self.proj_q(x)
+        k = self.proj_k(x)
+        v = self.proj_v(x)
+
+        attention_score = torch.matmul(q, k.transpose(-1, -2)) / self.key_dim**0.5
+        attention_score += attn_mask
+
+        attention_prob = torch.softmax(attention_score, dim=-1)
+
+        out = torch.matmul(attention_prob, v) 
+
+        self.tok_embedding += self.pos_embedding
+        attn_mask = torch.ones(N, L, L, dtype=torch.bool, device=self.tok_embedding.device)
+
+        attention_output = self.tok_embedding + self.layer_norm_1(self.self_attention(self.tok_embedding, attn_mask))
+        attention_output = attention_output + self.layer_norm_2(self.fnn(attention_output))
+
+        logit = self.head(attention_output)
+
+```
+
+
+
 
 ## 参考资料
 
@@ -238,3 +278,4 @@ RoPE 的好处是相对位置关系更自然，也更适合一定程度的位置
 - Ainslie et al., [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245)
 - Qwen Team, [Qwen3 Technical Report](https://arxiv.org/abs/2505.09388)
 - DeepSeek-AI, [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437)
+- 苏剑林的科学空间，[RoPe解读博客链接](https://spaces.ac.cn/archives/8265/comment-page-1)

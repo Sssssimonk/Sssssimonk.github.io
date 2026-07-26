@@ -13,8 +13,7 @@ tags:
 math: true
 category_bar: true
 ---
-
-这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。
+在无监督学习中，通常没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。
 
 ## 什么是无监督学习（unsupervised learning）
 

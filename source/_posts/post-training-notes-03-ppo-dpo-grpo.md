@@ -16,7 +16,7 @@ math: true
 category_bar: true
 ---
 
-这一篇整理 PPO、DPO 和 GRPO。
+本篇梳理RLHF算法：PPO、DPO 和 GRPO。
 
 这三个方法经常一起出现，但它们解决的问题不完全一样。
 
@@ -25,10 +25,6 @@ PPO 是经典 RLHF 路线里的 policy optimization 方法。
 DPO 是直接从偏好对里学习，不显式训练 reward model，也不跑在线 RL。
 
 GRPO 是 reasoning model 里很常见的 RLVR 方法，用同一个 prompt 下的一组 responses 做相对比较，省掉 value model。
-
-可以先抓住一句话：
-
-> PPO、DPO、GRPO 的核心区别，不是公式长得像不像，而是训练信号从哪里来。
 
 ## 三种训练信号
 

@@ -14,7 +14,7 @@ math: true
 category_bar: true
 ---
 
-这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。
+树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。
 
 ## 决策树（decision tree）的基本想法
 

@@ -15,17 +15,11 @@ math: true
 category_bar: true
 ---
 
-这一篇整理 reasoning model。
+> ”三思而后行“ 这是机器人先祖给AI的教诲
 
-现在很多模型会区分 thinking mode 和 non-thinking mode，也会强调数学、代码、复杂推理能力。表面上看，这是“模型回答前多想一会”。但如果只这么理解，就太浅了。
+简单的说，告诉模型"Let's think step by step"效果意外的好了很多，然后就开始卷模型的reasoning了。
 
-Reasoning model 的变化至少包括三层：
-
-- 推理时愿意花更多 token 和计算
-- 训练时用更强的推理数据和偏好信号
-- 后训练阶段用 RL 等方法强化可验证任务上的表现
-
-所以这篇从 CoT 开始，逐步过渡到 DeepSeek-R1 这类模型。
+本篇从 CoT 开始，逐步过渡到 DeepSeek-R1 这类模型。
 
 ## 普通 next token prediction 的限制
 
@@ -35,18 +29,14 @@ $$
 \max_\theta \sum_t \log p_\theta(x_t \mid x_{<t})
 $$
 
-这个目标很强，能学到语法、知识、代码模式、常识关系。
-
-但复杂推理不只是“最像下一个词”。很多题需要中间状态：
+这个目标很强，能学到语法、知识、代码模式、常识关系。但复杂推理不只是“最像下一个词”。很多题需要中间状态：
 
 - 先拆条件
 - 再选择公式
 - 再计算
 - 再检查结果
 
-如果模型直接从问题跳到答案，中间任何一步错了都很难纠正。
-
-所以 reasoning 的一个核心思路是：不要急着输出最终答案，先生成中间推理过程。
+如果模型直接从问题跳到答案，中间任何一步错了都很难纠正。所以 reasoning 的一个核心思路是：不要急着输出最终答案，先生成中间推理过程。
 
 ## Chain-of-thought 的作用
 
@@ -68,7 +58,7 @@ $$
 \text{problem} \rightarrow \text{intermediate steps} \rightarrow \text{answer}
 $$
 
-这不是魔法。它更像给模型更多计算轨迹，让模型在输出空间里保留中间状态。
+给模型更多计算轨迹，增强模型的上下文细节，让模型在输出空间里保留中间状态，最后的结果就能变好。
 
 ## CoT 为什么会提升能力
 
@@ -80,7 +70,7 @@ $$
 
 第二，中间步骤提供了隐式 scratchpad。
 
-模型可以把已经得到的结论写下来，后面继续引用。
+模型可以把已经得到的结论写下来，增强了后续正确答案的分布。
 
 第三，训练分布更匹配。
 
@@ -114,19 +104,8 @@ Reasoning model 则强调推理阶段也可以多花计算。
 
 Qwen3 这类模型提出 thinking mode 和 non-thinking mode 的统一框架。
 
-这很实际。
+按照前大模型负责人lin junyang所说，他们本来的目的是为了让模型实现self-controlled thinking。也就是模型自己判断所需要的thinking长度，不过最后效果好像还是达不到。所以仍然只能显式的控制了。
 
-不是所有问题都需要长推理。
-
-问“北京今天几点”这种问题，如果模型长篇 reasoning，反而浪费时间。
-
-但问一道复杂证明题、代码 debug、实验设计，就需要更多推理 token。
-
-所以 thinking mode 的关键不是“永远思考”，而是根据任务复杂度分配计算。
-
-这和人也像。简单问题直接答，复杂问题先列步骤。
-
-从系统角度看，这叫 latency-quality trade-off。更长思考可能提高质量，但一定增加延迟和成本。
 
 ## DeepSeek-R1-Zero：只靠 RL 能出现什么
 
@@ -158,7 +137,9 @@ SFT 提供格式和初始行为，RL 提供目标导向的能力强化。
 
 两者不是互斥，而是互补。
 
-## 可验证奖励为什么关键
+所以普遍认为结论为：进行一些高质量的sft，让模型学会基础的指令遵从。然后再用RL探索思维和推理的能力效果最好。
+
+## RLVR为什么关键
 
 Reasoning RL 最适合数学、代码这类任务，因为它们容易验证。
 
@@ -174,87 +155,16 @@ Reasoning RL 最适合数学、代码这类任务，因为它们容易验证。
 
 这也解释了为什么数学和代码经常是 reasoning model 的核心 benchmark。
 
-## Distillation：小模型学 reasoning
 
-DeepSeek-R1 还强调 distillation，把大 reasoning model 的能力蒸馏到较小模型上。
-
-蒸馏的直觉是：大模型生成高质量 reasoning data，小模型用这些数据做 supervised training。
-
-这说明一个现象：
-
-> reasoning 能力的一部分可以通过行为模仿迁移。
-
-但蒸馏也有上限。
-
-小模型可以学到大模型的解题风格和部分策略，但参数容量、基础知识、搜索深度都有限。它不可能在所有场景都复制大模型能力。
-
-所以蒸馏模型适合低成本部署，但不能简单等同于原始 teacher model。
-
-## Reasoning 不是更长越好
-
-一个常见误区是：thinking token 越多，答案越好。
-
-实际不是。
-
-过长 reasoning 可能带来：
-
-- 延迟变高
-- 成本变高
-- 中间步骤引入错误
-- 模型绕远路
-- 简单问题过度分析
-
-所以 thinking budget 很重要。
-
-理想状态是：简单任务短思考，复杂任务长思考；模型知道什么时候该停。
-
-这也是 Qwen3 把 thinking budget 作为机制来讲的原因。
-
-## Reasoning trace 是否可信
+**注意点：Reasoning trace 是否可信**
 
 模型写出的 reasoning trace 可以帮助人检查，但不能完全等同于模型内部真实推理。
 
 有时模型会先在内部形成答案，再生成一段看似合理的解释。
 
-有时它会在文本推理中走错，但最后答案碰巧对。
+有时它会在文本推理中走错，但最后答案碰巧对。有时它的中间推理看起来很漂亮，但关键假设是错的。
 
-有时它的中间推理看起来很漂亮，但关键假设是错的。
 
-所以我更愿意把 reasoning trace 看成一种可检查的输出过程，而不是完整透明的内部机制。
-
-它有用，但不能盲信。
-
-## 读 reasoning model 报告时看什么
-
-我会看这些问题：
-
-- Base model 是什么
-- 有没有 cold-start SFT
-- RL reward 怎么设计
-- 任务是否可验证
-- 是否使用 rejection sampling 或 verifier
-- thinking token 平均多长
-- 是否支持非 thinking 模式
-- benchmark 提升来自训练、采样，还是更长输出
-- 蒸馏模型和原模型差距多大
-
-尤其要看成本。一个 reasoning model 如果每题多花 10 倍 token，benchmark 提升就要放在成本背景下理解。
-
-## 小结
-
-Reasoning model 的本质不是“模型突然会思考”，而是：
-
-> 训练目标、数据构造、RL reward 和推理阶段计算分配共同改变了模型解决复杂问题的方式。
-
-CoT 给模型 scratchpad。
-
-Test-time compute 让模型推理时多花计算。
-
-RL 在可验证任务上强化正确行为。
-
-Distillation 把昂贵推理模型的行为迁移到小模型。
-
-这几件事合起来，才是现代 reasoning model 的主线。
 
 ## 参考资料
 

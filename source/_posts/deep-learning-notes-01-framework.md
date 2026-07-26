@@ -12,24 +12,6 @@ math: true
 category_bar: true
 ---
 
-机器学习章节里，大部分模型都可以理解成：先把数据整理成特征，再用一个模型把特征映射到预测结果。
-
-深度学习和传统机器学习最大的区别，不是“模型更复杂”这么简单，而是它把 **feature learning** 也放进了模型里。以前很多时候要人工设计特征，深度学习希望模型自己从原始数据中学出有用表示。
-
-比如图像分类任务：
-
-```text
-traditional ML:
-image -> hand-crafted features -> classifier -> label
-
-deep learning:
-image -> neural network -> label
-```
-
-这里不是说传统 ML 不重要，而是 deep learning 把“特征怎么来”这个问题也变成了可训练的部分。
-
-## 神经网络仍然是函数
-
 神经网络本质上还是一个函数：
 
 $$
@@ -44,7 +26,7 @@ $$
 \theta^* = \arg\min_\theta L(f_\theta(x), y)
 $$
 
-所以 deep learning 没有跳出机器学习的基本框架。它仍然是：
+所以 deep learning 的基本框架仍然是：
 
 ```text
 input
@@ -60,7 +42,7 @@ input
 
 传统机器学习里，特征工程经常决定上限。
 
-比如判断一封邮件是不是垃圾邮件，可能会手动构造这些特征：
+比如判断一封邮件是不是垃圾邮件，可能会手动构造特征：
 
 | 特征 | 含义 |
 |---|---|
@@ -77,7 +59,7 @@ input
 
 这就是 representation learning。
 
-## 什么叫表示（representation）
+## 表示（representation）
 
 Representation 可以理解成模型内部对输入的重新编码。
 
@@ -101,8 +83,6 @@ pixels
 ```
 
 这些数字本身没有人类可读含义，但它们让模型可以计算相似度、组合上下文、做预测。
-
-## 为什么要多层
 
 单层线性模型表达能力有限：
 

@@ -212,15 +212,6 @@ def dropout_forward(x, p=0.5, training=True):
 
 优点是无需额外标注、防过拟合效果显著、提升模型鲁棒性；缺点是依赖领域知识设计合理增强策略，若变换过强或不符合真实分布，可能引入噪声误导模型。
 
-## 小结
-
-
-- loss 决定模型追求什么；
-- gradient 决定参数怎么被修改；
-- learning rate 决定修改幅度；
-- regularization 决定模型不能为了训练集误差任意复杂；
-- validation 决定这个训练结果是否值得相信。
-
 
 ## 参考资料
 

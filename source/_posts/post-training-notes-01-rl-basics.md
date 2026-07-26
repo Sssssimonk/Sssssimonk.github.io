@@ -134,7 +134,7 @@ $$
 
 如果另一个回答得分是 0.6，也不一定差。也许这个 prompt 很难，大多数回答都是 0.1。
 
-Advantage 想表达的是：相对于当前状态的预期表现，这个 action / response 到底更好还是更差。
+我认为Advantage 想表达的是：相对于当前状态的预期表现，这个 action / response 到底更好还是更差。
 
 ## Policy gradient 的直觉
 
@@ -148,7 +148,7 @@ $$
 
 > 如果某个 response 的 advantage 为正，就提高它的生成概率；如果 advantage 为负，就降低它的生成概率。
 
-但这里有两个细节。
+但这里有两个细节点。
 
 第一，提高的是整段 response 里 tokens 的 log probability，不是直接给最终答案加分。
 
@@ -156,7 +156,7 @@ $$
 
 这就引出 KL constraint。
 
-## KL constraint：为什么需要 reference model
+## KL constraint：防止模型跑远了
 
 后训练里通常会保留一个 reference model，记作 $\pi_{\mathrm{ref}}$。
 

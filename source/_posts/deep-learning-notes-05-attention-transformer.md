@@ -13,11 +13,7 @@ math: true
 category_bar: true
 ---
 
-这一篇只整理 attention 本身。
-
-Transformer block、Pre-Norm、FFN、RoPE、GQA 这些更偏模型架构的内容，放到现代大模型章节里讲。这里先把最核心的问题说清楚：
-
-> 模型处理当前位置时，怎么从其他位置拿到有用信息。
+本篇介绍注意力机制，参考stanford 224n的attention一课
 
 ## RNN 的瓶颈
 

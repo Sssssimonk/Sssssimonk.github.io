@@ -180,7 +180,7 @@ $$
 
 推荐系统里有时会保留 embedding norm，因为热门物品可能被训练出更大的向量长度，dot product 会把这种 popularity signal 也算进去。检索场景里如果只关心语义方向，则常用 cosine similarity 或 normalized embedding dot product。
 
-## 几个点
+## 小结
 
 Logistic regression 做分类，但它的 decision boundary 仍然是线性的。sigmoid 只是把线性打分转成概率，并没有让边界变复杂。
 KNN 对特征 scale 很敏感。写 KNN 前先想 normalization，不然距离可能没有意义。

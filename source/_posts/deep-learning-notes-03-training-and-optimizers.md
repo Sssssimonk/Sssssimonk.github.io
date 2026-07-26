@@ -13,20 +13,7 @@ math: true
 category_bar: true
 ---
 
-这一篇整理深度网络训练里最常遇到的一组问题：梯度为什么会不稳定，初始化和归一化为什么重要，以及优化器从 SGD 到 AdamW 到底在改什么。
-
-可以先把训练过程看成一条链：
-
-```text
-initialize parameters
--> forward pass
--> compute loss
--> backprop gradients
--> optimizer updates parameters
--> repeat
-```
-
-深度学习训练难，主要不是因为这个流程难写，而是因为每一步都可能影响梯度传播和收敛稳定性。
+光能训练模型还不够，能“稳定的”训练模型才NB。
 
 ## 梯度消失与梯度爆炸
 
@@ -62,9 +49,8 @@ $$
 
 常见初始化包括 Xavier initialization 和 He initialization。
 
-Xavier initialization 适合 tanh / sigmoid 这类 activation，核心想法是让每层输入输出的方差保持相对稳定。
-
-He initialization 更适合 ReLU，因为 ReLU 会把一部分负值截断为 0。
+- Xavier initialization 适合 tanh / sigmoid 这类 activation，核心想法是让每层输入输出的方差保持相对稳定。
+- He initialization 更适合 ReLU，因为 ReLU 会把一部分负值截断为 0。
 
 直觉上，初始化是在控制每一层信号的尺度。尺度合适，forward 和 backward 都更容易稳定。
 
@@ -91,7 +77,6 @@ Layer Normalization 则通常对单个样本内部的 hidden dimension 做归一
 | BatchNorm | batch 维度 | CNN |
 | LayerNorm | feature / hidden 维度 | Transformer、RNN |
 
-Normalization 不只是让数值好看，它会影响优化过程。
 
 ## 随机失活（dropout）：训练时故意丢掉一部分连接
 
@@ -119,9 +104,8 @@ Learning rate 控制每次参数更新的步长。
 - step decay：训练到某些 epoch 后降低学习率
 - cosine decay：按余弦曲线逐渐降低学习率
 
-Warmup 在 Transformer 训练里尤其常见。训练初期参数还很随机，如果一开始 learning rate 太大，更新可能过猛。Warmup 让模型先稳定进入训练状态。
-
-## SGD：最基础的随机梯度下降
+## 优化器 Optimizer
+### SGD：最基础的随机梯度下降
 
 Stochastic Gradient Descent 使用 mini-batch gradient 更新参数：
 
@@ -135,9 +119,9 @@ SGD 的优点是简单、泛化表现常常不错。缺点是更新方向受当�
 
 比如 loss surface 像一个狭长山谷，SGD 可能在山谷两侧来回震荡，同时沿着谷底方向前进很慢。
 
-## 动量法（momentum）：加入历史方向
+### 动量法（momentum）：加入历史方向
 
-Momentum 的想法是：不要只看当前 gradient，也看过去一段时间的更新方向。
+Momentum 的思路：不要只看当前 gradient，也看过去一段时间的更新方向。
 
 常见形式：
 
@@ -155,7 +139,7 @@ $$
 
 这很像推一个球下山。SGD 每一步都只看当前坡度，Momentum 让球带一点惯性。
 
-## RMSProp：给每个参数自适应学习率
+### RMSProp：给每个参数自适应学习率
 
 RMSProp 关注的是每个参数最近 gradient 的平方平均。
 
@@ -173,7 +157,7 @@ $$
 
 RMSProp 的直觉是：不同参数不一定应该用同一个步长。频繁大幅变化的方向要走得谨慎，变化小的方向可以走得相对积极。
 
-## Adam：动量法（momentum）+ RMSProp
+### Adam：动量法（momentum）+ RMSProp
 
 Adam 可以看作把 Momentum 和 RMSProp 结合起来。
 
@@ -219,13 +203,13 @@ beta2 = 0.999
 epsilon = 1e-8
 ```
 
-Adam 的优点是上手快、收敛稳定、对 learning rate 没有 SGD 那么敏感。这也是它在深度学习里非常常用的原因。
+Adam 的优点是上手快、收敛稳定、对 learning rate 没有 SGD 那么敏感。
 
-## AdamW：把 weight decay 解耦出来
+### AdamW：把 weight decay 解耦出来
 
-AdamW 是理解现代训练时很重要的优化器。
 
-先看 Adam 里常见的 L2 regularization。如果把 L2 penalty 加到 loss 里：
+
+先看Adam 里常见的 L2 regularization。如果把 L2 penalty 加到 loss 里：
 
 $$
 L'(\theta)=L(\theta)+\frac{\lambda}{2}\|\theta\|^2
@@ -266,11 +250,11 @@ $$
 - Adam update: use gradient statistics to update parameters
 - Weight decay: separately shrink weights
 
-这就是 AdamW 的核心变化：weight decay 不再被 Adam 的自适应梯度缩放影响。
+AdamW 的核心变化：weight decay 不再被 Adam 的自适应梯度缩放影响。
 
-## Adam 和 AdamW 的区别怎么记
+## Adam 和 AdamW 的区别
 
-可以用一句话记：
+一句话：
 
 > Adam 里的 L2 regularization 是把 weight decay 混进 gradient；AdamW 是把 weight decay 作为单独的参数衰减步骤。
 
@@ -288,7 +272,7 @@ adaptive_update(gradient)
 parameter = parameter - lr * weight_decay * parameter
 ```
 
-这也是为什么训练 Transformer / LLM 时，AdamW 比 Adam 更常见。它让 weight decay 的作用更接近正则化直觉。
+在训练 Transformer / LLM 时，AdamW 比 Adam 更常见。它让 weight decay 的作用更接近正则化直觉。
 
 ## 优化器对比
 
@@ -302,17 +286,6 @@ parameter = parameter - lr * weight_decay * parameter
 
 实际训练里，优化器不是越复杂越好。SGD 在一些视觉任务里仍然很强，AdamW 在 Transformer 训练里非常常见。
 
-## 几个点
-
-深度网络训练的难点不是只会不会写 `loss.backward()`，而是梯度是否稳定、参数尺度是否合理、优化器是否适合任务。
-
-Initialization 和 normalization 都在服务同一个目标：让信号和梯度在网络中稳定传播。
-
-SGD 只看当前 gradient，Momentum 加入历史方向，RMSProp 加入梯度平方的滑动平均，Adam 同时使用一阶和二阶矩估计。
-
-AdamW 的关键不是“比 Adam 多一个 W”，而是 decoupled weight decay。这个区别在现代大模型训练里很重要。
-
-Learning rate 仍然是最重要的超参数之一。用了 AdamW 也不代表不需要认真调学习率。
 
 ## 参考资料
 

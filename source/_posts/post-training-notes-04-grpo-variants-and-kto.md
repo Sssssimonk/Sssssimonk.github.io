@@ -18,8 +18,6 @@ category_bar: true
 
 这一篇整理 GRPO 的变体，以及DPO的变体。
 
-
-
 所以这一篇分成两条线：
 
 - GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造
