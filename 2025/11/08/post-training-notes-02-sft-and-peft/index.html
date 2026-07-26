@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理 SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。">
+    <meta name="description" content="本篇介绍SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是教模型遵从指令 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。 SFT在学啥 Base mod">
 <meta property="og:type" content="article">
 <meta property="og:title" content="后训练笔记 02：SFT 与 PEFT">
 <meta property="og:url" content="https://sssssimonk.github.io/2025/11/08/post-training-notes-02-sft-and-peft/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理 SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。">
+<meta property="og:description" content="本篇介绍SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是教模型遵从指令 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。 SFT在学啥 Base mod">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-11-08T12:30:00.000Z">
 <meta property="article:modified_time" content="2025-11-08T12:30:00.000Z">
@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.1k 字
+          2.7k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          26 分钟
+          23 分钟
         
       </span>
     
@@ -400,7 +400,7 @@
         aria-expanded="true"
       >
         后训练笔记
-        <span class="list-group-count">(5)</span>
+        <span class="list-group-count">(4)</span>
         <i class="iconfont icon-arrowright"></i>
       </a>
       
@@ -411,15 +411,6 @@
           
   <div class="category-post-list">
     
-    
-      
-      
-        <a href="/2025/11/29/post-training-notes-05-opd/" title="后训练笔记 05：OPD，On-Policy Distillation"
-           class="list-group-item list-group-item-action
-           ">
-          <span class="category-post">后训练笔记 05：OPD，On-Policy Distillation</span>
-        </a>
-      
     
       
       
@@ -480,32 +471,22 @@
             
               <div class="markdown-body">
                 
-                <p>这一篇整理 SFT 和 PEFT。</p>
+                <p>本篇介绍SFT 和 PEFT。</p>
 <p>在大模型后训练里，SFT 通常是第一步。Base model
 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT
-的作用就是先把模型拉到一个“能正常当助手”的状态。</p>
+的作用就是教模型遵从指令</p>
 <p>PEFT则是SFT的一种解法（即parameter <strong>efficient</strong>
 fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。</p>
-<h2 id="base-model-为什么不能直接用">Base model 为什么不能直接用</h2>
-<p>Base model 的训练目标通常是 next token prediction：</p>
-<p><span class="math display">\[
-\max_\theta \sum_t \log p_\theta(x_t \mid x_{&lt;t})
-\]</span></p>
-<p>它学的是文本分布。</p>
+<h3 id="sft在学啥">SFT在学啥</h3>
+<p>Base model 的训练目标通常是 next token
+prediction，它学的是文本分布。</p>
 <p>如果给 base model 一个问题：</p>
 <blockquote>
 <p>请解释一下 LoRA 是什么。</p>
 </blockquote>
 <p>它可能回答，也可能继续补全网页文本，或者生成一段类似问答数据的续写。问题不一定是它“不知道”，而是它没有被训练成稳定的
 instruction-following model。</p>
-<p>SFT 的目标就是把输入输出形式固定下来：</p>
-<p><span class="math display">\[
-\max_\theta \log \pi_\theta(y \mid x)
-\]</span></p>
-<p>其中 <span class="math inline">\(x\)</span> 是 instruction，<span
-class="math inline">\(y\)</span> 是高质量回答。</p>
-<h3 id="sft-具体学到了什么">SFT 具体学到了什么</h3>
-<p>SFT 不只是“灌知识”。</p>
+<p>SFT 的目标就是把输入输出形式固定下来。</p>
 <p>它主要学这些行为：</p>
 <ul>
 <li>遵循指令</li>
@@ -515,24 +496,21 @@ class="math inline">\(y\)</span> 是高质量回答。</p>
 <li>学会某些任务格式，比如代码解释、数学推理、摘要</li>
 <li>初步形成 reasoning trace 的风格</li>
 </ul>
-<h3 id="sft-的局限">SFT 的局限</h3>
+<p><strong>SFT 的局限</strong></p>
 <p>SFT 本质上是 imitation learning。</p>
-<p>数据是什么样，模型就往什么样学。</p>
-<p>如果数据里回答很模板化，模型也会模板化。</p>
+<p>数据是什么样，模型就往什么样学。如果数据里回答很模板化，模型也会模板化。</p>
 <p>如果数据里推理过程只是表面解释，模型会学会写“看起来像推理”的文本，但不一定真的更会解题。</p>
 <p>如果数据里有错误，模型会跟着学。</p>
 <p>更关键的是，SFT 不知道两个正确回答哪个更好。</p>
 <p>比如一个回答很简洁，一个回答更完整；一个回答更安全，一个回答更直接。SFT
 只能模仿目标答案，不能表达偏好排序。</p>
-<p>Full fine-tuning 的成本很大，全参数微调会更新模型所有参数。</p>
-<p>这就是 PEFT 出现的背景：不改全部参数，只训练小模块。</p>
-<h2 id="peft-的基本想法">PEFT 的基本想法</h2>
-<p>PEFT 是 parameter-efficient fine-tuning。</p>
+<h2 id="peft">PEFT</h2>
+<p>PEFT 指的是 parameter-efficient fine-tuning。</p>
 <p>核心想法是：</p>
 <blockquote>
 <p>冻结大部分预训练参数，只训练少量可学习参数，让模型适配新任务。</p>
 </blockquote>
-<p>这样做的好处是：</p>
+<p>这样做的好处是：（主要就是大家没卡呗）</p>
 <ul>
 <li>训练显存低</li>
 <li>存储成本低</li>
@@ -575,16 +553,20 @@ W_O\)</span></li>
 <p>具体插哪里会影响效果和成本。</p>
 <p>只插 attention 层，参数更少，但适配能力可能有限。</p>
 <p>attention 和 FFN 都插，能力更强，但训练参数更多。</p>
-<p>对很多任务来说，LoRA rank、target modules、learning
+<p>对很多任务来说，LoRA rank、插的地方、learning
 rate、数据质量都会显著影响效果。</p>
-<p>不要把 LoRA
-理解成固定魔法。它是一个低成本适配工具，具体效果依赖配置。</p>
 <h3 id="lora-为什么推理时方便">LoRA 为什么推理时方便</h3>
 <p>LoRA 的更新是：</p>
 <p><span class="math display">\[
 h = Wx + BAx
 \]</span></p>
-<p>训练时可以把 <span class="math inline">\(BA\)</span> 当成旁路。</p>
+<p>在启动时，一般A随机高斯初始化，B全零初始化。这样在最开始的时候BA =
+0，相当于lora模块不会影响主参数，带来扰动。</p>
+<ul>
+<li>那A，B都0呢？ 那梯度也为零了呗，更新不了了</li>
+<li>那都随机初始化呢？ 那带来的扰动太大，破坏了预训练参数了。</li>
+<li>那A初始化0，B随机呢？理论一致，但是实测B初始化为0更好。（别问，问就是炼丹炼的）</li>
+</ul>
 <p>部署时，如果只服务一个 adapter，可以把 <span
 class="math inline">\(BA\)</span> 合并回 <span
 class="math inline">\(W\)</span>：</p>
@@ -593,8 +575,7 @@ W_{\mathrm{merged}} = W + BA
 \]</span></p>
 <p>这样推理时不一定增加额外延迟。</p>
 <p>如果要服务多个 adapter，就可以保留 base model，按任务加载不同 LoRA
-权重。</p>
-<p>这也是 LoRA 在个人微调和多任务部署中很受欢迎的原因。</p>
+权重。比如那种生图的模型，一个lora就代表一种画风。</p>
 <h3 id="prefix-tuning给模型加可学习前缀">Prefix
 Tuning：给模型加可学习前缀</h3>
 <p>Prefix tuning 不直接改模型权重，而是在每层 attention 里加入可学习
@@ -623,8 +604,7 @@ attention 时能读到这些可学习信息。</p>
 <p>P-Tuning 则进一步用更复杂的方式生成或组织这些 continuous
 prompts，比如使用 MLP / LSTM 等 prompt encoder。</p>
 <p>它们的共同点是：冻结模型主体，只训练 prompt-like 参数。</p>
-<p>这类方法在早期很重要，但在当前 LLM 微调实践里，LoRA 通常更常见，因为
-LoRA 对生成任务更灵活，工程生态也更成熟。</p>
+<p>这类方法在早期很重要，但在当前 LLM 微调实践里，已经被LoRa吊打了。</p>
 <h2 id="补充说明">补充说明</h2>
 <p><strong>SFT 数据比方法更重要</strong></p>
 <p>SFT经常被讨论成训练技术，但真正决定结果的通常是数据。</p>
@@ -635,16 +615,8 @@ LoRA 对生成任务更灵活，工程生态也更成熟。</p>
 <li>风格一致但不模板化</li>
 <li>覆盖目标任务</li>
 <li>没有大量幻觉</li>
-<li>reasoning trace 不只是装样子</li>
 </ul>
-<p>如果数据质量差，LoRA 再省显存也没用。</p>
-<p>如果数据太窄，模型会过拟合某种格式。</p>
-<p>如果数据里充满“当然可以，下面是……”这种套话，模型会变得很像客服脚本。</p>
-<p>所以 SFT 的核心不是把 loss 跑低，而是把模型行为拉到你想要的区域。</p>
-<h2 id="小结">小结</h2>
-<p>SFT 是后训练的入口。它让 base model 从“会续写”变成“会回答”。</p>
-<p>PEFT 是低成本适配工具。LoRA、Prefix Tuning、P-Tuning
-都是在减少可训练参数，但它们改模型的方式不同。</p>
+<p>如果数据质量差，LoRA训出来也是垃圾</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
 <li>Wei et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2109.01652">Finetuned

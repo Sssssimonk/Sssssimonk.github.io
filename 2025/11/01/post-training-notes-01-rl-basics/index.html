@@ -398,7 +398,7 @@
         aria-expanded="true"
       >
         后训练笔记
-        <span class="list-group-count">(5)</span>
+        <span class="list-group-count">(4)</span>
         <i class="iconfont icon-arrowright"></i>
       </a>
       
@@ -409,15 +409,6 @@
           
   <div class="category-post-list">
     
-    
-      
-      
-        <a href="/2025/11/29/post-training-notes-05-opd/" title="后训练笔记 05：OPD，On-Policy Distillation"
-           class="list-group-item list-group-item-action
-           ">
-          <span class="category-post">后训练笔记 05：OPD，On-Policy Distillation</span>
-        </a>
-      
     
       
       
@@ -575,7 +566,7 @@ A_t = G_t - V^\pi(s_t)
 很简单，随便生成都能 0.8。</p>
 <p>如果另一个回答得分是 0.6，也不一定差。也许这个 prompt
 很难，大多数回答都是 0.1。</p>
-<p>Advantage 想表达的是：相对于当前状态的预期表现，这个 action /
+<p>我认为Advantage 想表达的是：相对于当前状态的预期表现，这个 action /
 response 到底更好还是更差。</p>
 <h2 id="policy-gradient-的直觉">Policy gradient 的直觉</h2>
 <p>Policy gradient 的经典形式可以写成：</p>
@@ -589,13 +580,12 @@ s) A(s,a)]
 <p>如果某个 response 的 advantage 为正，就提高它的生成概率；如果
 advantage 为负，就降低它的生成概率。</p>
 </blockquote>
-<p>但这里有两个细节。</p>
+<p>但这里有两个细节点。</p>
 <p>第一，提高的是整段 response 里 tokens 的 log
 probability，不是直接给最终答案加分。</p>
 <p>第二，更新不能太大。语言模型是高维分布，一次更新如果把概率分布拉得太远，可能会破坏原来的语言能力。</p>
 <p>这就引出 KL constraint。</p>
-<h2 id="kl-constraint为什么需要-reference-model">KL
-constraint：为什么需要 reference model</h2>
+<h2 id="kl-constraint防止模型跑远了">KL constraint：防止模型跑远了</h2>
 <p>后训练里通常会保留一个 reference model，记作 <span
 class="math inline">\(\pi_{\mathrm{ref}}\)</span>。</p>
 <p>它通常是 SFT 后的模型，或者训练开始前的 policy snapshot。</p>

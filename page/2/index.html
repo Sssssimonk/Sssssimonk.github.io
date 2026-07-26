@@ -300,7 +300,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="人类与AI的不同，在于Curiosity &amp; Empathy。,思考，是我们最强大的武器。"></span>
+            <span id="subtitle" data-typed-text="人类与AI的不同，在于Curiosity and Empathy。,思考，是我们最强大的武器。"></span>
           
         </div>
 
@@ -337,73 +337,6 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" target="_self">
-          深度学习笔记 05：注意力机制
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/31/deep-learning-notes-05-attention-transformer/" target="_self">
-        <div>
-          这一篇只整理 attention 本身。 Transformer block、Pre-Norm、FFN、RoPE、GQA 这些更偏模型架构的内容，放到现代大模型章节里讲。这里先把最核心的问题说清楚：  模型处理当前位置时，怎么从其他位置拿到有用信息。  RNN 的瓶颈 RNN 处理序列时，每个时间步依赖上一个 hidden state： \[ h_t = f(x_t, h_{t-1}) \] 这带
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-08-31 22:00" pubdate>
-              2024-08-31
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">深度学习笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">#深度学习</a>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
-            
-              <a href="/tags/%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B/">#自注意力</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
         <a href="/2024/08/24/deep-learning-notes-04-cnn-rnn-classic-architectures/" target="_self">
           深度学习笔记 04：CNN、RNN 与经典结构
         </a>
@@ -412,7 +345,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/24/deep-learning-notes-04-cnn-rnn-classic-architectures/" target="_self">
         <div>
-          这一篇整理 CNN、RNN、LSTM、GRU 这些经典结构。这里不写成模型百科，只抓它们各自利用了什么数据结构假设。 可以先从一个问题出发：  如果 MLP 已经可以拟合复杂函数，为什么还需要 CNN、RNN 这些结构？  答案是：不同数据有不同结构。图像有局部空间结构，序列有时间顺序结构。专门的网络结构把这些先验写进模型里，让模型更高效地学习。 归纳偏置（inductive bias） Indu
+          本篇整理序列模型，主要参考Stanford 224n的sequence model一课。整理 RNN、LSTM、GRU等模型 RNN：处理序列的基本思路 RNN 用 hidden state 记录过去信息。 最基本形式： \[ h_t = \phi(W_xx_t + W_hh_{t-1} + b) \] \[ y_t = W_yh_t \] 其中，\(x_t\) 是当前时间步输入，\(h_{t-1
         </div>
       </a>
 
@@ -483,7 +416,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/17/deep-learning-notes-03-training-and-optimizers/" target="_self">
         <div>
-          这一篇整理深度网络训练里最常遇到的一组问题：梯度为什么会不稳定，初始化和归一化为什么重要，以及优化器从 SGD 到 AdamW 到底在改什么。 可以先把训练过程看成一条链： 123456initialize parameters-&gt; forward pass-&gt; compute loss-&gt; backprop gradients-&gt; optimizer updates pa
+          光能训练模型还不够，能“稳定的”训练模型才NB。 梯度消失与梯度爆炸 深层网络里，gradient 要从 loss 一层层传回前面层。 如果每一层的梯度因子都小于 1，多层相乘后会越来越小，这就是 vanishing gradients。 如果每一层的梯度因子都大于 1，多层相乘后会越来越大，这就是 exploding gradients。 一个粗略例子： \[ 0.5^{20} \approx
         </div>
       </a>
 
@@ -550,7 +483,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/" target="_self">
         <div>
-          这一篇整理最基础的神经网络：多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。 可以先抓住一句话：  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 神经元（neuron）在做什么 一个最简单的 neu
+          这一篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 神经元（neuron）在做什么 一个最简单的 neuron 可以写成： \[ z = w^
         </div>
       </a>
 
@@ -619,7 +552,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/03/deep-learning-notes-01-framework/" target="_self">
         <div>
-          机器学习章节里，大部分模型都可以理解成：先把数据整理成特征，再用一个模型把特征映射到预测结果。 深度学习和传统机器学习最大的区别，不是“模型更复杂”这么简单，而是它把 feature learning 也放进了模型里。以前很多时候要人工设计特征，深度学习希望模型自己从原始数据中学出有用表示。 比如图像分类任务： 12345traditional ML:image -&gt; hand-crafte
+          神经网络本质上还是一个函数： \[ \hat{y} = f_\theta(x) \] 其中，\(x\) 是输入，\(\hat{y}\) 是预测，\(\theta\) 是网络参数。 训练的目标仍然是找一组参数，让模型预测更接近真实标签： \[ \theta^* = \arg\min_\theta L(f_\theta(x), y) \] 所以 deep learning 的基本框架仍然是： 1234
         </div>
       </a>
 
@@ -684,7 +617,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" target="_self">
         <div>
-          这一篇整理模型评估、验证和模型选择。训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 评估指标不是装饰 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 所以指标不是越多
+          训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。好的评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 well，具体情况，具体分析。 回归指标（regression m
         </div>
       </a>
 
@@ -753,7 +686,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
         <div>
-          这一篇整理无监督学习和降维。监督学习有 label，模型知道自己要预测什么；无监督学习没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均停留时
+          在无监督学习中，通常没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均停留时间 购买次数     A 50 8 分钟 5   B 3 1 分钟
         </div>
       </a>
 
@@ -822,7 +755,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/29/ml-notes-04-tree-based-models/" target="_self">
         <div>
-          这一篇整理 tree-based models。树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。单棵树容易 overfit，所以实际中经常用 ensemble tree models，比如 Random Forest、GBDT、XGBoost。 决策树（decision tree）的基本想法 Decision Tree 每一步都在问一个问题：  这个 feature
+          树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。 决策树（decision tree）的基本想法 Decision Tree 每一步都在问一个问题：  这个 feature 按某个 threshold 切开后，数据会不会更容易预测？  比如判断一个用户是否会购买会员，可以有这样的分裂： 123访问次数 &gt; 10 ?    yes -&gt; 停留时间 &gt;
         </div>
       </a>
 
@@ -1015,11 +948,74 @@
     </article>
   </div>
 
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/06/08/ml-notes-01-machine-learning-framework/" target="_self">
+          机器学习笔记 01：机器学习的基本框架
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/08/ml-notes-01-machine-learning-framework/" target="_self">
+        <div>
+          这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  两个关键词：学习 和 泛化。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-08 20:00" pubdate>
+              2024-06-08
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">机器学习笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">#机器学习</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
 
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#board">3</a><a class="extend next" rel="next" href="/page/3/#board"><i class="iconfont icon-arrowright"></i></a>
+      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
     </span>
   </nav>
 
@@ -1108,7 +1104,7 @@
       }
       var text = subtitle.getAttribute('data-typed-text');
       
-        var texts = ["人类与AI的不同，在于Curiosity & Empathy。","思考，是我们最强大的武器。"];
+        var texts = ["人类与AI的不同，在于Curiosity and Empathy。","思考，是我们最强大的武器。"];
         var idx = Math.floor(Math.random() * texts.length);
         typing(texts[idx]);
       

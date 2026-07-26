@@ -300,7 +300,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="人类与AI的不同，在于Curiosity &amp; Empathy。,思考，是我们最强大的武器。"></span>
+            <span id="subtitle" data-typed-text="人类与AI的不同，在于Curiosity and Empathy。,思考，是我们最强大的武器。"></span>
           
         </div>
 
@@ -410,7 +410,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/01/05/recommender-system-notes-01-overview/" target="_self">
         <div>
-          这一篇先整理推荐系统的整体框架。 推荐系统看起来是在回答一个很简单的问题：  这个用户接下来可能喜欢什么？  但真正落到工业系统里，它不只是一个模型问题。它同时是数据问题、检索问题、排序问题、评估问题，也是一个非常强的工程系统问题。 比如短视频、广告、电商、新闻流、音乐、论文推荐，它们表面上都在推荐 item，但目标并不完全一样：  短视频可能更关心观看时长、完播、互动。 广告可能更关心点击、转化
+          本篇整理推荐系统的整体框架，主要是”王树森推荐系统“的课程笔记 推荐系统看起来是在回答一个很简单的问题：  这个用户接下来可能喜欢什么？  但真正落到工业系统里，它不只是一个模型问题。它同时是数据问题、检索问题、排序问题、评估问题，也是一个非常强的工程系统问题。 比如短视频、广告、电商、新闻流、音乐、论文推荐，它们表面上都在推荐 item，但目标并不完全一样：  短视频可能更关心观看时长、完播、互
         </div>
       </a>
 
@@ -462,77 +462,6 @@
               <a href="/tags/CVR/">#CVR</a>
             
               <a href="/tags/%E5%BA%8F%E5%88%97%E5%BB%BA%E6%A8%A1/">#序列建模</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2025/11/29/post-training-notes-05-opd/" target="_self">
-          后训练笔记 05：OPD，On-Policy Distillation
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/11/29/post-training-notes-05-opd/" target="_self">
-        <div>
-          这一篇整理 OPD，也就是 On-Policy Distillation。 OPD 是近期后训练里很值得关注的一条路线。它和 GRPO / RLVR 的目标有些相似：都想让模型在自己的生成分布上变强。但它给训练信号的方式不一样。 GRPO 通常是：  student 自己生成 response，然后 verifier / reward model 给一个 scalar reward。  OPD 更
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-11-29 22:00" pubdate>
-              2025-11-29
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E5%90%8E%E8%AE%AD%E7%BB%83%E7%AC%94%E8%AE%B0/" class="category-chain-item">后训练笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
-            
-              <a href="/tags/%E5%90%8E%E8%AE%AD%E7%BB%83/">#后训练</a>
-            
-              <a href="/tags/RLVR/">#RLVR</a>
-            
-              <a href="/tags/OPD/">#OPD</a>
-            
-              <a href="/tags/%E8%92%B8%E9%A6%8F/">#蒸馏</a>
-            
-              <a href="/tags/On-Policy/">#On-Policy</a>
             
           </div>
         
@@ -627,7 +556,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/11/15/post-training-notes-03-ppo-dpo-grpo/" target="_self">
         <div>
-          这一篇整理 PPO、DPO 和 GRPO。 这三个方法经常一起出现，但它们解决的问题不完全一样。 PPO 是经典 RLHF 路线里的 policy optimization 方法。 DPO 是直接从偏好对里学习，不显式训练 reward model，也不跑在线 RL。 GRPO 是 reasoning model 里很常见的 RLVR 方法，用同一个 prompt 下的一组 responses 做
+          本篇梳理RLHF算法：PPO、DPO 和 GRPO。 这三个方法经常一起出现，但它们解决的问题不完全一样。 PPO 是经典 RLHF 路线里的 policy optimization 方法。 DPO 是直接从偏好对里学习，不显式训练 reward model，也不跑在线 RL。 GRPO 是 reasoning model 里很常见的 RLVR 方法，用同一个 prompt 下的一组 respon
         </div>
       </a>
 
@@ -700,7 +629,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/11/08/post-training-notes-02-sft-and-peft/" target="_self">
         <div>
-          这一篇整理 SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是先把模型拉到一个“能正常当助手”的状态。 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。
+          本篇介绍SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是教模型遵从指令 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。 SFT在学啥 Base mod
         </div>
       </a>
 
@@ -842,7 +771,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/09/27/modern-llm-notes-04-reasoning-models/" target="_self">
         <div>
-          这一篇整理 reasoning model。 现在很多模型会区分 thinking mode 和 non-thinking mode，也会强调数学、代码、复杂推理能力。表面上看，这是“模型回答前多想一会”。但如果只这么理解，就太浅了。 Reasoning model 的变化至少包括三层：  推理时愿意花更多 token 和计算 训练时用更强的推理数据和偏好信号 后训练阶段用 RL 等方法强化可验证
+          ”三思而后行“ 这是机器人先祖给AI的教诲  简单的说，告诉模型”Let’s think step by step”效果意外的好了很多，然后就开始卷模型的reasoning了。 本篇从 CoT 开始，逐步过渡到 DeepSeek-R1 这类模型。 普通 next token prediction 的限制 语言模型的基本目标是预测下一个 token： \[ \max_\theta \sum_t \
         </div>
       </a>
 
@@ -913,7 +842,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/09/20/modern-llm-notes-03-inference/" target="_self">
         <div>
-          这一篇整理 LLM inference。 训练阶段关心的是怎么把参数学出来；推理阶段关心的是怎么把模型稳定、低延迟、高吞吐地跑起来。 LLM 推理不像普通分类模型那样一次 forward 就结束。它是自回归生成： 1prefill prompt -&gt; decode token 1 -&gt; decode token 2 -&gt; ... 所以它的系统瓶颈很特别：一边要算 attentio
+          有一个挺有意思的说法：算法就是数据，数据就是 Infra，Infra就是算法。  模型能力的提升离不开数据质量，而大规模数据处理、训练和部署都离不开 Infrastructure。 先划清推理加速的边界 推理加速主要优化三个目标：  降低延迟（latency） 提升吞吐量（throughput） 降低显存或内存占用（memory footprint）  这三个目标不一定同时改善。 比如增大 ba
         </div>
       </a>
 
@@ -956,13 +885,15 @@
             
               <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
             
-              <a href="/tags/KV-cache/">#KV cache</a>
-            
               <a href="/tags/%E6%8E%A8%E7%90%86%E4%BC%98%E5%8C%96/">#推理优化</a>
+            
+              <a href="/tags/KV-cache/">#KV cache</a>
             
               <a href="/tags/vLLM/">#vLLM</a>
             
-              <a href="/tags/DeepSpeed/">#DeepSpeed</a>
+              <a href="/tags/SGLang/">#SGLang</a>
+            
+              <a href="/tags/TensorRT-LLM/">#TensorRT-LLM</a>
             
               <a href="/tags/FlashAttention/">#FlashAttention</a>
             
@@ -986,7 +917,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
         <div>
-          transformer架构图  这一篇整理 Transformer 架构本身，以及它在现代 LLM 里发生了哪些变化。 Attention 的基础公式已经在深度学习笔记里讲过了，这里不再重复推 Q/K/V。这里更关心： 1一个 Transformer block 长什么样，为什么现代 LLM 会改成现在这个形态。 原始 Transformer 是 encoder-decoder 原始 Tran
+          transformer架构图  本篇整理Transformer架构以及它在现代 LLM 里发生了哪些变化。 从图中可以看到，几个核心的步骤分别是： 1. word embedding 2. positional embedding 3. 注意力机制 4. Residual Connect 5. Normalization 6. FFN 原始 Transformer的encoder-decode
         </div>
       </a>
 
@@ -1029,11 +960,78 @@
             
               <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
             
+              <a href="/tags/KV-cache/">#KV cache</a>
+            
               <a href="/tags/Transformer/">#Transformer</a>
             
               <a href="/tags/RoPE/">#RoPE</a>
             
-              <a href="/tags/KV-cache/">#KV cache</a>
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/08/31/deep-learning-notes-05-attention-transformer/" target="_self">
+          深度学习笔记 05：注意力机制
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/31/deep-learning-notes-05-attention-transformer/" target="_self">
+        <div>
+          本篇介绍注意力机制，参考stanford 224n的attention一课 RNN 的瓶颈 RNN 处理序列时，每个时间步依赖上一个 hidden state： \[ h_t = f(x_t, h_{t-1}) \] 这带来两个问题。 第一，长距离信息要经过很多步传递，容易衰减。 第二，计算难以并行，因为第 \(t\) 步必须等第 \(t-1\) 步算完。 比如翻译一句话时，目标词可能需要关注源句
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-31 22:00" pubdate>
+              2024-08-31
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="category-chain-item">深度学习笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">#深度学习</a>
+            
+              <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
+            
+              <a href="/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">#注意力机制</a>
+            
+              <a href="/tags/%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B/">#自注意力</a>
             
           </div>
         
@@ -1045,7 +1043,7 @@
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="page-number" href="/page/3/#board">3</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 
@@ -1134,7 +1132,7 @@
       }
       var text = subtitle.getAttribute('data-typed-text');
       
-        var texts = ["人类与AI的不同，在于Curiosity & Empathy。","思考，是我们最强大的武器。"];
+        var texts = ["人类与AI的不同，在于Curiosity and Empathy。","思考，是我们最强大的武器。"];
         var idx = Math.floor(Math.random() * texts.length);
         typing(texts[idx]);
       
