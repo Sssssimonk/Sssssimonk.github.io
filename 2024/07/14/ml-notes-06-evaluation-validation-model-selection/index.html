@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.3k 字
+          4.3k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          28 分钟
+          36 分钟
         
       </span>
     
@@ -626,6 +626,11 @@ score，业务再根据 threshold 或排序位置使用这个 score。</p>
 </table>
 <p>AUC 关心的是正样本是否整体排在负样本前面，而不是某个固定 threshold
 下分对了多少。</p>
+<p>如果业务最后需要一个明确 threshold，可以在 validation set
+上遍历候选值，观察 precision 和 recall 的变化：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">precision_recall_at_threshold</span>(<span class="hljs-params">y_true, scores, threshold</span>):<br>    y_pred = scores &gt;= threshold<br>    tp = np.<span class="hljs-built_in">sum</span>((y_true == <span class="hljs-number">1</span>) &amp; y_pred)<br>    fp = np.<span class="hljs-built_in">sum</span>((y_true == <span class="hljs-number">0</span>) &amp; y_pred)<br>    fn = np.<span class="hljs-built_in">sum</span>((y_true == <span class="hljs-number">1</span>) &amp; (~y_pred))<br><br>    precision = tp / <span class="hljs-built_in">max</span>(tp + fp, <span class="hljs-number">1</span>)<br>    recall = tp / <span class="hljs-built_in">max</span>(tp + fn, <span class="hljs-number">1</span>)<br>    <span class="hljs-keyword">return</span> precision, recall<br><br><span class="hljs-keyword">for</span> threshold <span class="hljs-keyword">in</span> np.linspace(<span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">21</span>):<br>    precision, recall = precision_recall_at_threshold(<br>        y_validation, validation_scores, threshold<br>    )<br>    <span class="hljs-built_in">print</span>(threshold, precision, recall)<br></code></pre></td></tr></table></figure>
+<p>threshold 也属于需要用 validation set 决定的超参数，不能在 test set
+上挑。</p>
 <h2 id="pr-曲线pr-curve">PR 曲线（PR curve）</h2>
 <p>PR Curve 的横轴是 recall，纵轴是 precision。</p>
 <p>在正负样本极度不平衡时，PR curve 往往比 ROC curve 更敏感。</p>
@@ -659,6 +664,9 @@ class="math inline">\(K\)</span> 份，每次用其中一份做 validation，其
 training，最后平均结果。</p>
 <p>它比单次 holdout 更稳定，尤其适合数据量不大的情况。</p>
 <p>缺点是训练成本更高。比如 5-fold 就要训练 5 次。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs text">split training data into K folds<br><br>for config in candidate_configs:<br>    fold_scores = []<br><br>    for k in 1..K:<br>        fold_k = validation fold<br>        remaining folds = training folds<br><br>        model = initialize(config)<br>        model.fit(remaining folds)<br>        fold_scores.append(evaluate(model, fold_k))<br><br>    mean_score[config] = average(fold_scores)<br><br>best_config = argmax(mean_score)<br>train final model with best_config<br>evaluate once on untouched test set<br></code></pre></td></tr></table></figure>
+<p>这里的 test set 仍然放在 K-fold 之外。K-fold 负责模型选择，test set
+只负责最后的泛化评估。</p>
 <h3 id="bootstrap">Bootstrap</h3>
 <p>Bootstrap
 是有放回采样。每次从原始数据中采出一个同样大小的数据集，有些样本会重复，有些样本不会被采到。没被采到的样本可以用于评估。</p>

@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  损失函数（loss function）：先定义什么叫错 模型训练不是凭感觉调整参数，而是先把">
+    <meta name="description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  损失函数（loss function）：先定义什么叫错 模型训练把“预测错了多少”变成一个可">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 02：损失函数、优化与正则化">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/06/15/ml-notes-02-loss-optimization-regularization/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  损失函数（loss function）：先定义什么叫错 模型训练不是凭感觉调整参数，而是先把">
+<meta property="og:description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  损失函数（loss function）：先定义什么叫错 模型训练把“预测错了多少”变成一个可">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-06-15T12:30:00.000Z">
 <meta property="article:modified_time" content="2024-06-15T12:30:00.000Z">
@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.7k 字
+          4.1k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          32 分钟
+          35 分钟
         
       </span>
     
@@ -495,9 +495,8 @@
 </blockquote>
 <h2 id="损失函数loss-function先定义什么叫错">损失函数（loss
 function）：先定义什么叫错</h2>
-<p>模型训练不是凭感觉调整参数，而是先把“预测错了多少”变成一个可以计算的数值。这个数值就是
-loss。</p>
-<p>不同任务会使用不同 loss，因为它们对“错误”的定义不同。</p>
+<p>模型训练把“预测错了多少”变成一个可以计算的数值。这个数值就是
+loss。不同任务会使用不同 loss。</p>
 <h3 id="mse回归任务里最常见的-loss">MSE：回归任务里最常见的 loss</h3>
 <p>Mean Squared Error 常用于回归任务：</p>
 <p><span class="math display">\[
@@ -570,8 +569,8 @@ label，这个式子本质上就是取正确类别概率的负对数。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">softmax</span>(<span class="hljs-params">logits</span>):<br>    logits = logits - np.<span class="hljs-built_in">max</span>(logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br>    exp_logits = np.exp(logits)<br>    <span class="hljs-keyword">return</span> exp_logits / np.<span class="hljs-built_in">sum</span>(exp_logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">mean_squared_error</span>(<span class="hljs-params">y_true, y_pred</span>):<br>    <span class="hljs-keyword">return</span> np.mean((y_true - y_pred)**<span class="hljs-number">2</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">binary_cross_entropy</span>(<span class="hljs-params">y_true, y_pred</span>):<br>    <span class="hljs-keyword">return</span> -np.mean(y_true * np.log(y_pred) + (<span class="hljs-number">1</span> - y_true) * np.log(<span class="hljs-number">1</span> - y_pred))<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cross_entropy</span>(<span class="hljs-params">y_pred, y_true</span>):<br>    eps = <span class="hljs-number">1e-12</span><br>    y_pred = np.clip(y_pred, eps, <span class="hljs-number">1.0</span> - eps)<br>    <span class="hljs-keyword">return</span> -np.mean(np.<span class="hljs-built_in">sum</span>(y_true * np.log(y_pred), axis=<span class="hljs-number">1</span>))<br></code></pre></td></tr></table></figure>
 <p>两个容易写错的点：第一，cross entropy 前面有负号；第二，如果输入是
 logits，应该先 softmax，而不是直接拿 logits 当概率。</p>
-<h2 id="梯度下降gradient-descent模型如何改参数">梯度下降（gradient
-descent）：模型如何改参数</h2>
+<h2 id="梯度下降gradient-descent模型如何优化参数">梯度下降（gradient
+descent）：模型如何优化参数</h2>
 <p>有了 loss 后，训练的目标就是找到让 loss 更小的参数。</p>
 <p>Gradient descent 的更新规则是：</p>
 <p><span class="math display">\[
@@ -583,7 +582,13 @@ class="math inline">\(\nabla J(\theta)\)</span> 是 loss
 function对参数的梯度。</p>
 <p>直觉上，梯度指向 loss 增长最快的方向，所以参数更新要往反方向走。</p>
 <p>训练时可以把流程想成：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">current parameters<br>-&gt; forward prediction<br>-&gt; compute loss<br>-&gt; compute gradient<br>-&gt; update parameters<br>-&gt; repeat<br></code></pre></td></tr></table></figure>
+<p>current parameters 1. forward prediction 2. compute loss 3. compute
+gradient 4. update parameters 5. repeat</p>
+<p>下面用一维 linear regression 展示一次完整训练循环。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><br>x = np.array([<span class="hljs-number">1.0</span>, <span class="hljs-number">2.0</span>, <span class="hljs-number">3.0</span>, <span class="hljs-number">4.0</span>])<br>y = np.array([<span class="hljs-number">3.0</span>, <span class="hljs-number">5.0</span>, <span class="hljs-number">7.0</span>, <span class="hljs-number">9.0</span>])  <span class="hljs-comment"># y = 2x + 1</span><br><br>w, b = <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span><br>learning_rate = <span class="hljs-number">0.05</span><br><br><span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">500</span>):<br>    <span class="hljs-comment"># forward</span><br>    y_pred = w * x + b<br>    error = y_pred - y<br>    loss = np.mean(error ** <span class="hljs-number">2</span>)<br><br>    <span class="hljs-comment"># backward: MSE 对 w 和 b 的梯度</span><br>    grad_w = <span class="hljs-number">2</span> * np.mean(error * x)<br>    grad_b = <span class="hljs-number">2</span> * np.mean(error)<br><br>    <span class="hljs-comment"># update</span><br>    w -= learning_rate * grad_w<br>    b -= learning_rate * grad_b<br></code></pre></td></tr></table></figure>
+<p>随着训练进行，<code>w</code> 会逐渐接近 2，<code>b</code> 会逐渐接近
+1。神经网络的训练循环也是这四步，只是 forward 和 gradient
+的计算图更复杂。</p>
 <h2
 id="正则化regularization限制模型复杂度">正则化（regularization）：限制模型复杂度</h2>
 <p>Regularization的主要作用是限制模型为了降低训练误差而使用过于复杂的参数，增加模型的泛化能力。</p>

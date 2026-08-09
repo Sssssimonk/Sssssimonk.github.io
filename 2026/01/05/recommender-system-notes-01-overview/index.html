@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4k 字
+          4.9k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          34 分钟
+          41 分钟
         
       </span>
     
@@ -588,6 +588,10 @@ top-k。</p>
 ANN 检索。</p>
 <p>但双塔也有缺点。用户和 item
 很早就被分开编码，复杂交叉特征表达不够强。所以它更适合召回，不太适合最终精排。</p>
+<p>双塔真正落到系统里，需要把训练、离线索引和线上检索连起来：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 训练阶段</span><br><span class="hljs-keyword">for</span> user_context, positive_item, negative_items <span class="hljs-keyword">in</span> training_data:<br>    user_vector = user_tower(user_context)<br>    positive_vector = item_tower(positive_item)<br>    negative_vectors = item_tower(negative_items)<br><br>    logits = dot(user_vector, [positive_vector, negative_vectors])<br>    loss = contrastive_loss(logits, positive_index=<span class="hljs-number">0</span>)<br>    update(user_tower, item_tower, loss)<br><br><br><span class="hljs-comment"># 离线阶段：item 数量大，但变化相对慢</span><br>item_vectors = &#123;&#125;<br><span class="hljs-keyword">for</span> item <span class="hljs-keyword">in</span> all_available_items:<br>    item_vectors[item.<span class="hljs-built_in">id</span>] = item_tower(item.features)<br><br>ann_index.build(item_vectors)<br><br><br><span class="hljs-comment"># 在线阶段：每个请求只计算一次 user vector</span><br>user_vector = user_tower(current_user_context)<br>candidate_ids = ann_index.top_k(user_vector, k=<span class="hljs-number">1000</span>)<br><br><span class="hljs-comment"># 候选再交给更复杂的 ranking / reranking model</span><br>ranked_items = ranking_model.score(user, candidate_ids, context)<br><span class="hljs-keyword">return</span> rerank(ranked_items)<br></code></pre></td></tr></table></figure>
+<p>双塔适合召回的原因也在这里：item tower
+的结果可以离线缓存，线上不必为每个用户重新计算所有 item。</p>
 <h2 id="排序真正决定谁排前面">排序：真正决定谁排前面</h2>
 <p>排序阶段会使用更丰富的特征。</p>
 <p>一个广告排序模型可能会看：</p>

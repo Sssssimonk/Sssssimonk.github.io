@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          10k 字
+          11k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          85 分钟
+          91 分钟
         
       </span>
     
@@ -721,6 +721,14 @@ class="math inline">\(A_t\)</span> 依赖后面多个时间步的 TD
 error，至少要等一段 rollout 收集完之后才能反向计算。但它也不需要等完整
 episode 结束：只要收集固定长度的轨迹片段，就可以在片段末尾用 <span
 class="math inline">\(V(s_H)\)</span> 自举。</p>
+<p>实际实现会从 rollout 的最后一步反向递推。<code>values</code> 比
+<code>rewards</code> 多一个元素，其中最后的 <code>values[-1]</code> 是
+rollout 被截断时使用的 bootstrap value：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">compute_gae</span>(<span class="hljs-params">rewards, values, dones, gamma=<span class="hljs-number">0.99</span>, gae_lambda=<span class="hljs-number">0.95</span></span>):<br>    <span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">    rewards: [T]</span><br><span class="hljs-string">    values:  [T + 1]，包含最后状态的 bootstrap value</span><br><span class="hljs-string">    dones:   [T]，真正 terminal 的位置为 1，普通 rollout 截断为 0</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br>    advantages = np.zeros_like(rewards, dtype=np.float32)<br>    next_advantage = <span class="hljs-number">0.0</span><br><br>    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> <span class="hljs-built_in">reversed</span>(<span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(rewards))):<br>        not_terminal = <span class="hljs-number">1.0</span> - dones[t]<br>        delta = (<br>            rewards[t]<br>            + gamma * not_terminal * values[t + <span class="hljs-number">1</span>]<br>            - values[t]<br>        )<br>        next_advantage = (<br>            delta<br>            + gamma * gae_lambda * not_terminal * next_advantage<br>        )<br>        advantages[t] = next_advantage<br><br>    returns = advantages + values[:-<span class="hljs-number">1</span>]<br>    <span class="hljs-keyword">return</span> advantages, returns<br></code></pre></td></tr></table></figure>
+<p>如果最后一步只是达到固定 rollout
+长度，<code>dones[-1]=0</code>，代码会保留 <code>values[-1]</code>；如果
+episode 真正结束，<code>dones[-1]=1</code>，未来 value 和 advantage
+都会在这里截断。</p>
 <h4 id="ppo-中的实际流程批次采样后统一计算优势">PPO
 中的实际流程：批次采样后统一计算优势</h4>
 <p>工业界通常不是走一步就更新一次，而是采用 rollout batch 的方式：</p>
@@ -1006,9 +1014,9 @@ Learning</a></li>
       
         <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
       
-        <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/" class="print-no-link">#强化学习</a>
-      
         <a href="/tags/%E5%90%8E%E8%AE%AD%E7%BB%83/" class="print-no-link">#后训练</a>
+      
+        <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/" class="print-no-link">#强化学习</a>
       
         <a href="/tags/RLHF/" class="print-no-link">#RLHF</a>
       

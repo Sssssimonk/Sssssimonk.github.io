@@ -334,7 +334,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.2k 字
+          5.2k 字
         
       </span>
     
@@ -345,7 +345,7 @@
         
         
         
-          36 分钟
+          44 分钟
         
       </span>
     
@@ -697,6 +697,12 @@ Adam 的自适应项缩放。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">adaptive_update(gradient)<br>parameter = parameter - lr * weight_decay * parameter<br></code></pre></td></tr></table></figure>
 <p>在训练 Transformer / LLM 时，AdamW 比 Adam 更常见。它让 weight decay
 的作用更接近正则化直觉。</p>
+<p>下面让四个 optimizer 处理同一串 scalar
+gradient，可以直接看到它们维护的状态有什么不同：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> math<br><br>gradients = [<span class="hljs-number">0.8</span>, <span class="hljs-number">0.4</span>, -<span class="hljs-number">0.2</span>]<br>learning_rate = <span class="hljs-number">0.1</span><br><br><span class="hljs-comment"># SGD：只使用当前梯度</span><br>w_sgd = <span class="hljs-number">1.0</span><br><br><span class="hljs-comment"># Momentum：额外保存 velocity</span><br>w_momentum, velocity = <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span><br><br><span class="hljs-comment"># Adam / AdamW：额外保存一阶矩和二阶矩</span><br>w_adam = w_adamw = <span class="hljs-number">1.0</span><br>m_adam = v_adam = <span class="hljs-number">0.0</span><br>m_adamw = v_adamw = <span class="hljs-number">0.0</span><br>beta1, beta2, eps = <span class="hljs-number">0.9</span>, <span class="hljs-number">0.999</span>, <span class="hljs-number">1e-8</span><br>weight_decay = <span class="hljs-number">0.1</span><br><br><span class="hljs-keyword">for</span> t, g <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(gradients, start=<span class="hljs-number">1</span>):<br>    w_sgd -= learning_rate * g<br><br>    velocity = <span class="hljs-number">0.9</span> * velocity + g<br>    w_momentum -= learning_rate * velocity<br><br>    m_adam = beta1 * m_adam + (<span class="hljs-number">1</span> - beta1) * g<br>    v_adam = beta2 * v_adam + (<span class="hljs-number">1</span> - beta2) * g**<span class="hljs-number">2</span><br>    m_hat = m_adam / (<span class="hljs-number">1</span> - beta1**t)<br>    v_hat = v_adam / (<span class="hljs-number">1</span> - beta2**t)<br>    w_adam -= learning_rate * m_hat / (math.sqrt(v_hat) + eps)<br><br>    m_adamw = beta1 * m_adamw + (<span class="hljs-number">1</span> - beta1) * g<br>    v_adamw = beta2 * v_adamw + (<span class="hljs-number">1</span> - beta2) * g**<span class="hljs-number">2</span><br>    m_hat = m_adamw / (<span class="hljs-number">1</span> - beta1**t)<br>    v_hat = v_adamw / (<span class="hljs-number">1</span> - beta2**t)<br>    adam_update = m_hat / (math.sqrt(v_hat) + eps)<br>    w_adamw = (<br>        w_adamw<br>        - learning_rate * adam_update<br>        - learning_rate * weight_decay * w_adamw<br>    )<br><br>    <span class="hljs-built_in">print</span>(t, w_sgd, w_momentum, w_adam, w_adamw)<br></code></pre></td></tr></table></figure>
+<p>这段代码刻意把内部状态展开：Momentum 多了
+<code>velocity</code>，Adam/AdamW 多了 <code>m</code> 和
+<code>v</code>，AdamW 还在 adaptive update 之外单独衰减参数。</p>
 <h2 id="优化器对比">优化器对比</h2>
 <table>
 

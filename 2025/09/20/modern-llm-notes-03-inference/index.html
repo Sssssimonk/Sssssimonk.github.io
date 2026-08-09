@@ -341,7 +341,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.7k 字
+          7.6k 字
         
       </span>
     
@@ -352,7 +352,7 @@
         
         
         
-          56 分钟
+          64 分钟
         
       </span>
     
@@ -719,6 +719,13 @@ token，把它们固定在同一 batch 会产生大量等待。</p>
 <li>重新组成下一轮 batch</li>
 </ul>
 <p>这样短请求结束后，空出的资源可以立刻交给新请求。</p>
+<p>调度器可以抽象成下面这个循环。它的关键不是提前固定 batch，而是在每个
+step 后重新决定下一批要处理哪些 token：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs text">waiting_queue = incoming requests<br>active_requests = &#123;&#125;<br><br>while waiting_queue is not empty or active_requests is not empty:<br>    release KV blocks owned by finished requests<br>    remove finished requests from active_requests<br><br>    while scheduler still has token/KV budget:<br>        request = waiting_queue.pop_next()<br>        allocate KV blocks for request<br>        active_requests.add(request)<br><br>    batch = scheduler.select_next_step(active_requests)<br>    # batch 中可以同时包含 chunked prefill 和 one-token decode<br><br>    model_output = model.forward(batch.tokens, batch.kv_block_tables)<br><br>    for request in batch:<br>        append new K/V to request.kv_blocks<br><br>        if request is decoding:<br>            token = sample(model_output[request])<br>            stream token to client<br>            request.next_input = token<br><br>        if request reaches EOS, length limit, or cancellation:<br>            request.mark_finished()<br></code></pre></td></tr></table></figure>
+<p>真实 serving engine 还会考虑优先级、抢占、prefix locality 和
+prefill/decode
+配额，但基本状态变化就是：加入请求、推进一步、释放完成请求、重新组
+batch。</p>
 <h2 id="分布式推理distributed-inference">分布式推理（distributed
 inference）</h2>
 <p>分布式推理有两个不同目标：</p>
@@ -727,7 +734,6 @@ inference）</h2>
 <li>单实例能运行，但吞吐不够，需要复制更多实例</li>
 </ul>
 <p>这两类问题对应不同并行方式。</p>
-<p>《分布式推理示意图》</p>
 <h3 id="张量并行tensor-parallelism">张量并行（tensor parallelism）</h3>
 <p>TP 把同一层的大矩阵切到多张 GPU 上。</p>
 <p>它能解决单卡放不下模型的问题，并让多个 GPU 同时计算同一层。</p>
@@ -876,9 +882,9 @@ Tutorial</a></li>
       
         <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/" class="print-no-link">#大模型</a>
       
-        <a href="/tags/KV-cache/" class="print-no-link">#KV cache</a>
-      
         <a href="/tags/%E6%8E%A8%E7%90%86%E4%BC%98%E5%8C%96/" class="print-no-link">#推理优化</a>
+      
+        <a href="/tags/KV-cache/" class="print-no-link">#KV cache</a>
       
         <a href="/tags/vLLM/" class="print-no-link">#vLLM</a>
       

@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.6k 字
+          3.1k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          22 分钟
+          27 分钟
         
       </span>
     
@@ -609,6 +609,12 @@ class="math inline">\(w\)</span> 的梯度。</p>
 为正，梯度方向会让 <span class="math inline">\(w\)</span>
 下降；如果预测太小，梯度方向会让 <span class="math inline">\(w\)</span>
 上升。这个例子很简单，但多层网络也是同一个逻辑，只是计算图更大。</p>
+<p>把这个标量计算图直接写成代码，可以看到 forward、backward 和 update
+是怎样接起来的：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python">x, y = <span class="hljs-number">2.0</span>, <span class="hljs-number">7.0</span><br>w, b = <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span><br>learning_rate = <span class="hljs-number">0.1</span><br><br><span class="hljs-comment"># forward</span><br>z = w * x + b<br>y_pred = z<br>loss = (y_pred - y) ** <span class="hljs-number">2</span><br><br><span class="hljs-comment"># backward: 沿计算图从 L 反向走到 w、b</span><br>grad_y_pred = <span class="hljs-number">2</span> * (y_pred - y)<br>grad_z = grad_y_pred<br>grad_w = grad_z * x<br>grad_b = grad_z<br><br><span class="hljs-comment"># update</span><br>w -= learning_rate * grad_w<br>b -= learning_rate * grad_b<br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;loss=<span class="hljs-subst">&#123;loss:<span class="hljs-number">.1</span>f&#125;</span>, grad_w=<span class="hljs-subst">&#123;grad_w:<span class="hljs-number">.1</span>f&#125;</span>, grad_b=<span class="hljs-subst">&#123;grad_b:<span class="hljs-number">.1</span>f&#125;</span>&quot;</span>)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;updated w=<span class="hljs-subst">&#123;w:<span class="hljs-number">.1</span>f&#125;</span>, updated b=<span class="hljs-subst">&#123;b:<span class="hljs-number">.1</span>f&#125;</span>&quot;</span>)<br></code></pre></td></tr></table></figure>
+<p>这里没有 autograd，所有局部梯度都显式写了出来。多层网络的
+<code>loss.backward()</code>
+做的是同一件事，只是自动沿更大的计算图累积梯度。</p>
 <p>PyTorch 里的训练大概是：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python">optimizer.zero_grad()<br>pred = model(x)<br>loss = criterion(pred, y)<br>loss.backward()<br>optimizer.step()<br></code></pre></td></tr></table></figure>
 <p>这里：</p>

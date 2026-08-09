@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6k 字
+          7.6k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          50 分钟
+          64 分钟
         
       </span>
     
@@ -494,6 +494,11 @@ preference loss</li>
 <li>GRPO：prompt -&gt; sample group -&gt; rewards -&gt; group advantage
 -&gt; policy update</li>
 </ul>
+<p>把三条路线写成训练伪代码，数据和计算依赖会更直观：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># PPO：先用旧 policy 在线采样，再训练 policy/value</span><br>responses, old_logp, old_values = rollout(policy_old, prompts)<br>task_reward = reward_model_or_verifier(prompts, responses)<br>kl_penalty = token_kl(policy_old, reference, prompts, responses)<br>rewards = task_reward - beta * kl_penalty<br>advantages, returns = GAE(rewards, old_values)<br><br><span class="hljs-keyword">for</span> optimization_epoch <span class="hljs-keyword">in</span> <span class="hljs-number">1.</span>.K:<br>    new_logp, new_values = policy_and_value(prompts, responses)<br>    ratio = exp(new_logp - old_logp)<br>    policy_loss = -mean(<span class="hljs-built_in">min</span>(<br>        ratio * advantages,<br>        clip(ratio, <span class="hljs-number">1</span>-epsilon, <span class="hljs-number">1</span>+epsilon) * advantages<br>    ))<br>    value_loss = mean((new_values - returns)^<span class="hljs-number">2</span>)<br>    update(policy, value_model, policy_loss + c_v * value_loss)<br><br><br><span class="hljs-comment"># DPO：直接读取离线 chosen/rejected pair，不做 rollout</span><br><span class="hljs-keyword">for</span> prompt, chosen, rejected <span class="hljs-keyword">in</span> preference_dataset:<br>    policy_chosen   = sequence_logp(policy, prompt, chosen)<br>    policy_rejected = sequence_logp(policy, prompt, rejected)<br>    ref_chosen      = sequence_logp(reference, prompt, chosen)<br>    ref_rejected    = sequence_logp(reference, prompt, rejected)<br><br>    preference_logit = beta * (<br>        (policy_chosen - ref_chosen)<br>        - (policy_rejected - ref_rejected)<br>    )<br>    loss = -log_sigmoid(preference_logit)<br>    update(policy, loss)<br><br><br><span class="hljs-comment"># GRPO：同一个 prompt 在线采样一组 responses，不训练 value model</span><br>responses = sample_group(policy_old, prompt, group_size=G)<br>rewards = verifier(prompt, responses)<br>advantages = (rewards - mean(rewards)) / (std(rewards) + epsilon)<br>old_logp = token_logp(policy_old, prompt, responses)<br>new_logp = token_logp(policy, prompt, responses)<br>ratio = exp(new_logp - old_logp)<br><br>loss = -mean(<span class="hljs-built_in">min</span>(<br>    ratio * advantages,<br>    clip(ratio, <span class="hljs-number">1</span>-epsilon, <span class="hljs-number">1</span>+epsilon) * advantages<br>)) + beta * KL(policy, reference)<br>update(policy, loss)<br></code></pre></td></tr></table></figure>
+<p>三段伪代码里最关键的区别是数据来源：PPO/GRPO 的 responses
+来自当前或旧 policy 的 rollout，而 DPO 的 chosen/rejected 来自固定
+preference dataset。</p>
 <p>如果只看名字，很容易觉得都是“对齐算法”。但从工程角度看，它们需要的模型、数据、采样方式完全不同。</p>
 <h2 id="ppo经典-rlhf-路线">PPO：经典 RLHF 路线</h2>
 <p>PPO 原本是通用强化学习算法，后来被用在 RLHF 里。</p>

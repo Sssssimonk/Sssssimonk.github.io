@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  两个关键词：学习 和 泛化。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过">
+    <meta name="description" content="机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  一个机器学习问题由什么组成 最常见的机器学习问题可以写成： \[ \hat{y} &#x3D; f_\theta(x) \] 其中，\(x\) 是输入特征，\(\">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 01：机器学习的基本框架">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/06/08/ml-notes-01-machine-learning-framework/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  两个关键词：学习 和 泛化。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过">
+<meta property="og:description" content="机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  一个机器学习问题由什么组成 最常见的机器学习问题可以写成： \[ \hat{y} &#x3D; f_\theta(x) \] 其中，\(x\) 是输入特征，\(\">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://sssssimonk.github.io/img/ml1_overview.png">
 <meta property="og:image" content="https://sssssimonk.github.io/img/ml1_pipeline.png">
@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.8k 字
+          2.7k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          24 分钟
+          23 分钟
         
       </span>
     
@@ -489,13 +489,11 @@
             
               <div class="markdown-body">
                 
-                <p>这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。</p>
+                <p>机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。</p>
 <p>可以先把 machine learning 理解成：</p>
 <blockquote>
 <p>从已有数据中学习一个可以泛化到未来数据的 prediction function。</p>
 </blockquote>
-<p>两个关键词：<strong>学习</strong> 和
-<strong>泛化</strong>。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过的数据上仍然给出合理预测。</p>
 <h2 id="一个机器学习问题由什么组成">一个机器学习问题由什么组成</h2>
 <p>最常见的机器学习问题可以写成：</p>
 <p><span class="math display">\[
@@ -540,7 +538,8 @@ y_i)
 y)\)</span>，目标是学会从 <span class="math inline">\(x\)</span> 预测
 <span class="math inline">\(y\)</span>。常见任务包括
 <strong>regression</strong> 和 <strong>classification</strong>。</p>
-<p>Regression 预测连续值，比如房价、温度、点击率。Classification
+<p><strong>Regression</strong>
+预测连续值，比如房价、温度、点击率。Classification
 预测类别，比如垃圾邮件识别、疾病诊断、图片分类。</p>
 <p><strong>Unsupervised Learning</strong> 没有明确的 label。模型只看到
 <span

@@ -824,7 +824,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/22/ml-notes-03-supervised-learning/" target="_self">
         <div>
-          线性回归（linear regression）：用线性函数做预测 Linear regression 用来预测连续值。最简单的一维形式是： \[ \hat{y} = wx + b \] 多维特征时写成： \[ \hat{y} = w_1x_1 + w_2x_2 + ... + w_dx_d + b \] 比如房价预测中，\(x_1\) 是面积，\(x_2\) 是房龄，\(x_3\) 是距离地铁的距
+          本篇记录supervised learning，包括： Linear/logistic Regression KNN 以及距离度量 线性回归（linear regression）：用线性函数做预测 Linear regression 用来预测连续值。最简单的一维形式是： \[ \hat{y} = wx + b \] 多维特征时写成： \[ \hat{y} = w_1x_1 + w_2x_2 + .
         </div>
       </a>
 
@@ -893,7 +893,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" target="_self">
         <div>
-          上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  损失函数（loss function）：先定义什么叫错 模型训练不是凭感觉调整参数，而是先把
+          上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  损失函数（loss function）：先定义什么叫错 模型训练把“预测错了多少”变成一个可
         </div>
       </a>
 
@@ -962,7 +962,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/08/ml-notes-01-machine-learning-framework/" target="_self">
         <div>
-          这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  两个关键词：学习 和 泛化。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过
+          机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  一个机器学习问题由什么组成 最常见的机器学习问题可以写成： \[ \hat{y} = f_\theta(x) \] 其中，\(x\) 是输入特征，\(\
         </div>
       </a>
 
