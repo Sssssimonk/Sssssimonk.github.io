@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 神经元（neuron）在做什么 一个最简单的 neuron 可以写成： \[ z &#x3D; w^">
+    <meta name="description" content="这一篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深度学习笔记 02：MLP、前向传播与反向传播">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 神经元（neuron）在做什么 一个最简单的 neuron 可以写成： \[ z &#x3D; w^">
+<meta property="og:description" content="这一篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-08-10T12:30:00.000Z">
 <meta property="article:modified_time" content="2024-08-10T12:30:00.000Z">
@@ -484,6 +484,7 @@
 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。</p>
 </blockquote>
 <p>这条链路是 deep learning 的训练核心。</p>
+<span id="more"></span>
 <h2 id="神经元neuron在做什么">神经元（neuron）在做什么</h2>
 <p>一个最简单的 neuron 可以写成：</p>
 <p><span class="math display">\[

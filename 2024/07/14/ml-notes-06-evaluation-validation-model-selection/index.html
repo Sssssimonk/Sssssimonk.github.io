@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。好的评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 well，具体情况，具体分析。 回归指标（regression m">
+    <meta name="description" content="训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。好的评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 well，具体情况，具体分析。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 06：评估、验证与模型选择">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/07/14/ml-notes-06-evaluation-validation-model-selection/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。好的评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 well，具体情况，具体分析。 回归指标（regression m">
+<meta property="og:description" content="训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。好的评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 well，具体情况，具体分析。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-07-14T14:30:00.000Z">
 <meta property="article:modified_time" content="2024-07-14T14:30:00.000Z">
@@ -493,6 +493,7 @@
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">这个模型在真正关心的场景里，到底有没有变好？<br></code></pre></td></tr></table></figure>
 <p>不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。</p>
 <p>well，具体情况，具体分析。</p>
+<span id="more"></span>
 <h2 id="回归指标regression-metrics">回归指标（regression metrics）</h2>
 <p>回归任务预测连续值，常见指标有 MSE、RMSE、MAE、<span
 class="math inline">\(R^2\)</span>。</p>

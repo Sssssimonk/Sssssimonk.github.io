@@ -345,7 +345,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/07/01/about-this-blog/" target="_self">
         <div>
-          这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。 一
+          这个博客会主要记录我对 AI 论文、算法思想和工程实践的理解。 我希望每篇文章都尽量回答三个问题：  这篇论文或技术真正解决了什么问题？ 它的核心假设、方法设计和实验结论是否站得住？ 如果把它放到真实系统或后续研究里，它给我的启发是什么？  后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。
         </div>
       </a>
 
@@ -483,7 +483,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/11/22/post-training-notes-04-grpo-variants-and-kto/" target="_self">
         <div>
-          这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback  GRPO 的基本问题 GRPO
+          这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback
         </div>
       </a>
 
@@ -629,7 +629,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/11/08/post-training-notes-02-sft-and-peft/" target="_self">
         <div>
-          本篇介绍SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是教模型遵从指令 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。 SFT在学啥 Base mod
+          本篇介绍SFT 和 PEFT。 在大模型后训练里，SFT 通常是第一步。Base model 经过大规模预训练后，已经学到语言、知识和模式，但它不一定会按指令回答。SFT 的作用就是教模型遵从指令 PEFT则是SFT的一种解法（即parameter efficient fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。
         </div>
       </a>
 
@@ -702,7 +702,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/11/01/post-training-notes-01-rl-basics/" target="_self">
         <div>
-          大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。 有一说一，传统RL学起来真有点绕脑子的😓 RL的基本概念 为了搞清楚 RL，先
+          大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。 有一说一，传统RL学起来真有点绕脑子的😓
         </div>
       </a>
 
@@ -743,9 +743,9 @@
             
               <a href="/tags/%E7%AC%94%E8%AE%B0/">#笔记</a>
             
-              <a href="/tags/%E5%90%8E%E8%AE%AD%E7%BB%83/">#后训练</a>
-            
               <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">#强化学习</a>
+            
+              <a href="/tags/%E5%90%8E%E8%AE%AD%E7%BB%83/">#后训练</a>
             
               <a href="/tags/RLHF/">#RLHF</a>
             
@@ -771,7 +771,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/09/27/modern-llm-notes-04-reasoning-models/" target="_self">
         <div>
-          ”三思而后行“ 这是机器人先祖给AI的教诲  简单的说，告诉模型”Let’s think step by step”效果意外的好了很多，然后就开始卷模型的reasoning了。 本篇从 CoT 开始，逐步过渡到 DeepSeek-R1 这类模型。 普通 next token prediction 的限制 语言模型的基本目标是预测下一个 token： \[ \max_\theta \sum_t \
+          ”三思而后行“ 这是机器人先祖给AI的教诲  简单的说，告诉模型”Let’s think step by step”效果意外的好了很多，然后就开始卷模型的reasoning了。 本篇从 CoT 开始，逐步过渡到 DeepSeek-R1 这类模型。
         </div>
       </a>
 
@@ -814,13 +814,13 @@
             
               <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
             
-              <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">#强化学习</a>
-            
               <a href="/tags/Reasoning/">#Reasoning</a>
             
               <a href="/tags/CoT/">#CoT</a>
             
               <a href="/tags/DeepSeek-R1/">#DeepSeek-R1</a>
+            
+              <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">#强化学习</a>
             
           </div>
         
@@ -842,7 +842,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/09/20/modern-llm-notes-03-inference/" target="_self">
         <div>
-          有一个挺有意思的说法：算法就是数据，数据就是 Infra，Infra就是算法。  模型能力的提升离不开数据质量，而大规模数据处理、训练和部署都离不开 Infrastructure。 先划清推理加速的边界 推理加速主要优化三个目标：  降低延迟（latency） 提升吞吐量（throughput） 降低显存或内存占用（memory footprint）  这三个目标不一定同时改善。 比如增大 ba
+          有一个挺有意思的说法：算法就是数据，数据就是 Infra，Infra就是算法。  模型能力的提升离不开数据质量，而大规模数据处理、训练和部署都离不开 Infrastructure。
         </div>
       </a>
 
@@ -885,9 +885,9 @@
             
               <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
             
-              <a href="/tags/%E6%8E%A8%E7%90%86%E4%BC%98%E5%8C%96/">#推理优化</a>
-            
               <a href="/tags/KV-cache/">#KV cache</a>
+            
+              <a href="/tags/%E6%8E%A8%E7%90%86%E4%BC%98%E5%8C%96/">#推理优化</a>
             
               <a href="/tags/vLLM/">#vLLM</a>
             
@@ -917,7 +917,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2025/09/06/modern-llm-notes-01-transformer-after-transformer/" target="_self">
         <div>
-          本篇整理Transformer架构以及它在现代 LLM 里发生了哪些变化。 从图中可以看到，几个核心的步骤分别是： 1. word embedding 2. positional embedding 3. 注意力机制 4. Residual Connect 5. Normalization 6. FFN 原始 Transformer的encoder-decoder结构   transformer架
+          本篇整理Transformer架构以及它在现代 LLM 里发生了哪些变化。 从图中可以看到，几个核心的步骤分别是： 1. word embedding 2. positional embedding 3. 注意力机制 4. Residual Connect 5. Normalization 6. FFN
         </div>
       </a>
 
@@ -960,11 +960,11 @@
             
               <a href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">#大模型</a>
             
-              <a href="/tags/KV-cache/">#KV cache</a>
-            
               <a href="/tags/Transformer/">#Transformer</a>
             
               <a href="/tags/RoPE/">#RoPE</a>
+            
+              <a href="/tags/KV-cache/">#KV cache</a>
             
           </div>
         
@@ -986,7 +986,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/31/deep-learning-notes-05-attention-transformer/" target="_self">
         <div>
-          本篇介绍注意力机制，参考stanford 224n的attention一课 RNN 的瓶颈 RNN 处理序列时，每个时间步依赖上一个 hidden state： \[ h_t = f(x_t, h_{t-1}) \] 这带来两个问题。 第一，长距离信息要经过很多步传递，容易衰减。 第二，计算难以并行，因为第 \(t\) 步必须等第 \(t-1\) 步算完。 比如翻译一句话时，目标词可能需要关注源句
+          本篇介绍注意力机制，参考stanford 224n的attention一课
         </div>
       </a>
 

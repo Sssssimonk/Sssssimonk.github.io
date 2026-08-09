@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback  GRPO 的基本问题 GRPO">
+    <meta name="description" content="这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback">
 <meta property="og:type" content="article">
 <meta property="og:title" content="后训练笔记 04：GRPO变体与DPO变体">
 <meta property="og:url" content="https://sssssimonk.github.io/2025/11/22/post-training-notes-04-grpo-variants-and-kto/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback  GRPO 的基本问题 GRPO">
+<meta property="og:description" content="这一篇整理 GRPO 的变体，以及DPO的变体。 所以这一篇分成两条线：  GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造 KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-11-22T13:30:00.000Z">
 <meta property="article:modified_time" content="2025-11-22T13:30:00.000Z">
@@ -479,6 +479,7 @@ sampling、advantage、clipping、sequence-level 更新做改造</li>
 <li>KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成
 binary feedback</li>
 </ul>
+<span id="more"></span>
 <h2 id="grpo-的基本问题">GRPO 的基本问题</h2>
 <p>GRPO 的基础想法很清楚：同一个prompt采样多个 responses，用组内 reward
 相对值估计 advantage。</p>

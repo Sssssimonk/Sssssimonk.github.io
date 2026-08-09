@@ -345,7 +345,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/24/deep-learning-notes-04-cnn-rnn-classic-architectures/" target="_self">
         <div>
-          本篇整理序列模型，主要参考Stanford 224n的sequence model一课。整理 RNN、LSTM、GRU等模型 RNN：处理序列的基本思路 RNN 用 hidden state 记录过去信息。 最基本形式： \[ h_t = \phi(W_xx_t + W_hh_{t-1} + b) \] \[ y_t = W_yh_t \] 其中，\(x_t\) 是当前时间步输入，\(h_{t-1
+          本篇整理序列模型，主要参考Stanford 224n的sequence model一课。整理 RNN、LSTM、GRU等模型
         </div>
       </a>
 
@@ -416,7 +416,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/17/deep-learning-notes-03-training-and-optimizers/" target="_self">
         <div>
-          光能训练模型还不够，能“稳定的”训练模型才NB。 梯度消失与梯度爆炸 深层网络里，gradient 要从 loss 一层层传回前面层。 如果每一层的梯度因子都小于 1，多层相乘后会越来越小，这就是 vanishing gradients。 如果每一层的梯度因子都大于 1，多层相乘后会越来越大，这就是 exploding gradients。 一个粗略例子： \[ 0.5^{20} \approx
+          光能训练模型还不够，能“稳定的”训练模型才NB。
         </div>
       </a>
 
@@ -483,7 +483,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/" target="_self">
         <div>
-          这一篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。 神经元（neuron）在做什么 一个最简单的 neuron 可以写成： \[ z = w^
+          这一篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。
         </div>
       </a>
 
@@ -552,7 +552,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/03/deep-learning-notes-01-framework/" target="_self">
         <div>
-          神经网络本质上还是一个函数： \[ \hat{y} = f_\theta(x) \] 其中，\(x\) 是输入，\(\hat{y}\) 是预测，\(\theta\) 是网络参数。 训练的目标仍然是找一组参数，让模型预测更接近真实标签： \[ \theta^* = \arg\min_\theta L(f_\theta(x), y) \] 所以 deep learning 的基本框架仍然是： 1234
+          神经网络本质上还是一个函数：
         </div>
       </a>
 
@@ -617,7 +617,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" target="_self">
         <div>
-          训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。好的评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 well，具体情况，具体分析。 回归指标（regression m
+          训练 loss 下降只能说明模型更适合训练数据，不等于模型真的有用。好的评估指标和验证方式决定了最后会选择哪个模型，也决定了这个选择是否可靠。 模型评估的核心问题是： 1这个模型在真正关心的场景里，到底有没有变好？ 不同任务里，“好”的定义不一样。房价预测关心预测误差，垃圾邮件识别关心别把正常邮件误删，疾病筛查关心别漏掉阳性病例。 well，具体情况，具体分析。
         </div>
       </a>
 
@@ -686,7 +686,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
         <div>
-          在无监督学习中，通常没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。 什么是无监督学习（unsupervised learning） 无监督学习只有输入 \(x\)，没有标签 \(y\)。 比如有一批用户行为数据：    用户 访问次数 平均停留时间 购买次数     A 50 8 分钟 5   B 3 1 分钟
+          在无监督学习中，通常没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。
         </div>
       </a>
 
@@ -755,7 +755,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/29/ml-notes-04-tree-based-models/" target="_self">
         <div>
-          树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。 决策树（decision tree）的基本想法 Decision Tree 每一步都在问一个问题：  这个 feature 按某个 threshold 切开后，数据会不会更容易预测？  比如判断一个用户是否会购买会员，可以有这样的分裂： 123访问次数 &gt; 10 ?    yes -&gt; 停留时间 &gt;
+          树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。
         </div>
       </a>
 
@@ -824,7 +824,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/22/ml-notes-03-supervised-learning/" target="_self">
         <div>
-          本篇记录supervised learning，包括： Linear/logistic Regression KNN 以及距离度量 线性回归（linear regression）：用线性函数做预测 Linear regression 用来预测连续值。最简单的一维形式是： \[ \hat{y} = wx + b \] 多维特征时写成： \[ \hat{y} = w_1x_1 + w_2x_2 + .
+          本篇记录supervised learning，包括： Linear/logistic Regression KNN 以及距离度量
         </div>
       </a>
 
@@ -893,7 +893,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" target="_self">
         <div>
-          上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  损失函数（loss function）：先定义什么叫错 模型训练把“预测错了多少”变成一个可
+          上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。
         </div>
       </a>
 
@@ -962,7 +962,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/08/ml-notes-01-machine-learning-framework/" target="_self">
         <div>
-          机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。  一个机器学习问题由什么组成 最常见的机器学习问题可以写成： \[ \hat{y} = f_\theta(x) \] 其中，\(x\) 是输入特征，\(\
+          机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。 可以先把 machine learning 理解成：  从已有数据中学习一个可以泛化到未来数据的 prediction function。
         </div>
       </a>
 

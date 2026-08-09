@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="本篇整理序列模型，主要参考Stanford 224n的sequence model一课。整理 RNN、LSTM、GRU等模型 RNN：处理序列的基本思路 RNN 用 hidden state 记录过去信息。 最基本形式： \[ h_t &#x3D; \phi(W_xx_t + W_hh_{t-1} + b) \] \[ y_t &#x3D; W_yh_t \] 其中，\(x_t\) 是当前时间步输入，\(h_{t-1">
+    <meta name="description" content="本篇整理序列模型，主要参考Stanford 224n的sequence model一课。整理 RNN、LSTM、GRU等模型">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深度学习笔记 04：CNN、RNN 与经典结构">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/08/24/deep-learning-notes-04-cnn-rnn-classic-architectures/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="本篇整理序列模型，主要参考Stanford 224n的sequence model一课。整理 RNN、LSTM、GRU等模型 RNN：处理序列的基本思路 RNN 用 hidden state 记录过去信息。 最基本形式： \[ h_t &#x3D; \phi(W_xx_t + W_hh_{t-1} + b) \] \[ y_t &#x3D; W_yh_t \] 其中，\(x_t\) 是当前时间步输入，\(h_{t-1">
+<meta property="og:description" content="本篇整理序列模型，主要参考Stanford 224n的sequence model一课。整理 RNN、LSTM、GRU等模型">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-08-24T13:30:00.000Z">
 <meta property="article:modified_time" content="2024-08-24T13:30:00.000Z">
@@ -481,6 +481,7 @@
                 
                 <p>本篇整理序列模型，主要参考Stanford 224n的sequence model一课。整理
 RNN、LSTM、GRU等模型</p>
+<span id="more"></span>
 <h2 id="rnn处理序列的基本思路">RNN：处理序列的基本思路</h2>
 <p>RNN 用 hidden state 记录过去信息。</p>
 <p>最基本形式：</p>

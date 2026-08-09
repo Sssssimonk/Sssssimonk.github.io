@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="光能训练模型还不够，能“稳定的”训练模型才NB。 梯度消失与梯度爆炸 深层网络里，gradient 要从 loss 一层层传回前面层。 如果每一层的梯度因子都小于 1，多层相乘后会越来越小，这就是 vanishing gradients。 如果每一层的梯度因子都大于 1，多层相乘后会越来越大，这就是 exploding gradients。 一个粗略例子： \[ 0.5^{20} \approx">
+    <meta name="description" content="光能训练模型还不够，能“稳定的”训练模型才NB。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深度学习笔记 03：深度网络训练与优化器">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/08/17/deep-learning-notes-03-training-and-optimizers/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="光能训练模型还不够，能“稳定的”训练模型才NB。 梯度消失与梯度爆炸 深层网络里，gradient 要从 loss 一层层传回前面层。 如果每一层的梯度因子都小于 1，多层相乘后会越来越小，这就是 vanishing gradients。 如果每一层的梯度因子都大于 1，多层相乘后会越来越大，这就是 exploding gradients。 一个粗略例子： \[ 0.5^{20} \approx">
+<meta property="og:description" content="光能训练模型还不够，能“稳定的”训练模型才NB。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-08-17T13:00:00.000Z">
 <meta property="article:modified_time" content="2024-08-17T13:00:00.000Z">
@@ -478,6 +478,7 @@
               <div class="markdown-body">
                 
                 <p>光能训练模型还不够，能“稳定的”训练模型才NB。</p>
+<span id="more"></span>
 <h2 id="梯度消失与梯度爆炸">梯度消失与梯度爆炸</h2>
 <p>深层网络里，gradient 要从 loss 一层层传回前面层。</p>
 <p>如果每一层的梯度因子都小于 1，多层相乘后会越来越小，这就是 vanishing

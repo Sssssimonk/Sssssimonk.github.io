@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  损失函数（loss function）：先定义什么叫错 模型训练把“预测错了多少”变成一个可">
+    <meta name="description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 02：损失函数、优化与正则化">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/06/15/ml-notes-02-loss-optimization-regularization/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。  损失函数（loss function）：先定义什么叫错 模型训练把“预测错了多少”变成一个可">
+<meta property="og:description" content="上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-06-15T12:30:00.000Z">
 <meta property="article:modified_time" content="2024-06-15T12:30:00.000Z">
@@ -493,6 +493,7 @@
 定义“每次改多少”，regularization
 限制模型不要为了降低训练误差而变得过度复杂。</p>
 </blockquote>
+<span id="more"></span>
 <h2 id="损失函数loss-function先定义什么叫错">损失函数（loss
 function）：先定义什么叫错</h2>
 <p>模型训练把“预测错了多少”变成一个可以计算的数值。这个数值就是
