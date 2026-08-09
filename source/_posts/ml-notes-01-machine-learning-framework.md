@@ -17,6 +17,8 @@ category_bar: true
 
 > 从已有数据中学习一个可以泛化到未来数据的 prediction function。
 
+<!-- more -->
+
 
 ## 一个机器学习问题由什么组成
 

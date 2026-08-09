@@ -14,6 +14,8 @@ category_bar: true
 
 神经网络本质上还是一个函数：
 
+<!-- more -->
+
 $$
 \hat{y} = f_\theta(x)
 $$

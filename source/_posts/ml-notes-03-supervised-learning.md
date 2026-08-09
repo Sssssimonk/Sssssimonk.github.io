@@ -17,6 +17,8 @@ category_bar: true
 Linear/logistic Regression 
 KNN 以及距离度量
 
+<!-- more -->
+
 ## 线性回归（linear regression）：用线性函数做预测
 
 Linear regression 用来预测连续值。最简单的一维形式是：

@@ -23,6 +23,8 @@ category_bar: true
 
 后续内容会以论文阅读、方法拆解、实验复现、工程经验和研究想法为主。相比只摘录结论，我会更重视自己的判断：哪里简单有效，哪里可能被过度包装，哪里值得继续追。
 
+<!-- more -->
+
 一个简单的公式示例：
 
 $$
@@ -40,4 +42,3 @@ def summarize_claim(paper):
         "my_take": paper.limitations,
     }
 ```
-

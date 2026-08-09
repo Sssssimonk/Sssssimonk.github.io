@@ -15,6 +15,8 @@ category_bar: true
 ---
 在无监督学习中，通常没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。
 
+<!-- more -->
+
 ## 什么是无监督学习（unsupervised learning）
 
 无监督学习只有输入 $x$，没有标签 $y$。

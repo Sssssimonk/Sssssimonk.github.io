@@ -23,6 +23,8 @@ category_bar: true
 
 LLM 本来处理的是 token sequence。图像、视频、音频不是离散文本 token，所以要先经过编码、投影、对齐，再接入语言模型。
 
+<!-- more -->
+
 ## 1. VLM 的基本结构
 
 一个典型 vision-language model 可以拆成三块：

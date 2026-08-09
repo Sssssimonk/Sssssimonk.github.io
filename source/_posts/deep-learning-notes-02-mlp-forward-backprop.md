@@ -21,6 +21,8 @@ category_bar: true
 
 这条链路是 deep learning 的训练核心。
 
+<!-- more -->
+
 ## 神经元（neuron）在做什么
 
 一个最简单的 neuron 可以写成：

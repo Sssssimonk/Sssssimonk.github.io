@@ -25,6 +25,8 @@ category_bar: true
 
 well，具体情况，具体分析。
 
+<!-- more -->
+
 ## 回归指标（regression metrics）
 
 回归任务预测连续值，常见指标有 MSE、RMSE、MAE、$R^2$。

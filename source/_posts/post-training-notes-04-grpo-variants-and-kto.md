@@ -23,6 +23,8 @@ category_bar: true
 - GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造
 - KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback
 
+<!-- more -->
+
 ## GRPO 的基本问题
 
 GRPO 的基础想法很清楚：同一个prompt采样多个 responses，用组内 reward 相对值估计 advantage。

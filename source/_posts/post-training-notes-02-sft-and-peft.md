@@ -22,6 +22,8 @@ category_bar: true
 
 PEFT则是SFT的一种解法（即parameter **efficient** fine-tuning：模型太大，全参数微调成本太高，所以只训练很少一部分参数，让模型适配新任务。
 
+<!-- more -->
+
 ### SFT在学啥
 
 

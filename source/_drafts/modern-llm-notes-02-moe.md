@@ -23,6 +23,8 @@ category_bar: true
 
 MoE 的关键就在这里。它不是让所有参数每次都参与计算，而是给每个 token 选择一小部分 expert 来算。
 
+<!-- more -->
+
 ## 1. Dense model 的问题
 
 普通 Transformer 是 dense model。

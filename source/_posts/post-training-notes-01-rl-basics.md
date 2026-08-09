@@ -18,6 +18,8 @@ category_bar: true
 
 有一说一，传统RL学起来真有点绕脑子的😓
 
+<!-- more -->
+
 ## RL的基本概念
 为了搞清楚 RL，先把 terminology 理清楚很重要。
 

@@ -15,6 +15,8 @@ category_bar: true
 
 本篇介绍注意力机制，参考stanford 224n的attention一课
 
+<!-- more -->
+
 ## RNN 的瓶颈
 
 RNN 处理序列时，每个时间步依赖上一个 hidden state：

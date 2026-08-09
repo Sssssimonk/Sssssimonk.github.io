@@ -17,6 +17,8 @@ category_bar: true
 
 本篇整理序列模型，主要参考Stanford 224n的sequence model一课。整理 RNN、LSTM、GRU等模型
 
+<!-- more -->
+
 
 ## RNN：处理序列的基本思路
 

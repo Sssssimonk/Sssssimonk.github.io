@@ -26,6 +26,8 @@ DPO 是直接从偏好对里学习，不显式训练 reward model，也不跑在
 
 GRPO 是 reasoning model 里很常见的 RLVR 方法，用同一个 prompt 下的一组 responses 做相对比较，省掉 value model。
 
+<!-- more -->
+
 ## 三种训练信号
 
 PPO 的训练信号来自 reward model 或 verifier，再加 value model 估计 advantage。

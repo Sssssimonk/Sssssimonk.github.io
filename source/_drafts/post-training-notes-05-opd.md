@@ -29,6 +29,8 @@ OPD 更像是：
 
 所以 OPD 的关键词是：on-policy、teacher、distillation、dense signal。
 
+<!-- more -->
+
 ## 普通 distillation 是什么
 
 Knowledge distillation 的基本想法是：用强 teacher model 指导弱 student model。

@@ -15,6 +15,8 @@ category_bar: true
 
 光能训练模型还不够，能“稳定的”训练模型才NB。
 
+<!-- more -->
+
 ## 梯度消失与梯度爆炸
 
 深层网络里，gradient 要从 loss 一层层传回前面层。

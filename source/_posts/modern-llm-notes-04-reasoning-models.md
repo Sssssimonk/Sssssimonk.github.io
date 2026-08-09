@@ -21,6 +21,8 @@ category_bar: true
 
 本篇从 CoT 开始，逐步过渡到 DeepSeek-R1 这类模型。
 
+<!-- more -->
+
 
 
 

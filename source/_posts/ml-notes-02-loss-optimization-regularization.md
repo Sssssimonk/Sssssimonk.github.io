@@ -18,6 +18,8 @@ category_bar: true
 
 > Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。
 
+<!-- more -->
+
 ## 损失函数（loss function）：先定义什么叫错
 
 模型训练把“预测错了多少”变成一个可以计算的数值。这个数值就是 loss。不同任务会使用不同 loss。

@@ -25,6 +25,8 @@ category_bar: true
 5. Normalization
 6. FFN
 
+<!-- more -->
+
 ## 原始 Transformer的encoder-decoder结构
 
 ![transformer架构图](/img/transformer_architecture.png)
