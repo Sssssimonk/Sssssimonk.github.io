@@ -274,6 +274,55 @@ parameter = parameter - lr * weight_decay * parameter
 
 在训练 Transformer / LLM 时，AdamW 比 Adam 更常见。它让 weight decay 的作用更接近正则化直觉。
 
+下面让四个 optimizer 处理同一串 scalar gradient，可以直接看到它们维护的状态有什么不同：
+
+```python
+import math
+
+gradients = [0.8, 0.4, -0.2]
+learning_rate = 0.1
+
+# SGD：只使用当前梯度
+w_sgd = 1.0
+
+# Momentum：额外保存 velocity
+w_momentum, velocity = 1.0, 0.0
+
+# Adam / AdamW：额外保存一阶矩和二阶矩
+w_adam = w_adamw = 1.0
+m_adam = v_adam = 0.0
+m_adamw = v_adamw = 0.0
+beta1, beta2, eps = 0.9, 0.999, 1e-8
+weight_decay = 0.1
+
+for t, g in enumerate(gradients, start=1):
+    w_sgd -= learning_rate * g
+
+    velocity = 0.9 * velocity + g
+    w_momentum -= learning_rate * velocity
+
+    m_adam = beta1 * m_adam + (1 - beta1) * g
+    v_adam = beta2 * v_adam + (1 - beta2) * g**2
+    m_hat = m_adam / (1 - beta1**t)
+    v_hat = v_adam / (1 - beta2**t)
+    w_adam -= learning_rate * m_hat / (math.sqrt(v_hat) + eps)
+
+    m_adamw = beta1 * m_adamw + (1 - beta1) * g
+    v_adamw = beta2 * v_adamw + (1 - beta2) * g**2
+    m_hat = m_adamw / (1 - beta1**t)
+    v_hat = v_adamw / (1 - beta2**t)
+    adam_update = m_hat / (math.sqrt(v_hat) + eps)
+    w_adamw = (
+        w_adamw
+        - learning_rate * adam_update
+        - learning_rate * weight_decay * w_adamw
+    )
+
+    print(t, w_sgd, w_momentum, w_adam, w_adamw)
+```
+
+这段代码刻意把内部状态展开：Momentum 多了 `velocity`，Adam/AdamW 多了 `m` 和 `v`，AdamW 还在 adaptive update 之外单独衰减参数。
+
 ## 优化器对比
 
 | 优化器 | 核心想法 | 优点 | 常见问题 |

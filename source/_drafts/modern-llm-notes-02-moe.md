@@ -97,6 +97,68 @@ Switch Transformer 里用了 auxiliary loss 来鼓励 token 更均匀地分配�
 
 MoE 的难点不是“有多个 expert”，而是“怎么让 expert 被合理使用”。
 
+下面的简化实现展示了 top-k routing、expert capacity、dispatch 和 weighted combine。为了突出流程，这里使用 Python loop；真实系统通常会把 dispatch 向量化，并在多卡之间执行 all-to-all。
+
+```python
+import math
+import torch
+import torch.nn as nn
+
+class SparseMoE(nn.Module):
+    def __init__(self, hidden_size, ffn_size, num_experts, top_k=2):
+        super().__init__()
+        self.num_experts = num_experts
+        self.top_k = top_k
+        self.router = nn.Linear(hidden_size, num_experts, bias=False)
+        self.experts = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(hidden_size, ffn_size),
+                nn.GELU(),
+                nn.Linear(ffn_size, hidden_size),
+            )
+            for _ in range(num_experts)
+        ])
+
+    def forward(self, x, capacity_factor=1.0):
+        # x: [batch, seq_len, hidden_size]
+        original_shape = x.shape
+        tokens = x.reshape(-1, x.size(-1))
+
+        router_prob = torch.softmax(self.router(tokens), dim=-1)
+        top_weight, top_expert = torch.topk(
+            router_prob, self.top_k, dim=-1
+        )
+        top_weight = top_weight / top_weight.sum(dim=-1, keepdim=True)
+
+        capacity = math.ceil(
+            capacity_factor * tokens.size(0) * self.top_k / self.num_experts
+        )
+        output = torch.zeros_like(tokens)
+        dropped = 0
+
+        for expert_id, expert in enumerate(self.experts):
+            # position 的两列分别是 token index 和 top-k slot
+            position = (top_expert == expert_id).nonzero(as_tuple=False)
+            kept = position[:capacity]
+            dropped += max(position.size(0) - capacity, 0)
+
+            if kept.numel() == 0:
+                continue
+
+            token_index = kept[:, 0]
+            slot_index = kept[:, 1]
+            expert_output = expert(tokens[token_index])
+            gate = top_weight[token_index, slot_index].unsqueeze(-1)
+            output.index_add_(0, token_index, gate * expert_output)
+
+        expert_load = torch.bincount(
+            top_expert.reshape(-1), minlength=self.num_experts
+        )
+        return output.view(original_shape), expert_load, dropped
+```
+
+`expert_load` 可以用来观察负载是否集中；`dropped` 则直接反映 capacity 是否太小。生产实现还需要对被 drop 的 token 设计 residual、shared expert 或其他 fallback 路径。
+
 ## 4. 总参数和激活参数
 
 MoE 报告里经常出现两个数字。

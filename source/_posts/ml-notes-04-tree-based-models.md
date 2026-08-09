@@ -130,6 +130,53 @@ Gini 也衡量节点不纯度。节点越纯，Gini 越小。
 
 Gini 和 entropy 的目标很接近：都希望 split 后子节点更纯。实际使用中，Gini 计算更简单一些。
 
+把“选择最佳切分”写成伪代码后，decision tree 的训练过程会更清楚：
+
+```text
+function FindBestSplit(samples):
+    best_gain = 0
+    best_rule = None
+
+    for feature in all_features:
+        thresholds = candidate_thresholds(samples, feature)
+
+        for threshold in thresholds:
+            left  = samples where feature <= threshold
+            right = samples where feature > threshold
+
+            if left is empty or right is empty:
+                continue
+
+            child_impurity = (
+                len(left)  / len(samples) * impurity(left)
+                + len(right) / len(samples) * impurity(right)
+            )
+            gain = impurity(samples) - child_impurity
+
+            if gain > best_gain:
+                best_gain = gain
+                best_rule = (feature, threshold)
+
+    return best_rule, best_gain
+
+function BuildTree(samples, depth):
+    if should_stop(samples, depth):
+        return Leaf(prediction=majority_class(samples))
+
+    rule, gain = FindBestSplit(samples)
+    if rule is None or gain <= 0:
+        return Leaf(prediction=majority_class(samples))
+
+    left, right = split(samples, rule)
+    return Node(
+        rule=rule,
+        left=BuildTree(left, depth + 1),
+        right=BuildTree(right, depth + 1)
+    )
+```
+
+`max_depth`、`min_samples_leaf` 等 pre-pruning 参数，本质上都进入了这里的 `should_stop`。
+
 ## ID3、C4.5、CART
 
 三类树的区别：
@@ -238,4 +285,3 @@ initial prediction
 
 - ucsd dsc40B课程
 - [An Introduction to Statistical Learning](https://www.statlearning.com/)
-

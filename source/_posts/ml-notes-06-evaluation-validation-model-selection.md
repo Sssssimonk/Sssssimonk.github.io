@@ -147,6 +147,30 @@ AUC 是 ROC 曲线下面积。它也可以理解为：随机抽一个正样本�
 
 AUC 关心的是正样本是否整体排在负样本前面，而不是某个固定 threshold 下分对了多少。
 
+如果业务最后需要一个明确 threshold，可以在 validation set 上遍历候选值，观察 precision 和 recall 的变化：
+
+```python
+import numpy as np
+
+def precision_recall_at_threshold(y_true, scores, threshold):
+    y_pred = scores >= threshold
+    tp = np.sum((y_true == 1) & y_pred)
+    fp = np.sum((y_true == 0) & y_pred)
+    fn = np.sum((y_true == 1) & (~y_pred))
+
+    precision = tp / max(tp + fp, 1)
+    recall = tp / max(tp + fn, 1)
+    return precision, recall
+
+for threshold in np.linspace(0.0, 1.0, 21):
+    precision, recall = precision_recall_at_threshold(
+        y_validation, validation_scores, threshold
+    )
+    print(threshold, precision, recall)
+```
+
+threshold 也属于需要用 validation set 决定的超参数，不能在 test set 上挑。
+
 ## PR 曲线（PR curve）
 
 PR Curve 的横轴是 recall，纵轴是 precision。
@@ -192,6 +216,29 @@ K-fold cross validation 把数据分成 $K$ 份，每次用其中一份做 valid
 它比单次 holdout 更稳定，尤其适合数据量不大的情况。
 
 缺点是训练成本更高。比如 5-fold 就要训练 5 次。
+
+```text
+split training data into K folds
+
+for config in candidate_configs:
+    fold_scores = []
+
+    for k in 1..K:
+        fold_k = validation fold
+        remaining folds = training folds
+
+        model = initialize(config)
+        model.fit(remaining folds)
+        fold_scores.append(evaluate(model, fold_k))
+
+    mean_score[config] = average(fold_scores)
+
+best_config = argmax(mean_score)
+train final model with best_config
+evaluate once on untouched test set
+```
+
+这里的 test set 仍然放在 K-fold 之外。K-fold 负责模型选择，test set 只负责最后的泛化评估。
 
 ### Bootstrap
 

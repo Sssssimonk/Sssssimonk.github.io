@@ -101,6 +101,38 @@ $$
 
 缩放项不是为了改变 attention 的本质，而是让数值更稳。
 
+下面是 scaled dot-product attention 的最小实现。约定 `True` 表示当前位置允许被看到：
+
+```python
+import torch
+
+def scaled_dot_product_attention(q, k, v, allowed_mask=None):
+    # q, k, v: [batch, heads, seq_len, head_dim]
+    head_dim = q.size(-1)
+    scores = q @ k.transpose(-1, -2) / (head_dim ** 0.5)
+    # scores: [batch, heads, query_len, key_len]
+
+    if allowed_mask is not None:
+        # allowed_mask 可以广播到 scores；False 的位置不能参与 attention
+        scores = scores.masked_fill(~allowed_mask, float("-inf"))
+
+    attention_prob = torch.softmax(scores, dim=-1)
+    output = attention_prob @ v
+    # output: [batch, heads, query_len, head_dim]
+    return output, attention_prob
+
+seq_len = 4
+causal_mask = torch.tril(
+    torch.ones(seq_len, seq_len, dtype=torch.bool)
+)[None, None, :, :]  # [1, 1, query_len, key_len]
+
+output, attention_prob = scaled_dot_product_attention(
+    q, k, v, allowed_mask=causal_mask
+)
+```
+
+Mask 必须在 softmax 前加入。这样未来位置的 score 会变成 $-\infty$，softmax 后对应权重才会变成 0。
+
 ## 自注意力（self-attention）：序列内部互相看
 
 Self-attention 指 query、key、value 都来自同一个序列。

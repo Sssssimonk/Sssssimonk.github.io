@@ -254,6 +254,40 @@ Continuous batching会在每个 scheduling step：
 
 这样短请求结束后，空出的资源可以立刻交给新请求。
 
+调度器可以抽象成下面这个循环。它的关键不是提前固定 batch，而是在每个 step 后重新决定下一批要处理哪些 token：
+
+```text
+waiting_queue = incoming requests
+active_requests = {}
+
+while waiting_queue is not empty or active_requests is not empty:
+    release KV blocks owned by finished requests
+    remove finished requests from active_requests
+
+    while scheduler still has token/KV budget:
+        request = waiting_queue.pop_next()
+        allocate KV blocks for request
+        active_requests.add(request)
+
+    batch = scheduler.select_next_step(active_requests)
+    # batch 中可以同时包含 chunked prefill 和 one-token decode
+
+    model_output = model.forward(batch.tokens, batch.kv_block_tables)
+
+    for request in batch:
+        append new K/V to request.kv_blocks
+
+        if request is decoding:
+            token = sample(model_output[request])
+            stream token to client
+            request.next_input = token
+
+        if request reaches EOS, length limit, or cancellation:
+            request.mark_finished()
+```
+
+真实 serving engine 还会考虑优先级、抢占、prefix locality 和 prefill/decode 配额，但基本状态变化就是：加入请求、推进一步、释放完成请求、重新组 batch。
+
 
 ## 分布式推理（distributed inference）
 
@@ -264,7 +298,7 @@ Continuous batching会在每个 scheduling step：
 
 这两类问题对应不同并行方式。
 
-《分布式推理示意图》
+
 
 ### 张量并行（tensor parallelism）
 

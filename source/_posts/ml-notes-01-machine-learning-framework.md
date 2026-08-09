@@ -11,13 +11,12 @@ math: true
 category_bar: true
 ---
 
-这篇笔记整理机器学习最基础的一层框架：机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。
+机器学习到底在学什么，一个模型从数据到预测结果之间经历了什么，以及为什么训练集表现好并不等于模型真的好。
 
 可以先把 machine learning 理解成：
 
 > 从已有数据中学习一个可以泛化到未来数据的 prediction function。
 
-两个关键词：**学习** 和 **泛化**。学习指的是模型通过数据调整自己的参数；泛化指的是模型不只是记住训练样本，而是能在没见过的数据上仍然给出合理预测。
 
 ## 一个机器学习问题由什么组成
 
@@ -63,7 +62,7 @@ $$
 
 **Supervised Learning** 有明确的输入和目标输出。模型看到的是 $(x, y)$，目标是学会从 $x$ 预测 $y$。常见任务包括 **regression** 和 **classification**。
 
-Regression 预测连续值，比如房价、温度、点击率。Classification 预测类别，比如垃圾邮件识别、疾病诊断、图片分类。
+**Regression** 预测连续值，比如房价、温度、点击率。Classification 预测类别，比如垃圾邮件识别、疾病诊断、图片分类。
 
 **Unsupervised Learning** 没有明确的 label。模型只看到 $x$，目标是发现数据内部结构。常见任务包括聚类 clustering、dimensionality reduction 降维。
 

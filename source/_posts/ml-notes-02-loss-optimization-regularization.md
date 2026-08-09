@@ -20,9 +20,7 @@ category_bar: true
 
 ## 损失函数（loss function）：先定义什么叫错
 
-模型训练不是凭感觉调整参数，而是先把“预测错了多少”变成一个可以计算的数值。这个数值就是 loss。
-
-不同任务会使用不同 loss，因为它们对“错误”的定义不同。
+模型训练把“预测错了多少”变成一个可以计算的数值。这个数值就是 loss。不同任务会使用不同 loss。
 
 
 ### MSE：回归任务里最常见的 loss
@@ -100,7 +98,7 @@ def cross_entropy(y_pred, y_true):
 
 两个容易写错的点：第一，cross entropy 前面有负号；第二，如果输入是 logits，应该先 softmax，而不是直接拿 logits 当概率。
 
-## 梯度下降（gradient descent）：模型如何改参数
+## 梯度下降（gradient descent）：模型如何优化参数
 
 有了 loss 后，训练的目标就是找到让 loss 更小的参数。
 
@@ -116,14 +114,42 @@ $$
 
 训练时可以把流程想成：
 
-```text
+
 current parameters
--> forward prediction
--> compute loss
--> compute gradient
--> update parameters
--> repeat
+1. forward prediction
+2. compute loss
+3. compute gradient
+4. update parameters
+5. repeat
+
+下面用一维 linear regression 展示一次完整训练循环。
+
+```python
+import numpy as np
+
+x = np.array([1.0, 2.0, 3.0, 4.0])
+y = np.array([3.0, 5.0, 7.0, 9.0])  # y = 2x + 1
+
+w, b = 0.0, 0.0
+learning_rate = 0.05
+
+for step in range(500):
+    # forward
+    y_pred = w * x + b
+    error = y_pred - y
+    loss = np.mean(error ** 2)
+
+    # backward: MSE 对 w 和 b 的梯度
+    grad_w = 2 * np.mean(error * x)
+    grad_b = 2 * np.mean(error)
+
+    # update
+    w -= learning_rate * grad_w
+    b -= learning_rate * grad_b
 ```
+
+随着训练进行，`w` 会逐渐接近 2，`b` 会逐渐接近 1。神经网络的训练循环也是这四步，只是 forward 和 gradient 的计算图更复杂。
+
 
 
 ## 正则化（regularization）：限制模型复杂度

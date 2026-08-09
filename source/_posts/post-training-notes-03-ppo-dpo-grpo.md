@@ -40,6 +40,59 @@ GRPO 的训练信号来自 group relative reward：同一个 prompt 采样多个
 - DPO：prompt + chosen/rejected -> policy/reference log-ratio -> preference loss
 - GRPO：prompt -> sample group -> rewards -> group advantage -> policy update
 
+把三条路线写成训练伪代码，数据和计算依赖会更直观：
+
+```python
+# PPO：先用旧 policy 在线采样，再训练 policy/value
+responses, old_logp, old_values = rollout(policy_old, prompts)
+task_reward = reward_model_or_verifier(prompts, responses)
+kl_penalty = token_kl(policy_old, reference, prompts, responses)
+rewards = task_reward - beta * kl_penalty
+advantages, returns = GAE(rewards, old_values)
+
+for optimization_epoch in 1..K:
+    new_logp, new_values = policy_and_value(prompts, responses)
+    ratio = exp(new_logp - old_logp)
+    policy_loss = -mean(min(
+        ratio * advantages,
+        clip(ratio, 1-epsilon, 1+epsilon) * advantages
+    ))
+    value_loss = mean((new_values - returns)^2)
+    update(policy, value_model, policy_loss + c_v * value_loss)
+
+
+# DPO：直接读取离线 chosen/rejected pair，不做 rollout
+for prompt, chosen, rejected in preference_dataset:
+    policy_chosen   = sequence_logp(policy, prompt, chosen)
+    policy_rejected = sequence_logp(policy, prompt, rejected)
+    ref_chosen      = sequence_logp(reference, prompt, chosen)
+    ref_rejected    = sequence_logp(reference, prompt, rejected)
+
+    preference_logit = beta * (
+        (policy_chosen - ref_chosen)
+        - (policy_rejected - ref_rejected)
+    )
+    loss = -log_sigmoid(preference_logit)
+    update(policy, loss)
+
+
+# GRPO：同一个 prompt 在线采样一组 responses，不训练 value model
+responses = sample_group(policy_old, prompt, group_size=G)
+rewards = verifier(prompt, responses)
+advantages = (rewards - mean(rewards)) / (std(rewards) + epsilon)
+old_logp = token_logp(policy_old, prompt, responses)
+new_logp = token_logp(policy, prompt, responses)
+ratio = exp(new_logp - old_logp)
+
+loss = -mean(min(
+    ratio * advantages,
+    clip(ratio, 1-epsilon, 1+epsilon) * advantages
+)) + beta * KL(policy, reference)
+update(policy, loss)
+```
+
+三段伪代码里最关键的区别是数据来源：PPO/GRPO 的 responses 来自当前或旧 policy 的 rollout，而 DPO 的 chosen/rejected 来自固定 preference dataset。
+
 如果只看名字，很容易觉得都是“对齐算法”。但从工程角度看，它们需要的模型、数据、采样方式完全不同。
 
 ## PPO：经典 RLHF 路线

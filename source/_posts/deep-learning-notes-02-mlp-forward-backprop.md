@@ -203,6 +203,34 @@ $$
 
 如果预测太大，$\hat{y}-y$ 为正，梯度方向会让 $w$ 下降；如果预测太小，梯度方向会让 $w$ 上升。这个例子很简单，但多层网络也是同一个逻辑，只是计算图更大。
 
+把这个标量计算图直接写成代码，可以看到 forward、backward 和 update 是怎样接起来的：
+
+```python
+x, y = 2.0, 7.0
+w, b = 1.0, 0.0
+learning_rate = 0.1
+
+# forward
+z = w * x + b
+y_pred = z
+loss = (y_pred - y) ** 2
+
+# backward: 沿计算图从 L 反向走到 w、b
+grad_y_pred = 2 * (y_pred - y)
+grad_z = grad_y_pred
+grad_w = grad_z * x
+grad_b = grad_z
+
+# update
+w -= learning_rate * grad_w
+b -= learning_rate * grad_b
+
+print(f"loss={loss:.1f}, grad_w={grad_w:.1f}, grad_b={grad_b:.1f}")
+print(f"updated w={w:.1f}, updated b={b:.1f}")
+```
+
+这里没有 autograd，所有局部梯度都显式写了出来。多层网络的 `loss.backward()` 做的是同一件事，只是自动沿更大的计算图累积梯度。
+
 
 PyTorch 里的训练大概是：
 

@@ -14,7 +14,7 @@ math: true
 category_bar: true
 ---
 
-![transformer架构图](/img/transformer_architecture.png)
+
 
 本篇整理Transformer架构以及它在现代 LLM 里发生了哪些变化。
 从图中可以看到，几个核心的步骤分别是：
@@ -26,6 +26,8 @@ category_bar: true
 6. FFN
 
 ## 原始 Transformer的encoder-decoder结构
+
+![transformer架构图](/img/transformer_architecture.png)
 
 原始 Transformer 是 seq2seq 架构。
 
@@ -181,90 +183,96 @@ $$
 - GQA：一组 query heads 共享一组 K/V，在效果和成本之间折中
 - MLA：把 K/V 压到 latent 表示里缓存，需要时再恢复，进一步降低 KV cache
 
-下为MHA的简易实现
+下面给出一个最小的 MHA 实现。代码同时覆盖 prefill 和带 KV cache 的 decode；`True` 表示对应 key 可以被当前 query 看见。
+
 ```python
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
 class MHA(nn.Module):
+    def __init__(self, hidden_size, num_heads):
+        super().__init__()
+        assert hidden_size % num_heads == 0
 
-    def __init__(self, head_num, hidden_size):
-        super().__init__(self)
+        self.num_heads = num_heads
+        self.head_dim = hidden_size // num_heads
+        self.q_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.k_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.v_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.o_proj = nn.Linear(hidden_size, hidden_size, bias=False)
 
-        self.head_num = head_num
-        self.hidden_size = hidden_size
-        self.head_dim = hidden_size // head_num
+    def split_heads(self, x):
+        # [B, L, D] -> [B, H, L, Dh]
+        batch, seq_len, _ = x.shape
+        x = x.view(batch, seq_len, self.num_heads, self.head_dim)
+        return x.transpose(1, 2)
 
-        self.q = torch.Linear(hidden_size, hidden_size)
-        self.k
-        self.v
+    def forward(self, x, allowed_mask=None, past_kv=None, use_cache=False):
+        batch, query_len, hidden_size = x.shape
 
-        self.o
+        q = self.split_heads(self.q_proj(x))
+        k = self.split_heads(self.k_proj(x))
+        v = self.split_heads(self.v_proj(x))
 
-
-    def forward(self, hidden_state, masking=None, use_cache=True, past_kv):
-        # 0. 设置dk, batch_size
-        # 1. 变化qkv，拆分出多头
-        # 2. 拼接kv cache
-        # 3. 计算attention score
-        # 4. 加入masking
-        # 5. 计算attention output
-        # 6. 计算attention prob
-        # 7. 计算output，拼接多头
-
-        batch_size = hidden_state.size(0)
-        d_k = torch.sqrt(self.head_dim)
-
-        q = self.q(hidden_state)
-        k = self.k(hidden_state)
-        v = self.v(hidden_state)
-
-        # [batch, seq_len, hidden_size]
-        q = q.view(batch_size, -1, self.head_num, self.head_dim).tranpose(1, 2)
-        # [batch, head_num, seq_len, head_dim]
-        k = k.view(batch_size, -1, self.head_num, self.head_dim).tranpose(1, 2)
-        v
-
-        if kv_cache:
+        past_len = 0
+        if past_kv is not None:
             past_k, past_v = past_kv
+            past_len = past_k.size(2)
             k = torch.cat([past_k, k], dim=2)
             v = torch.cat([past_v, v], dim=2)
 
-        past_kv = (k, v)
+        key_len = k.size(2)
+        scores = q @ k.transpose(-1, -2) / (self.head_dim ** 0.5)
+        # scores: [B, H, query_len, key_len]
 
-        attention_score = torch.matmul(q, k.tranpose(-1, -2)) / d_k
+        if allowed_mask is None:
+            # decode 时 query 的绝对位置要加上 past_len
+            query_position = torch.arange(query_len, device=x.device) + past_len
+            key_position = torch.arange(key_len, device=x.device)
+            allowed_mask = key_position[None, :] <= query_position[:, None]
+            allowed_mask = allowed_mask[None, None, :, :]
 
-        if masking:
-            attention_score += masking
+        scores = scores.masked_fill(~allowed_mask, float("-inf"))
+        attention_prob = torch.softmax(scores, dim=-1)
+        context = attention_prob @ v
+        # context: [B, H, query_len, Dh]
 
-        attention_prob = torch.softmax(attention_score, dim = -1)
-        attention_output = torch.matmul(attention_prob, v)
+        context = context.transpose(1, 2).contiguous()
+        context = context.view(batch, query_len, hidden_size)
+        output = self.o_proj(context)
 
-        o = torch.view(attention_output)
-
-        o = self.o(attention_output)
-
-
-        q = self.proj_q(x)
-        k = self.proj_k(x)
-        v = self.proj_v(x)
-
-        attention_score = torch.matmul(q, k.transpose(-1, -2)) / self.key_dim**0.5
-        attention_score += attn_mask
-
-        attention_prob = torch.softmax(attention_score, dim=-1)
-
-        out = torch.matmul(attention_prob, v) 
-
-        self.tok_embedding += self.pos_embedding
-        attn_mask = torch.ones(N, L, L, dtype=torch.bool, device=self.tok_embedding.device)
-
-        attention_output = self.tok_embedding + self.layer_norm_1(self.self_attention(self.tok_embedding, attn_mask))
-        attention_output = attention_output + self.layer_norm_2(self.fnn(attention_output))
-
-        logit = self.head(attention_output)
-
+        new_kv = (k, v) if use_cache else None
+        return output, new_kv
 ```
+
+MHA 只负责 token 间的信息交互。把它放进 Pre-Norm decoder block 时，residual、normalization 和 FFN 应该在 MHA 外部组织：
+
+```python
+class DecoderBlock(nn.Module):
+    def __init__(self, hidden_size, num_heads, ffn_size):
+        super().__init__()
+        self.norm_1 = nn.LayerNorm(hidden_size)
+        self.attention = MHA(hidden_size, num_heads)
+        self.norm_2 = nn.LayerNorm(hidden_size)
+        self.ffn = nn.Sequential(
+            nn.Linear(hidden_size, ffn_size),
+            nn.GELU(),
+            nn.Linear(ffn_size, hidden_size),
+        )
+
+    def forward(self, x, allowed_mask=None, past_kv=None, use_cache=False):
+        attention_output, new_kv = self.attention(
+            self.norm_1(x),
+            allowed_mask=allowed_mask,
+            past_kv=past_kv,
+            use_cache=use_cache,
+        )
+        x = x + attention_output
+        x = x + self.ffn(self.norm_2(x))
+        return x, new_kv
+```
+
+这里的两条 residual path 都保持原始 $x$ 直接通过，Norm 则放在 attention / FFN 之前，对应前面介绍的 Pre-Norm。
 
 
 

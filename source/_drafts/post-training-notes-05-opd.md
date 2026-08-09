@@ -114,6 +114,60 @@ student 则优化自己在这些 on-policy tokens 上的行为。
 
 这和纯 SFT 不一样。SFT 的 response 通常来自数据集；OPD 的 response 来自 student 当前 policy。
 
+下面用 reverse KL 写出一个简化训练循环。Student 先生成自己的 response，再在相同的 on-policy prefixes 上同时计算 teacher 和 student distribution：
+
+```python
+import torch
+import torch.nn.functional as F
+
+for prompts in prompt_loader:
+    # 1. Student rollout：生成动作不参与这一步的反向传播
+    with torch.no_grad():
+        responses = student.generate(
+            prompts,
+            do_sample=True,
+            temperature=1.0,
+        )
+
+    input_ids, attention_mask, response_mask = pack_prompt_and_response(
+        prompts, responses
+    )
+
+    # 2. Teacher 在 student 实际走到的 prefix 上提供 dense distribution
+    with torch.no_grad():
+        teacher_logits = teacher(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+        ).logits[:, :-1]
+        teacher_log_prob = F.log_softmax(teacher_logits, dim=-1)
+
+    # 3. 重新计算 student logits，让 loss 能对 student 参数求梯度
+    student_logits = student(
+        input_ids=input_ids,
+        attention_mask=attention_mask,
+    ).logits[:, :-1]
+    student_log_prob = F.log_softmax(student_logits, dim=-1)
+    student_prob = student_log_prob.exp()
+
+    # D_KL(student || teacher)，每个 response token 都有监督
+    token_reverse_kl = (
+        student_prob * (student_log_prob - teacher_log_prob)
+    ).sum(dim=-1)
+
+    loss_mask = (
+        response_mask[:, 1:] * attention_mask[:, 1:]
+    ).to(token_reverse_kl.dtype)
+    loss = (
+        token_reverse_kl * loss_mask
+    ).sum() / loss_mask.sum().clamp_min(1.0)
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+```
+
+这段流程和离线 SFT 的关键差别发生在第一步：监督所覆盖的 prefixes 来自 student 当前 rollout，而不是固定数据集里的标准答案。
+
 ## Reverse KL 的直觉
 
 OPD 论文里经常会出现 KL objective。

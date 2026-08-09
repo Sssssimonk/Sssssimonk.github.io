@@ -241,6 +241,39 @@ GAE 的定位可以这样理解：
 
 所以 GAE 不能做到“刚走一步就算出完整的 $A_t$”。$A_t$ 依赖后面多个时间步的 TD error，至少要等一段 rollout 收集完之后才能反向计算。但它也不需要等完整 episode 结束：只要收集固定长度的轨迹片段，就可以在片段末尾用 $V(s_H)$ 自举。
 
+实际实现会从 rollout 的最后一步反向递推。`values` 比 `rewards` 多一个元素，其中最后的 `values[-1]` 是 rollout 被截断时使用的 bootstrap value：
+
+```python
+import numpy as np
+
+def compute_gae(rewards, values, dones, gamma=0.99, gae_lambda=0.95):
+    """
+    rewards: [T]
+    values:  [T + 1]，包含最后状态的 bootstrap value
+    dones:   [T]，真正 terminal 的位置为 1，普通 rollout 截断为 0
+    """
+    advantages = np.zeros_like(rewards, dtype=np.float32)
+    next_advantage = 0.0
+
+    for t in reversed(range(len(rewards))):
+        not_terminal = 1.0 - dones[t]
+        delta = (
+            rewards[t]
+            + gamma * not_terminal * values[t + 1]
+            - values[t]
+        )
+        next_advantage = (
+            delta
+            + gamma * gae_lambda * not_terminal * next_advantage
+        )
+        advantages[t] = next_advantage
+
+    returns = advantages + values[:-1]
+    return advantages, returns
+```
+
+如果最后一步只是达到固定 rollout 长度，`dones[-1]=0`，代码会保留 `values[-1]`；如果 episode 真正结束，`dones[-1]=1`，未来 value 和 advantage 都会在这里截断。
+
 #### PPO 中的实际流程：批次采样后统一计算优势
 
 工业界通常不是走一步就更新一次，而是采用 rollout batch 的方式：

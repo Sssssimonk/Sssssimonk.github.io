@@ -195,6 +195,39 @@ $$
 
 但双塔也有缺点。用户和 item 很早就被分开编码，复杂交叉特征表达不够强。所以它更适合召回，不太适合最终精排。
 
+双塔真正落到系统里，需要把训练、离线索引和线上检索连起来：
+
+```python
+# 训练阶段
+for user_context, positive_item, negative_items in training_data:
+    user_vector = user_tower(user_context)
+    positive_vector = item_tower(positive_item)
+    negative_vectors = item_tower(negative_items)
+
+    logits = dot(user_vector, [positive_vector, negative_vectors])
+    loss = contrastive_loss(logits, positive_index=0)
+    update(user_tower, item_tower, loss)
+
+
+# 离线阶段：item 数量大，但变化相对慢
+item_vectors = {}
+for item in all_available_items:
+    item_vectors[item.id] = item_tower(item.features)
+
+ann_index.build(item_vectors)
+
+
+# 在线阶段：每个请求只计算一次 user vector
+user_vector = user_tower(current_user_context)
+candidate_ids = ann_index.top_k(user_vector, k=1000)
+
+# 候选再交给更复杂的 ranking / reranking model
+ranked_items = ranking_model.score(user, candidate_ids, context)
+return rerank(ranked_items)
+```
+
+双塔适合召回的原因也在这里：item tower 的结果可以离线缓存，线上不必为每个用户重新计算所有 item。
+
 ## 排序：真正决定谁排前面
 
 排序阶段会使用更丰富的特征。
@@ -291,4 +324,3 @@ SASRec 的一个重要直觉是：
 - UCSD CSE158/258: Data Mining课程
 - [王树森推荐系统 (b站)](https://www.bilibili.com/video/BV1mA4y1Q7RN)
 - [Recommender Systems with Generative Retrieval](https://arxiv.org/abs/2305.05065)
-

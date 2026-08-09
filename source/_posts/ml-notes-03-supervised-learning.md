@@ -13,7 +13,9 @@ tags:
 math: true
 category_bar: true
 ---
-
+本篇记录supervised learning，包括：
+Linear/logistic Regression 
+KNN 以及距离度量
 
 ## 线性回归（linear regression）：用线性函数做预测
 

@@ -172,6 +172,53 @@ policy ratio 怎么限制，token-level 还是 sequence-level，固定还是动�
 
 理解这四个维度，比记住每个方法缩写更有用。
 
+可以用一段统一伪代码把这些改动放回同一个训练循环。不同变体主要是在替换标注出来的步骤：
+
+```python
+effective_groups = []
+
+while len(effective_groups) < target_group_count:
+    prompt = sample_prompt()
+    responses = sample_group(policy_old, prompt, group_size=G)
+    rewards = verifier(prompt, responses)
+
+    # DAPO-style dynamic sampling：过滤没有组内差异的题
+    if std(rewards) < epsilon:
+        continue
+
+    # reward shaping 可以加入长度、格式或 diversity 调整
+    rewards = rewards - length_penalty(responses)
+    rewards = rewards + diversity_bonus(responses)
+
+    # Dr.GRPO 等方法会在这里修改 normalization
+    advantages = normalize_group_reward(rewards)
+    effective_groups.append((prompt, responses, advantages))
+
+for prompt, responses, advantages in effective_groups:
+    old_token_logp = token_logp(policy_old, prompt, responses)
+    new_token_logp = token_logp(policy, prompt, responses)
+
+    if objective_level == "token":
+        ratio = exp(new_token_logp - old_token_logp)
+    else:
+        # GSPO-style：先把 token log-ratio 聚合成 sequence ratio
+        ratio = exp(mean_over_response(
+            new_token_logp - old_token_logp
+        ))
+
+    # DCPO 等方法会在这里动态决定上下 clipping boundary
+    lower, upper = clipping_range(training_state, responses)
+    clipped_ratio = clip(ratio, lower, upper)
+    loss = -mean(min(
+        ratio * advantages,
+        clipped_ratio * advantages
+    ))
+
+    update(policy, loss)
+```
+
+因此读一个新变体时，可以直接问：它替换了这段循环里的 sampling、reward、advantage、ratio，还是 clipping？
+
 ## KTO：为什么不是 DPO 的简单替代
 
 DPO 需要 preference pair：

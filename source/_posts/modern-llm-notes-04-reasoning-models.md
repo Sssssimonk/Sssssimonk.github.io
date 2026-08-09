@@ -100,6 +100,36 @@ Reasoning model 则强调推理阶段也可以多花计算。
 - 用 verifier 打分
 - 分解问题再逐步求解
 
+最简单的 self-consistency 会采样多条 reasoning trace，再对最终答案做投票：
+
+```python
+from collections import Counter
+
+def self_consistency(model, prompt, num_samples=8):
+    candidates = []
+
+    for _ in range(num_samples):
+        response = model.generate(
+            prompt,
+            temperature=0.8,
+            do_sample=True,
+        )
+        answer = extract_final_answer(response)
+        candidates.append((answer, response))
+
+    answer_counts = Counter(answer for answer, _ in candidates)
+    best_answer, _ = answer_counts.most_common(1)[0]
+
+    # 返回多数答案，以及产生该答案的一条完整 trace
+    best_trace = next(
+        response for answer, response in candidates
+        if answer == best_answer
+    )
+    return best_answer, best_trace
+```
+
+如果有单独的 verifier，也可以不做多数投票，而是对每条 response 打分后选择最高分。这两种方法都用更多推理计算换取更高的单题成功率。
+
 这背后的想法是：对于复杂任务，生成一个短答案太便宜，也太冒险。
 
 如果一道数学题需要 20 步推导，模型只生成 2 行答案，省下的 token 可能就是错误来源。
