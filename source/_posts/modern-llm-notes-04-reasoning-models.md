@@ -21,6 +21,10 @@ category_bar: true
 
 本篇从 CoT 开始，逐步过渡到 DeepSeek-R1 这类模型。
 
+
+
+
+
 ## 普通 next token prediction 的限制
 
 语言模型的基本目标是预测下一个 token：

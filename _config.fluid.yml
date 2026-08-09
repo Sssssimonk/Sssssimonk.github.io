@@ -67,8 +67,8 @@ index:
   slogan:
     enable: true
     text:
-      - "人类与AI的不同，在于Curiosity and Empathy。"
-      - "思考，是我们最强大的武器。"
+      - "Curiosity and Empathy, power of Humanity"
+      - "Thinking... Learning... Sharing..."
   auto_excerpt:
     enable: true
   post_url_target: _self
