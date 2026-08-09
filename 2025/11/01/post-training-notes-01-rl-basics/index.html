@@ -19,13 +19,14 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。 有一说一，传统RL学起来真有点烧脑子的😓 语言模型里的 policy 是什么">
+    <meta name="description" content="大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。 有一说一，传统RL学起来真有点绕脑子的😓 RL的基本概念 为了搞清楚 RL，先">
 <meta property="og:type" content="article">
 <meta property="og:title" content="后训练笔记 01：强化学习基础">
 <meta property="og:url" content="https://sssssimonk.github.io/2025/11/01/post-training-notes-01-rl-basics/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。 有一说一，传统RL学起来真有点烧脑子的😓 语言模型里的 policy 是什么">
+<meta property="og:description" content="大模型后训练里的 RL 和传统 RL 不太一样。传统 RL 常见场景是 agent 在环境里反复交互，比如机器人控制、游戏、推荐系统。LLM 后训练里的“环境”往往更窄：给一个 prompt，模型生成 response，然后由人类偏好、reward model、规则 verifier、测试用例或者答案匹配器给出反馈。 有一说一，传统RL学起来真有点绕脑子的😓 RL的基本概念 为了搞清楚 RL，先">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://sssssimonk.github.io/img/post-training/rl-agent-environment.png">
 <meta property="article:published_time" content="2025-11-01T12:00:00.000Z">
 <meta property="article:modified_time" content="2025-11-01T12:00:00.000Z">
 <meta property="article:author" content="Siyu Chen">
@@ -35,6 +36,7 @@
 <meta property="article:tag" content="强化学习">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://sssssimonk.github.io/img/post-training/rl-agent-environment.png">
   
   
   
@@ -335,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.4k 字
+          10k 字
         
       </span>
     
@@ -346,7 +348,7 @@
         
         
         
-          37 分钟
+          85 分钟
         
       </span>
     
@@ -474,7 +476,302 @@
 后训练里的“环境”往往更窄：给一个 prompt，模型生成
 response，然后由人类偏好、reward model、规则
 verifier、测试用例或者答案匹配器给出反馈。</p>
-<p>有一说一，传统RL学起来真有点烧脑子的😓</p>
+<p>有一说一，传统RL学起来真有点绕脑子的😓</p>
+<h2 id="rl的基本概念">RL的基本概念</h2>
+<p>为了搞清楚 RL，先把 terminology 理清楚很重要。</p>
+<p>RL 的一部分要从随机过程讲起。更准确地说，RL
+的目标是在不确定的交互过程中，通过学习 policy 来最大化期望累计回报。
+在公式中，大写字母 <span class="math inline">\(X\)</span>
+表示随机变量，小写字母 <span class="math inline">\(x\)</span>
+表示观测到的具体值，比如 <span class="math inline">\(x_0 =
+1\)</span>、<span class="math inline">\(x_1 = 0\)</span>。</p>
+<figure>
+<img src="/img/post-training/rl-agent-environment.png" srcset="/img/loading.gif" lazyload
+alt="强化学习中的 agent-environment 交互" />
+<figcaption aria-hidden="true">强化学习中的 agent-environment
+交互</figcaption>
+</figure>
+<p>然后引入一些定义 agent：实际选择 action 的主体，与 environment
+交互，目标是最大化 expected return。 environment：agent 用来交互的环境。
+action：agent 可以采取的行为，比如在马里奥游戏中向左、向右或向前移动。
+state：描述当前环境状况的信息；agent 执行 action 后，environment
+会转移到新的 state。</p>
+<p>state space 和 action space 分别是所有可能 state 和 action
+的集合。</p>
+<p>trajectory：一条完整的交互轨迹可以写成：</p>
+<p><span class="math display">\[
+\tau = (s_0, a_0, r_0, s_1, a_1, r_1, \ldots, s_{T-1}, a_{T-1}, r_{T-1},
+s_T)
+\]</span></p>
+<p><strong>policy function</strong>：一个概率函数，用来输出给定当前
+state 时执行某个 action 的概率。</p>
+<p><span class="math display">\[
+\pi_\theta(a_t \mid s_t) = P(A_t = a_t \mid S_t = s_t)
+\]</span></p>
+<p><strong>reward &amp; return</strong> reward：与环境交互后获得的奖励
+return：cumulative future reward，表示从当前时刻开始累计得到的
+reward。</p>
+<p>PDF 里用大写 <span class="math inline">\(R_t\)</span> 表示随机
+reward，用大写 <span class="math inline">\(U_t\)</span> 表示随机
+return。先不考虑折扣时：</p>
+<p><span class="math display">\[
+U_t = \sum_{k=t}^{T-1} R_k
+\]</span></p>
+<p>当一条具体轨迹采样完成后，<span class="math inline">\(R_k\)</span>
+变成观测到的 reward <span class="math inline">\(r_k\)</span>，对应的
+return 可以写成 <span class="math inline">\(u_t\)</span>。很多 RL
+文献也会直接用 <span class="math inline">\(G_t\)</span> 表示这条轨迹上的
+return。</p>
+<p><span class="math display">\[
+G_t \equiv u_t = \sum_{k=t}^{T-1} r_k
+\]</span></p>
+<p>discounted return：由于即时奖励和之后的奖励不能一概而论（比如现在拿
+100 和一年后拿 100），所以引入折扣率 <span
+class="math inline">\(\gamma\)</span> 来控制未来 reward 的影响程度。</p>
+<p><span class="math display">\[
+U_t = \sum_{k=t}^{T-1} \gamma^{k-t} R_k
+\qquad\text{and}\qquad
+G_t \equiv u_t = \sum_{k=t}^{T-1} \gamma^{k-t} r_k
+\]</span></p>
+<p>如果不区分“随机 return”和“采样后的具体 return”，也可以把它们都简写成
+<span class="math inline">\(G_t =
+U_t\)</span>。这里保留这个区分，是为了和 PDF 中的记号保持一致。</p>
+<p><strong>state transition function</strong>
+一个旧的state转移到新的state的概率函数</p>
+<p>RL中的随机性主要来源于两个部分 1. policy选择动作时的随机性 2.
+状态转移函数带来的随机性</p>
+<h3 id="value-function">Value function</h3>
+<p><strong>Action-value function</strong>：<span
+class="math inline">\(Q_{\pi}(s_t, a_t)\)</span>
+用来表示当前的state，policy下，使用action
+a_t所能得到的return。这样就可以衡量一个action的好坏。不过由于state一般认为不变，一个更好的policy
+也可以提升action的return。</p>
+<p><span class="math display">\[
+Q^\pi(s_t, a_t) = \mathbb{E}_\pi\left[U_t \mid S_t = s_t, A_t =
+a_t\right]
+\]</span></p>
+<p>这里的期望是在固定当前 <span class="math inline">\((s_t,
+a_t)\)</span> 后，对后续 state 和 action
+的随机性求平均。这样就能比较同一个 state 下不同 action 的长期价值。</p>
+<p><strong>State-value function</strong> 状态价值函数进一步对当前 action
+取期望：</p>
+<p><span class="math display">\[
+V^\pi(s_t) = \mathbb{E}_{A_t \sim \pi(\cdot \mid s_t)}\left[Q^\pi(s_t,
+A_t)\right]
+    = \sum_a \pi(a \mid s_t) Q^\pi(s_t, a)
+\]</span></p>
+<p>这里进一步对当前 action 取期望，把 action 选择本身的随机性也纳入
+value function。</p>
+<h3 id="return-的估计monte-carlo-与-bellman-equation">Return
+的估计：Monte Carlo 与 Bellman equation</h3>
+<p>前面定义的 <span class="math inline">\(U_t\)</span>
+是一个随机变量，实际训练时需要用采样到的 trajectory 去估计它，以及估计
+<span class="math inline">\(V^\pi(s)\)</span> 和 <span
+class="math inline">\(Q^\pi(s,a)\)</span>。最直接的两条路线是 Monte
+Carlo 和 Bellman recursion。</p>
+<h4 id="蒙特卡洛monte-carlo等-episode-结束后再算">蒙特卡洛（Monte
+Carlo）：等 episode 结束后再算</h4>
+<p>Monte Carlo（MC）的思路很直接：让 agent 按照当前 policy 跑完一整条
+trajectory，等所有 reward 都拿到之后，再从后往前计算每个时刻的
+return。</p>
+<p>假设一条 trajectory 上的 reward 是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">r_0 = 0,  r_1 = 1,  r_2 = 2<br></code></pre></td></tr></table></figure>
+<p>取 <span class="math inline">\(\gamma = 0.9\)</span>，那么：</p>
+<p><span class="math display">\[
+G_2 = r_2 = 2
+\]</span></p>
+<p><span class="math display">\[
+G_1 = r_1 + \gamma r_2 = 1 + 0.9 \times 2 = 2.8
+\]</span></p>
+<p><span class="math display">\[
+G_0 = r_0 + \gamma r_1 + \gamma^2 r_2 = 0 + 0.9 \times 1 + 0.9^2 \times
+2 = 2.52
+\]</span></p>
+<p>如果同一个 state <span class="math inline">\(s\)</span> 在不同
+trajectory 中被访问了多次，就可以用这些 trajectory return 的平均值估计
+state value：</p>
+<p><span class="math display">\[
+V^\pi(s) \approx \frac{1}{N(s)}\sum_{i=1}^{N(s)} G_t^{(i)}
+\]</span></p>
+<p>同理，也可以只统计在 <span class="math inline">\((s,a)\)</span>
+处采取 action <span class="math inline">\(a\)</span> 后得到的
+return，估计 action value：</p>
+<p><span class="math display">\[
+Q^\pi(s,a) \approx \frac{1}{N(s,a)}\sum_{i=1}^{N(s,a)} G_t^{(i)}
+\]</span></p>
+<p>MC 的优点是目标值来自完整 trajectory，不需要提前知道环境的 transition
+function，也不会用当前 value estimate 去构造自己的训练目标。只要
+trajectory 是按照 policy <span class="math inline">\(\pi\)</span>
+采样的，样本数量足够多，平均 return 就能收敛到真实的 value。</p>
+<p>它的问题也很明显：必须等 episode 结束才能计算
+return。对于游戏还好，但对于没有明确终点的环境，或者 LLM 生成很长
+response 的场景，等待成本会比较高。而且一条 trajectory 中任何一个 reward
+的随机性都会传到前面所有时刻，所以 MC 的 variance 往往比较大。</p>
+<h4
+id="贝尔曼方程bellman-equation把长期回报拆成一步">贝尔曼方程（Bellman
+equation）：把长期回报拆成一步</h4>
+<p>Bellman equation 的核心是把 return 拆成当前 reward 和下一时刻的
+return：</p>
+<p><span class="math display">\[
+U_t = R_t + \gamma U_{t+1}
+\]</span></p>
+<p>对当前 state 和 policy 取期望，就得到 Bellman expectation
+equation：</p>
+<p><span class="math display">\[
+V^\pi(s) = \sum_a \pi(a \mid s)\sum_{s&#39;}p(s&#39; \mid s,a)
+\left[r(s,a,s&#39;) + \gamma V^\pi(s&#39;)\right]
+\]</span></p>
+<p>它表达的是：当前 state 的价值，等于当前 action 得到的 immediate
+reward，加上下一 state 的价值，再对 policy 和 state transition
+的随机性取平均。</p>
+<p>对应的 action-value 形式是：</p>
+<p><span class="math display">\[
+Q^\pi(s,a) = \sum_{s&#39;}p(s&#39; \mid s,a)
+\left[r(s,a,s&#39;) + \gamma\sum_{a&#39;}\pi(a&#39; \mid
+s&#39;)Q^\pi(s&#39;,a&#39;)\right]
+\]</span></p>
+<p>这两个式子用于 policy evaluation：policy <span
+class="math inline">\(\pi\)</span> 已经给定，目标是计算它的 <span
+class="math inline">\(V^\pi\)</span> 或 <span
+class="math inline">\(Q^\pi\)</span>。</p>
+<p>如果目标不是评估一个固定 policy，而是直接寻找最优策略，就得到 Bellman
+optimality equation：</p>
+<p><span class="math display">\[
+V^*(s) = \max_a \sum_{s&#39;}p(s&#39; \mid s,a)
+\left[r(s,a,s&#39;) + \gamma V^*(s&#39;)\right]
+\]</span></p>
+<p><span class="math display">\[
+Q^*(s,a) = \sum_{s&#39;}p(s&#39; \mid s,a)
+\left[r(s,a,s&#39;) + \gamma\max_{a&#39;}Q^*(s&#39;,a&#39;)\right]
+\]</span></p>
+<p>这里的 <span class="math inline">\(\max\)</span> 体现了最优 action
+选择，而 Bellman expectation equation 里的 <span
+class="math inline">\(\pi(a \mid s)\)</span> 体现的是按照给定 policy
+采样 action。</p>
+<h4 id="单步-td走一步就能更新">单步 TD：走一步就能更新</h4>
+<p>Bellman equation 不需要等整条 trajectory 结束。单步 TD 只使用当前
+transition：</p>
+<ol type="1">
+<li>执行 action，得到即时 reward <span
+class="math inline">\(r_t\)</span> 和下一状态 <span
+class="math inline">\(s_{t+1}\)</span>。</li>
+<li>用当前 value function 估计未来价值。</li>
+<li>立刻计算 TD error，并更新 critic，甚至可以用它更新 actor。</li>
+</ol>
+<p><span class="math display">\[
+\delta_t^V = r_t + \gamma V(s_{t+1}) - V(s_t)
+\]</span></p>
+<p>这里的 <span class="math inline">\(V(s_{t+1})\)</span> 不是完整的真实
+return，而是当前 value function 对未来的估计，所以单步 TD
+可以在线更新，但会引入 bootstrap bias。它只看一步真实
+reward，后面的结果完全依赖 value
+estimate，方差通常较低，但偏差可能比较大。</p>
+<h4 id="广义优势估计gae在-mc-和-td-之间取平衡">广义优势估计（GAE）：在
+MC 和 TD 之间取平衡</h4>
+<p>PPO 中常用的 GAE（Generalized Advantage Estimation）并不是另一个
+value function，而是一种估计 advantage 的方法。它先计算每一步的 TD
+error，再把未来多个时间步的 TD error 做指数加权：</p>
+<p><span class="math display">\[
+A_t^{\mathrm{GAE}(\gamma,\lambda)}
+= \sum_{l=0}^{\infty}(\gamma\lambda)^l\delta_{t+l}^V
+\]</span></p>
+<p>其中：</p>
+<ul>
+<li><span class="math inline">\(\gamma\)</span> 控制未来 reward
+的折扣；</li>
+<li><span class="math inline">\(\lambda\)</span> 控制 GAE 向多步 return
+延伸的程度；</li>
+<li><span class="math inline">\(\delta_t^V\)</span> 是当前时刻的 TD
+error。</li>
+</ul>
+<p>在有限长度的 rollout 中，实际计算会在轨迹片段末尾截断：</p>
+<p><span class="math display">\[
+\hat A_t = \delta_t^V + \gamma\lambda\hat A_{t+1}
+\]</span></p>
+<p>从最后一个时间步开始反向递推即可。若最后状态不是 terminal state，就用
+value function 对下一状态进行 bootstrap：</p>
+<p><span class="math display">\[
+\delta_{H-1}^V
+= r_{H-1} + \gamma V(s_H) - V(s_{H-1})
+\]</span></p>
+<p>如果最后状态确实是 terminal state，则终止状态之后没有未来
+reward，通常令 bootstrap value 为 0。</p>
+<p>实际实现中通常用 <span class="math inline">\(d_t\)</span> 区分
+terminal 和 rollout truncation：真正结束时 <span
+class="math inline">\(d_t=1\)</span>，只是达到固定采样长度时 <span
+class="math inline">\(d_t=0\)</span>。于是 TD error 可以统一写成：</p>
+<p><span class="math display">\[
+\delta_t^V = r_t + \gamma(1-d_t)V(s_{t+1}) - V(s_t)
+\]</span></p>
+<p>这样，固定长度截断仍然保留 <span
+class="math inline">\(V(s_{t+1})\)</span> 的 bootstrap；只有 episode
+真正结束时才移除未来价值。</p>
+<p>GAE 的定位可以这样理解：</p>
+<ul>
+<li>当 <span class="math inline">\(\lambda=0\)</span> 时，只保留当前一步
+TD error，接近单步 TD；</li>
+<li>当 <span class="math inline">\(\lambda\)</span> 接近 1
+时，会融合更长范围的 TD error，接近 Monte Carlo；</li>
+<li>中间的 <span class="math inline">\(\lambda\)</span> 用来平衡 bias 和
+variance。</li>
+</ul>
+<p>所以 GAE 不能做到“刚走一步就算出完整的 <span
+class="math inline">\(A_t\)</span>”。<span
+class="math inline">\(A_t\)</span> 依赖后面多个时间步的 TD
+error，至少要等一段 rollout 收集完之后才能反向计算。但它也不需要等完整
+episode 结束：只要收集固定长度的轨迹片段，就可以在片段末尾用 <span
+class="math inline">\(V(s_H)\)</span> 自举。</p>
+<h4 id="ppo-中的实际流程批次采样后统一计算优势">PPO
+中的实际流程：批次采样后统一计算优势</h4>
+<p>工业界通常不是走一步就更新一次，而是采用 rollout batch 的方式：</p>
+<ol type="1">
+<li>用当前 policy 与 environment 交互，收集一批固定长度的
+trajectory。</li>
+<li>保存每一步的 state、action、reward、old log probability 和 value
+estimate。</li>
+<li>数据收集完成后，从后往前用 GAE 计算每一步的 advantage。</li>
+<li>用这批数据更新 actor 和 critic 多个 epoch。</li>
+<li>丢弃旧 batch，再用更新后的 policy 重新采样。</li>
+</ol>
+<p>因此，GAE 需要未来若干步信息这件事，在 PPO
+的批次训练范式中并不是问题。它换来了更稳定的 advantage，以及比纯 MC
+更低的等待成本和更好的样本利用方式。</p>
+<table>
+
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>target 从哪里来</th>
+<th>是否需要等 episode 结束</th>
+<th>典型特点</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Monte Carlo</td>
+<td>完整 trajectory 的实际 return <span
+class="math inline">\(G_t\)</span></td>
+<td>需要</td>
+<td>无 bootstrap，方差较大</td>
+</tr>
+<tr class="even">
+<td>单步 TD</td>
+<td><span class="math inline">\(r_t + \gamma V(s_{t+1})\)</span></td>
+<td>不需要</td>
+<td>可以在线更新，但 bootstrap bias 较大</td>
+</tr>
+<tr class="odd">
+<td>GAE</td>
+<td>多个 TD error 的指数加权和</td>
+<td>不需要等完整 episode，但要等一段 rollout</td>
+<td>用 <span class="math inline">\(\lambda\)</span> 平衡 bias 和
+variance</td>
+</tr>
+</tbody>
+</table>
+<p>可以把三者记成一句话：单步 TD 只相信下一步，Monte Carlo 相信完整
+trajectory，GAE 则在两者之间做平滑融合。Actor-critic 方法通常正是用
+critic 估计 value，再用 GAE 产生 advantage，给 actor 提供更新方向。</p>
 <h2 id="语言模型里的-policy-是什么">语言模型里的 policy 是什么</h2>
 <p>在 RL 里，policy 通常写成：</p>
 <p><span class="math display">\[
@@ -547,15 +844,16 @@ rewards。</p>
 <li>如何让 reward 不只看最终答案</li>
 </ul>
 <h2 id="returnvalue-和-advantage">Return、value 和 advantage</h2>
-<p>在一般 RL 里，return 是从当前时刻往后能拿到的累计 reward：</p>
+<p>在一般 RL 里，<span class="math inline">\(G_t\)</span>
+通常表示一条已采样轨迹上，从当前时刻往后得到的 discounted return：</p>
 <p><span class="math display">\[
-G_t = \sum_{k=t}^{T} \gamma^{k-t} r_k
+G_t = \sum_{k=t}^{T-1} \gamma^{k-t} r_k
 \]</span></p>
 <p>LLM 后训练里，很多任务只有最终
 reward，所以可以粗略理解为整段回答的得分。</p>
 <p>Value function 估计的是某个状态下未来能拿到多少 reward：</p>
 <p><span class="math display">\[
-V^\pi(s) = \mathbb{E}_{\pi}[G_t \mid s_t=s]
+V^\pi(s) = \mathbb{E}_{\pi}[U_t \mid s_t=s]
 \]</span></p>
 <p>Advantage 衡量的是某个 action 比平均水平好多少：</p>
 <p><span class="math display">\[
@@ -566,7 +864,7 @@ A_t = G_t - V^\pi(s_t)
 很简单，随便生成都能 0.8。</p>
 <p>如果另一个回答得分是 0.6，也不一定差。也许这个 prompt
 很难，大多数回答都是 0.1。</p>
-<p>我认为Advantage 想表达的是：相对于当前状态的预期表现，这个 action /
+<p>Advantage 想表达的是：相对于当前状态的预期表现，这个 action /
 response 到底更好还是更差。</p>
 <h2 id="policy-gradient-的直觉">Policy gradient 的直觉</h2>
 <p>Policy gradient 的经典形式可以写成：</p>
@@ -620,16 +918,16 @@ on-policy 的优势。</p>
 成本低，可以直接用已有数据训练。但如果数据分布和当前模型差很多，模型学到的更新可能不稳定。</p>
 <p>这就是为什么 PPO / GRPO / OPD 都强调 on-policy 或接近
 on-policy。它们希望模型在自己的生成分布上学习，而不是只模仿静态数据。</p>
-<h2 id="为什么-reasoning-model-更依赖-rl-rl和sft本质上的区别是啥">为什么
-reasoning model 更依赖 RL, RL和SFT本质上的区别是啥</h2>
+<h2 id="为什么-reasoning-model-更依赖-rlrl-和-sft-的本质区别">为什么
+reasoning model 更依赖 RL：RL 和 SFT 的本质区别</h2>
 <p>我觉得应该这么理解，虽然SFT
 可以让模型学会解题格式，但它本质上是模仿。
 而在reasoning问题上，潜在的解题方式有很多，比如1+1=2可以通过一堆不一样的复杂公式来给出同样的结果，这种情况下的action
 space太大了，只靠SFT是模仿不完的。所以需要用RL来自己探索。</p>
-<p>比如RLVR
-可以直接优化最终正确率。比如同一个数学题，模型生成多个答案，只有正确答案拿到
-reward。经过训练，模型会提高能得到正确答案的生成轨迹概率。只需要合理的设定reward（比如长度，步骤分之类的）确保模型最终答案正确，那我们可以让模型来自己探索出这个解题的action
-space。</p>
+<p>比如 RLVR
+可以直接优化最终正确率。同一个数学题，模型生成多个答案，只有正确答案拿到
+reward。经过训练，模型会提高能够得到正确答案的生成轨迹概率。只要合理设置
+reward（比如答案是否正确、输出长度、步骤数等），就可以让模型自己探索解题空间。</p>
 <p>这也是 DeepSeek-R1 这类 reasoning model
 重要的地方：它不是只靠人工写好的 CoT，而是通过可验证 reward
 强化推理行为。</p>
