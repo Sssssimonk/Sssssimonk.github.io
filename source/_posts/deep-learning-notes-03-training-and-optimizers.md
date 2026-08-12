@@ -13,11 +13,13 @@ math: true
 category_bar: true
 ---
 
-光能训练模型还不够，能“稳定的”训练模型才NB。
+深度神经网络中，光能训练模型还不够，能“稳定的”训练模型才NB。
+本篇涉及：梯度消失/爆炸，归一化，dropout，以及优化器。
 
 <!-- more -->
+## 模型如何稳定训练
 
-## 梯度消失与梯度爆炸
+### 问题是什么：梯度消失与梯度爆炸
 
 深层网络里，gradient 要从 loss 一层层传回前面层。
 
@@ -43,7 +45,7 @@ $$
 
 这也是为什么 deep network 不是简单“多堆几层”就行。层数变深后，梯度能不能稳定传过去本身就是问题。
 
-## 参数初始化（initialization）
+### 参数初始化（initialization）
 
 初始化的目标不是找一个好模型，而是给训练一个合适起点。
 
@@ -56,7 +58,9 @@ $$
 
 直觉上，初始化是在控制每一层信号的尺度。尺度合适，forward 和 backward 都更容易稳定。
 
-## 归一化（normalization）
+经过线性变换后，网络初始化完成后，第一轮前向传播时q和k的实际分布满足均值0，方差1的初始化。不是权重参数本身满足。
+
+### 归一化（normalization）
 
 Normalization 的作用是让中间表示的分布更稳定。
 
@@ -79,8 +83,9 @@ Layer Normalization 则通常对单个样本内部的 hidden dimension 做归一
 | BatchNorm | batch 维度 | CNN |
 | LayerNorm | feature / hidden 维度 | Transformer、RNN |
 
+当前的大模型主要适用RMSNorm，在之后的章节会介绍。
 
-## 随机失活（dropout）：训练时故意丢掉一部分连接
+### 随机失活（dropout）：训练时故意丢掉一部分连接
 
 Dropout 是一种正则化方法。训练时随机把一部分 hidden units 置为 0：
 
@@ -88,13 +93,27 @@ Dropout 是一种正则化方法。训练时随机把一部分 hidden units 置�
 h = dropout(h, p=0.5)
 ```
 
+dropout的np实现
+```python
+def dropout_forward(x, p=0.5, training=True):
+    if not training:
+        return x
+    # 生成与 x 形状相同的二值掩码，保留概率 = 1 - p
+    mask = np.random.binomial(1, 1 - p, size=x.shape)
+    # 将保留下来的神经元放大 1/(1-p)，使输出总和的期望不变
+    out = x * mask / (1 - p)
+    return out
+```
+
+**注意这里将被留下来的神经元的值除以（1-p），比如p=0.5，那就让剩下的值乘以2，保持输出的数值期望不变。并且如果不做缩放，会导致训推激活值不一致的问题。**
+
 它的直觉是：不要让模型过度依赖某几个 neuron，而是让不同子网络都能工作。
 
-测试时通常不再随机丢弃，而是使用完整网络，并对激活值做相应缩放。
+测试时通常不再随机丢弃，而是使用完整网络。
 
-Dropout 在早期深度网络里很常见。现在大模型里也会用 dropout，但很多大规模预训练模型会把 dropout 设得比较小，甚至某些设置下不用。
+Dropout 在早期深度网络里很常见。现在大模型里也会用 dropout，但很多大规模预训练模型会把 dropout 设得比较小，甚至某些设置下不用（因为模型不太可能过拟合了，训练不过来）。
 
-## 学习率（learning rate）和 scheduler
+### 学习率（learning rate）和 scheduler
 
 Learning rate 控制每次参数更新的步长。
 

@@ -96,9 +96,10 @@ $$
 | Linear Regression | 连续值 | Regression | MSE |
 | Logistic Regression | 概率 | Binary Classification | Binary Cross Entropy |
 
-## KNN：没有显式训练过程的模型
+## KNN
 
-KNN 全称是 K-Nearest Neighbors。它的思想很直接：要预测一个新样本，就看训练集中离它最近的 $K$ 个样本，然后让它们投票。
+KNN 全称是 K-Nearest Neighbors。（它是个**分类**算法！！
+！别和kmeans弄混了）它的思想很直接：要预测一个新样本，就看训练集中离它最近的 $K$ 个样本，然后让它们投票。
 
 分类任务里，流程是：
 

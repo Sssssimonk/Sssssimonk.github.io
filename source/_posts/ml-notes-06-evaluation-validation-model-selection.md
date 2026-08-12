@@ -219,26 +219,6 @@ K-fold cross validation 把数据分成 $K$ 份，每次用其中一份做 valid
 
 缺点是训练成本更高。比如 5-fold 就要训练 5 次。
 
-```text
-split training data into K folds
-
-for config in candidate_configs:
-    fold_scores = []
-
-    for k in 1..K:
-        fold_k = validation fold
-        remaining folds = training folds
-
-        model = initialize(config)
-        model.fit(remaining folds)
-        fold_scores.append(evaluate(model, fold_k))
-
-    mean_score[config] = average(fold_scores)
-
-best_config = argmax(mean_score)
-train final model with best_config
-evaluate once on untouched test set
-```
 
 这里的 test set 仍然放在 K-fold 之外。K-fold 负责模型选择，test set 只负责最后的泛化评估。
 

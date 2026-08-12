@@ -1,5 +1,5 @@
 ---
-title: "机器学习笔记 02：损失函数、优化与正则化"
+title: "机器学习笔记 02：信息论、损失函数、与优化"
 date: 2024-06-15 20:30:00
 updated: 2024-06-15 20:30:00
 categories:
@@ -14,16 +14,100 @@ math: true
 category_bar: true
 ---
 
-上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。
-
-> Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。
+在监督学习中我们会有一个标准答案：label y和预测值prediction，为了让预测值不断接近真实答案，就需要用到损失函数了。
 
 <!-- more -->
+
+## 信息论基础
+
+在正式讲解损失函数前，先需要普及一点点信息论的概念，因为熵（Entropy）对于理解交叉熵，KL散度等概念很重要。
+
+我们首先考虑如何量化一个特定事件所包含的信息量。直观上，一个事件发生的概率越低，它的发生就越出乎意料，因此它所携带的信息量就越大。反之，一个事件发生的概率越高，它的发生就越司空见惯，信息量就越小。
+
+- 对一个**随机变量X的的单个事件x取值**的自信息 = $I(x) = -logP(X=x)$
+
+概率越小，自信息越大，概率越大，自信息越小
+
+- 而整个随机变量的**所有事件的平均信息量**就是熵，表示一个随机变量中事件信息量的期望。
+
+$$
+H(X) = E[I(X)] = -\sum^{N}_{i = 1}p(x_i) * log p(x_i)
+$$
+
+熵 = 一个事件的概率 * 事件的自信息  的和。 
+
+
+
+举个例子，假如随机变量X的空间只有三种结果：2，3，3。也就是说P（X=2）= 1/3， P（X=3） = 2/3 
+那么单个事件X=3的自信息量 = $-log\frac{2}{3}$
+
+整个X=x的熵 = $-(\frac{1}{3} * log\frac{1}{3} + \frac{2}{3} * log\frac{2}{3})$
+
+
+ok回到公式，其他的熵的公式为：
+- 联合熵 Joint Entropy
+
+$$
+H(X,Y) = -\sum_{x}\sum_{y}p(x, y) * log p(x, y)
+$$
+
+
+- 条件熵 Conditional Entropy
+
+$$
+H(Y | X) = -\sum_{x}\sum_{y}p(x, y) * log P(y | x)
+$$
+
+
+### 交叉熵：衡量预测与真实分布的「不一致性」
+
+我们通常用p(x)表示真实的目标分布，用q(x)表示模型预测的近似分布，它们之间的**交叉熵（Cross-Entropy）** 定义为：
+
+$$
+H(p, q) = -\sum^{N}_{i = 1}p(x) * \log q(x)
+$$
+
+**最小化交叉熵，就等价于最大化真实标签对应的预测概率的对数**。
+
+### KL散度
+
+**KL散度（Kullback-Leibler Divergence），也称为相对熵(Relative Entropy)** 是衡量两个概率分布p(x)和q(x)之间(用q拟合 p 分布)差异的非对称度量。它的定义为：
+
+
+$$
+KL(p || q) = -\sum p(x) * log\frac{p(x)}{q(x)}
+$$
+
+KL散度的性质：
+
+- **非负性：**。KL散度 ≥ 0 这意味着当两个分布完全相同时，没有信息损失。
+- **非对称性：**。这是一个关键性质。这意味着KL散度不是一个真正的「距离」（因为它不满足距离度量的对称性），它衡量的是从p到 q的「信息损失」或「额外成本」，而不是反过来。
+
+也就是说，熵与KL的关系图如下
+
+![alt text](image.png)
+
+
+直接从公式推导的话，可以得出交叉熵 = 熵 + KL散度，展开：
+$$
+\begin{aligned}
+D_{KL}(P \parallel Q) 
+&= \sum_x P(x) \log \frac{P(x)}{Q(x)} \\
+&= \sum_x P(x) \bigl[ \log P(x) - \log Q(x) \bigr] \\
+&= \underbrace{\sum_x P(x) \log P(x)}_{-H(P)} - \sum_x P(x) \log Q(x) \\
+&= -H(P) + H(P, Q)
+\end{aligned}
+$$
+
+最后一步将等式重新排列，就得到：
+
+$$
+\boxed{H(P, Q) = H(P) + D_{KL}(P \parallel Q)}
+$$
 
 ## 损失函数（loss function）：先定义什么叫错
 
 模型训练把“预测错了多少”变成一个可以计算的数值。这个数值就是 loss。不同任务会使用不同 loss。
-
 
 ### MSE：回归任务里最常见的 loss
 
@@ -70,7 +154,13 @@ $$
 \text{softmax}(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{K}e^{z_j}}
 $$
 
-再用 cross entropy 计算损失：
+根据信息论推导出来的公式应该是：
+$$
+H(p, q) = -\sum_{x} p(x) \log q(x)
+$$
+代表用q (prediction)去拟合p (label)的分布。
+
+用在实际情况中用y和y hat表示：
 
 $$
 L(y, \hat{y}) = -\sum_{j=1}^{K} y_j \log(\hat{y}_j)
@@ -98,6 +188,11 @@ def cross_entropy(y_pred, y_true):
     return -np.mean(np.sum(y_true * np.log(y_pred), axis=1))
 ```
 
+思考：
+1. 为什么是y true * log（y pred）而不能反着来呢？
+因为是用q分布（pred）去拟合真实分布，而q必须在log里
+
+2. 为什么交叉熵前面有负号？
 两个容易写错的点：第一，cross entropy 前面有负号；第二，如果输入是 logits，应该先 softmax，而不是直接拿 logits 当概率。
 
 ## 梯度下降（gradient descent）：模型如何优化参数

@@ -14,12 +14,9 @@ math: true
 category_bar: true
 ---
 
-这一篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。
+本篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。
 
 
-> Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。
-
-这条链路是 deep learning 的训练核心。
 
 <!-- more -->
 
@@ -96,8 +93,6 @@ p(y=k|x) = \frac{e^{z_k}}{\sum_j e^{z_j}}
 $$
 
 回归任务里，最后可以直接输出连续值。
-
-MLP 的缺点是没有针对图像、序列、文本结构做特殊假设。它很通用，但也很“笨”：如果输入是图片，MLP 不知道相邻像素之间有局部关系；如果输入是序列，MLP 不知道 token 顺序有意义。
 
 
 ## 前向传播（forward pass）
@@ -244,7 +239,7 @@ loss.backward()
 optimizer.step()
 ```
 
-这里：
+其中：
 
 - `pred = model(x)` 是 forward pass
 - `loss.backward()` 是 backpropagation
@@ -272,7 +267,5 @@ ReLU 的优点是正半轴梯度稳定，计算简单。但 ReLU 也可能出现
 
 ## 参考资料
 
-- [Deep Learning Book: Chapter 6](https://www.deeplearningbook.org/)
 - [Dive into Deep Learning: Multilayer Perceptrons](https://d2l.ai/chapter_multilayer-perceptrons/index.html)
 - [CS231n: Backpropagation](https://cs231n.github.io/optimization-2/)
-- [PyTorch Autograd](https://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html)

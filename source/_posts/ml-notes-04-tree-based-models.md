@@ -14,7 +14,13 @@ math: true
 category_bar: true
 ---
 
-树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。
+树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。本文介绍：
+
+decision tree
+
+随机森林
+
+XGBoost
 
 <!-- more -->
 
@@ -64,7 +70,7 @@ Decision Tree 的 splitting metric，本质上就是量化“split 前后到底�
 熵越低，节点越“纯”
 
 $$
-H(S)=-\sum_{c}p_c\log_2(p_c)
+H(S)=-\sum_{class}p_c * \log(p_c)
 $$
 
 其中，$p_c$ 是类别 $c$ 在节点中的比例。
@@ -83,7 +89,8 @@ Entropy 越低，节点越纯。
 
 ## Splitting metrics
 
-**信息增益（information gain）**
+
+### 信息增益（information gain）
 
 Information Gain 衡量 split 后 entropy 降低了多少：
 
@@ -91,14 +98,52 @@ $$
 IG(S,A)=H(S)-\sum_{v \in Values(A)}\frac{|S_v|}{|S|}H(S_v)
 $$
 
-前半部分是 split 前的不确定性，后半部分是 split 后各子节点不确定性的加权平均。
+前半部分是 split 前的不确定性熵，后半部分是 split 后各子节点不确定性的加权平均熵量。如果 split 后子节点变得很纯，后半部分就小，information gain 就大。
 
-如果 split 后子节点变得很纯，后半部分就小，information gain 就大。
+用分裂前的熵减去分裂后的熵，就可以知道获取了多少信息（降低了多少熵）
+
+
 
 ID3 使用 information gain 来作为split指标。
 
+- 小例子：用“年龄”预测“是否购买电脑”
 
-**增益率（gain ratio）**
+假设数据集 $S$ 有 10 个样本，目标变量“购买”为：是（正类，6 个）、否（负类，4 个）。  
+按特征“年龄”分裂后得到三个子集：
+
+- 青年：3 个样本（1 是，2 否）
+- 中年：4 个样本（4 是，0 否）
+- 老年：3 个样本（1 是，2 否）
+
+**分裂前熵 $H(S)$**
+
+$$
+H(S) = -\frac{6}{10}\log_2\frac{6}{10} - \frac{4}{10}\log_2\frac{4}{10} \approx 0.971
+$$
+
+**各子集熵及加权平均**
+
+- 青年：$H(\text{青年}) = -\frac{1}{3}\log_2\frac{1}{3} - \frac{2}{3}\log_2\frac{2}{3} \approx 0.918$
+- 中年：$H(\text{中年}) = -\frac{4}{4}\log_2\frac{4}{4} - 0 = 0$ （纯节点，熵为 0）
+- 老年：$H(\text{老年}) = -\frac{1}{3}\log_2\frac{1}{3} - \frac{2}{3}\log_2\frac{2}{3} \approx 0.918$
+
+加权平均（按样本数占比）：
+
+$$
+\sum_{v} \frac{|S_v|}{|S|} H(S_v) = \frac{3}{10}\times 0.918 + \frac{4}{10}\times 0 + \frac{3}{10}\times 0.918 = 0.5508
+$$
+
+**信息增益**
+
+$$
+IG(S,\text{年龄}) = 0.971 - 0.5508 = 0.4202
+$$
+
+分裂后整体不确定性从 0.971 降到了 0.551，信息增益为 0.42，说明“年龄”这个特征能够有效降低混乱度。
+
+
+
+### 增益率（gain ratio）
 
 Information Gain 有一个问题：它偏好取值很多的特征。
 
@@ -112,7 +157,8 @@ $$
 
 C4.5 使用 gain ratio。直觉上，它不只看 split 后纯不纯，也看这个 split 是不是把数据切得过于碎。
 
-**基尼指数（Gini index）**
+
+### 基尼指数（Gini index）
 
 CART 分类树常用 Gini Index：
 
@@ -216,9 +262,9 @@ Pruning 分两类：
 
 简单说，剪枝就是不让树把训练集记得太细。
 
-## 多棵树的组合
+## Tree Ensemble： Bagging & Boosting
 
-**Bagging：随机森林（random forest）**
+**用多颗树来构建模型 Bagging：随机森林（random forest）**
 
 Random Forest 属于 Bagging 方法。它训练很多棵 decision tree，然后让它们投票或取平均。
 
@@ -229,7 +275,7 @@ Random Forest 的随机性主要来自两点：
 
 这样每棵树都不太一样，错误也不会完全一致。
 
-单棵树 variance 很高，Random Forest 通过多棵树平均来降低 variance。
+单棵树 variance 很高，**Random Forest 通过多棵树平均来降低 variance。**
 
 一个直觉例子：一个人判断可能很偏，但如果很多个相对独立的人投票，最终结果通常更稳定。Random Forest 也是类似的思路。
 
@@ -247,7 +293,7 @@ initial prediction
 -> repeat
 ```
 
-如果第一棵树预测房价总是偏低，下一棵树就会学习这个偏差，把预测往正确方向拉。
+如果第一棵树预测房价总是偏低，下一棵树就会学习这个偏差，把预测往正确方向拉。 **可以理解为Boosting是减小偏差bias的方法** 
 
 **XGBoost**可以看作更工程化、更正则化、更高效的 gradient boosting tree 实现。它的特点包括：
 
