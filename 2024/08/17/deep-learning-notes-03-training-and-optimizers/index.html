@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="光能训练模型还不够，能“稳定的”训练模型才NB。">
+    <meta name="description" content="深度神经网络中，光能训练模型还不够，能“稳定的”训练模型才NB。 本篇涉及：梯度消失&#x2F;爆炸，归一化，dropout，以及优化器。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深度学习笔记 03：深度网络训练与优化器">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/08/17/deep-learning-notes-03-training-and-optimizers/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="光能训练模型还不够，能“稳定的”训练模型才NB。">
+<meta property="og:description" content="深度神经网络中，光能训练模型还不够，能“稳定的”训练模型才NB。 本篇涉及：梯度消失&#x2F;爆炸，归一化，dropout，以及优化器。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-08-17T13:00:00.000Z">
 <meta property="article:modified_time" content="2024-08-17T13:00:00.000Z">
@@ -334,7 +334,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.2k 字
+          5.7k 字
         
       </span>
     
@@ -345,7 +345,7 @@
         
         
         
-          44 分钟
+          48 分钟
         
       </span>
     
@@ -477,9 +477,12 @@
             
               <div class="markdown-body">
                 
-                <p>光能训练模型还不够，能“稳定的”训练模型才NB。</p>
+                <p>深度神经网络中，光能训练模型还不够，能“稳定的”训练模型才NB。
+本篇涉及：梯度消失/爆炸，归一化，dropout，以及优化器。</p>
 <span id="more"></span>
-<h2 id="梯度消失与梯度爆炸">梯度消失与梯度爆炸</h2>
+<h2 id="模型如何稳定训练">模型如何稳定训练</h2>
+<h3
+id="问题是什么梯度消失与梯度爆炸">问题是什么：梯度消失与梯度爆炸</h3>
 <p>深层网络里，gradient 要从 loss 一层层传回前面层。</p>
 <p>如果每一层的梯度因子都小于 1，多层相乘后会越来越小，这就是 vanishing
 gradients。</p>
@@ -497,7 +500,7 @@ gradients。</p>
 <p>如果连续乘很多个大于 1 的因子，梯度可能爆炸，训练变得不稳定。</p>
 <p>这也是为什么 deep network
 不是简单“多堆几层”就行。层数变深后，梯度能不能稳定传过去本身就是问题。</p>
-<h2 id="参数初始化initialization">参数初始化（initialization）</h2>
+<h3 id="参数初始化initialization">参数初始化（initialization）</h3>
 <p>初始化的目标不是找一个好模型，而是给训练一个合适起点。</p>
 <p>如果权重太小，信号逐层传递后可能越来越弱；如果权重太大，activation 和
 gradient 可能变得不稳定。</p>
@@ -510,7 +513,8 @@ activation，核心想法是让每层输入输出的方差保持相对稳定。<
 </ul>
 <p>直觉上，初始化是在控制每一层信号的尺度。尺度合适，forward 和 backward
 都更容易稳定。</p>
-<h2 id="归一化normalization">归一化（normalization）</h2>
+<p>经过线性变换后，网络初始化完成后，第一轮前向传播时q和k的实际分布满足均值0，方差1的初始化。不是权重参数本身满足。</p>
+<h3 id="归一化normalization">归一化（normalization）</h3>
 <p>Normalization 的作用是让中间表示的分布更稳定。</p>
 <p>Batch Normalization 通常对 batch 维度做归一化：</p>
 <p><span class="math display">\[
@@ -546,19 +550,22 @@ learning rate。</p>
 </tr>
 </tbody>
 </table>
-<h2
-id="随机失活dropout训练时故意丢掉一部分连接">随机失活（dropout）：训练时故意丢掉一部分连接</h2>
+<p>当前的大模型主要适用RMSNorm，在之后的章节会介绍。</p>
+<h3
+id="随机失活dropout训练时故意丢掉一部分连接">随机失活（dropout）：训练时故意丢掉一部分连接</h3>
 <p>Dropout 是一种正则化方法。训练时随机把一部分 hidden units 置为
 0：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">h = dropout(h, p=0.5)<br></code></pre></td></tr></table></figure>
+<p>dropout的np实现 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">dropout_forward</span>(<span class="hljs-params">x, p=<span class="hljs-number">0.5</span>, training=<span class="hljs-literal">True</span></span>):<br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> training:<br>        <span class="hljs-keyword">return</span> x<br>    <span class="hljs-comment"># 生成与 x 形状相同的二值掩码，保留概率 = 1 - p</span><br>    mask = np.random.binomial(<span class="hljs-number">1</span>, <span class="hljs-number">1</span> - p, size=x.shape)<br>    <span class="hljs-comment"># 将保留下来的神经元放大 1/(1-p)，使输出总和的期望不变</span><br>    out = x * mask / (<span class="hljs-number">1</span> - p)<br>    <span class="hljs-keyword">return</span> out<br></code></pre></td></tr></table></figure></p>
+<p><strong>注意这里将被留下来的神经元的值除以（1-p），比如p=0.5，那就让剩下的值乘以2，保持输出的数值期望不变。并且如果不做缩放，会导致训推激活值不一致的问题。</strong></p>
 <p>它的直觉是：不要让模型过度依赖某几个
 neuron，而是让不同子网络都能工作。</p>
-<p>测试时通常不再随机丢弃，而是使用完整网络，并对激活值做相应缩放。</p>
+<p>测试时通常不再随机丢弃，而是使用完整网络。</p>
 <p>Dropout 在早期深度网络里很常见。现在大模型里也会用
 dropout，但很多大规模预训练模型会把 dropout
-设得比较小，甚至某些设置下不用。</p>
-<h2 id="学习率learning-rate和-scheduler">学习率（learning rate）和
-scheduler</h2>
+设得比较小，甚至某些设置下不用（因为模型不太可能过拟合了，训练不过来）。</p>
+<h3 id="学习率learning-rate和-scheduler">学习率（learning rate）和
+scheduler</h3>
 <p>Learning rate 控制每次参数更新的步长。</p>
 <p>如果太小，训练慢；如果太大，loss 可能震荡甚至发散。</p>
 <p>深度学习里常见 scheduler：</p>

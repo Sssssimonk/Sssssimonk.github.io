@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.3k 字
+          3.9k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          36 分钟
+          33 分钟
         
       </span>
     
@@ -421,7 +421,7 @@
     
       
       
-        <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="机器学习笔记 05：无监督学习与降维"
+        <a href="/2024/07/06/ml-notes-05-unsupervised-learning/" title="机器学习笔记 05：无监督学习与降维"
            class="list-group-item list-group-item-action
            ">
           <span class="category-post">机器学习笔记 05：无监督学习与降维</span>
@@ -448,10 +448,10 @@
     
       
       
-        <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" title="机器学习笔记 02：损失函数、优化与正则化"
+        <a href="/2024/06/15/ml-notes-02-loss-optimization/" title="机器学习笔记 02：信息论、损失函数、与优化"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">机器学习笔记 02：损失函数、优化与正则化</span>
+          <span class="category-post">机器学习笔记 02：信息论、损失函数、与优化</span>
         </a>
       
     
@@ -665,7 +665,6 @@ class="math inline">\(K\)</span> 份，每次用其中一份做 validation，其
 training，最后平均结果。</p>
 <p>它比单次 holdout 更稳定，尤其适合数据量不大的情况。</p>
 <p>缺点是训练成本更高。比如 5-fold 就要训练 5 次。</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs text">split training data into K folds<br><br>for config in candidate_configs:<br>    fold_scores = []<br><br>    for k in 1..K:<br>        fold_k = validation fold<br>        remaining folds = training folds<br><br>        model = initialize(config)<br>        model.fit(remaining folds)<br>        fold_scores.append(evaluate(model, fold_k))<br><br>    mean_score[config] = average(fold_scores)<br><br>best_config = argmax(mean_score)<br>train final model with best_config<br>evaluate once on untouched test set<br></code></pre></td></tr></table></figure>
 <p>这里的 test set 仍然放在 K-fold 之外。K-fold 负责模型选择，test set
 只负责最后的泛化评估。</p>
 <h3 id="bootstrap">Bootstrap</h3>
@@ -775,7 +774,7 @@ Statistical Learning</a></li>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="机器学习笔记 05：无监督学习与降维">
+                      <a href="/2024/07/06/ml-notes-05-unsupervised-learning/" title="机器学习笔记 05：无监督学习与降维">
                         <span class="hidden-mobile">机器学习笔记 05：无监督学习与降维</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>

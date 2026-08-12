@@ -416,7 +416,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/17/deep-learning-notes-03-training-and-optimizers/" target="_self">
         <div>
-          光能训练模型还不够，能“稳定的”训练模型才NB。
+          深度神经网络中，光能训练模型还不够，能“稳定的”训练模型才NB。 本篇涉及：梯度消失/爆炸，归一化，dropout，以及优化器。
         </div>
       </a>
 
@@ -483,7 +483,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/10/deep-learning-notes-02-mlp-forward-backprop/" target="_self">
         <div>
-          这一篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。  Forward pass 负责算预测和 loss，backpropagation 负责把 loss 对每个参数的梯度算出来，optimizer 再根据梯度更新参数。  这条链路是 deep learning 的训练核心。
+          本篇整理多层感知机（MLP），以及神经网络到底如何通过前向传播和反向传播完成训练。
         </div>
       </a>
 
@@ -552,7 +552,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/03/deep-learning-notes-01-framework/" target="_self">
         <div>
-          神经网络本质上还是一个函数：
+          神经网络和机器学习的本质还是一样的，都是为了找到一组参数w，使得 y hat = w1 * x + w2 * x + b 的预测值更接近真实的标签y。
         </div>
       </a>
 
@@ -678,13 +678,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
+        <a href="/2024/07/06/ml-notes-05-unsupervised-learning/" target="_self">
           机器学习笔记 05：无监督学习与降维
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/ml-notes-05-unsupervised-learning/" target="_self">
         <div>
           在无监督学习中，通常没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。
         </div>
@@ -755,7 +755,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/06/29/ml-notes-04-tree-based-models/" target="_self">
         <div>
-          树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。
+          树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。本文介绍： decision tree 随机森林 XGBoost
         </div>
       </a>
 
@@ -885,15 +885,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" target="_self">
-          机器学习笔记 02：损失函数、优化与正则化
+        <a href="/2024/06/15/ml-notes-02-loss-optimization/" target="_self">
+          机器学习笔记 02：信息论、损失函数、与优化
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/15/ml-notes-02-loss-optimization/" target="_self">
         <div>
-          上一篇笔记里把机器学习看成一个从数据中学习function的过程。这篇着重于这个用于学习拟合分布的函数：损失函数。  Loss 定义“错在哪里”，gradient 定义“往哪里改”，learning rate 定义“每次改多少”，regularization 限制模型不要为了降低训练误差而变得过度复杂。
+          在监督学习中我们会有一个标准答案：label y和预测值prediction，为了让预测值不断接近真实答案，就需要用到损失函数了。
         </div>
       </a>
 

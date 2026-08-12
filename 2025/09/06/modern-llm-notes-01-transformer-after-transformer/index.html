@@ -337,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.6k 字
+          8.2k 字
         
       </span>
     
@@ -348,7 +348,7 @@
         
         
         
-          47 分钟
+          69 分钟
         
       </span>
     
@@ -500,6 +500,125 @@ x_{l+1} = x_l + F(x_l)
 \]</span></p>
 <p>如果没有 residual，几十层、上百层模型很难稳定训练。Residual path
 可以理解成一条信息和梯度的主干通路，每个 block 在上面叠加修改。</p>
+<h2 id="注意力机制">注意力机制</h2>
+<p>缩放点积注意力完整计算公式： <span class="math display">\[
+\text{Attention}(Q,K,V)=\text{softmax}\left( \frac{QK^T}{\sqrt{d_k}}
+\right)V
+\]</span></p>
+<p>QKV 矩阵维度完整流转过程
+以<strong>自注意力机制</strong>为例，先统一符号定义： - <span
+class="math inline">\(seq\_len\)</span>：输入序列长度（token 个数） -
+<span
+class="math inline">\(d_{model}\)</span>：模型整体隐藏层维度，单个token特征向量长度
+- <span
+class="math inline">\(d_k\)</span>：单注意力头下查询、键向量的维度 -
+<span
+class="math inline">\(d_v\)</span>：单注意力头下数值向量维度，工程实现中默认
+<span class="math inline">\(d_v=d_k\)</span></p>
+<p>一般认为<span class="math inline">\(d_k = d_{model} /\)</span>
+head_num</p>
+<ol start="0" type="1">
+<li><p>设定参数：<span class="math inline">\(seq\_len=10,\
+d_{model}=512,\ d_k=64\)</span>（对应8头注意力，均分维度）</p></li>
+<li><p>线性投影生成 Q、K、V 原始输入特征矩阵 <span
+class="math inline">\(X\)</span> 形状：<span
+class="math inline">\((seq\_len,\ d_{model})\)</span>
+通过三组独立线性权重矩阵 <span
+class="math inline">\(W_q、W_k、W_v\)</span> 做线性映射：
+权重矩阵尺寸：<span class="math inline">\(W_q,W_k,W_v \in
+\mathbb{R}^{d_{model} \times d_k}\)</span> <span class="math display">\[
+\begin{align*}
+Q &amp;= XW_q \quad \text{尺寸：}(10,\ 64) \\
+K &amp;= XW_k \quad \text{尺寸：}(10,\ 64) \\
+V &amp;= XW_v \quad \text{尺寸：}(10,\ 64)
+\end{align*}
+\]</span>
+作用：将通用token特征，映射为专门用于检索匹配、权重计算、结果输出的三类特征向量。</p></li>
+<li><p>点积计算相似度得分 <span class="math inline">\(QK^T\)</span>
+对键矩阵转置后与查询矩阵相乘： <span class="math inline">\(K^T\)</span>
+尺寸：<span class="math inline">\((d_k,\ seq\_len)\)</span>
+矩阵相乘维度推演： <span class="math display">\[
+(seq\_len,\ d_k) \times (d_k,\ seq\_len) = (seq\_len,\ seq\_len)
+\]</span> 最终得分矩阵：<span class="math inline">\(QK^T \in
+\mathbb{R}^{10 \times 10}\)</span> 矩阵元素含义：第 <span
+class="math inline">\(i\)</span> 行第 <span
+class="math inline">\(j\)</span> 列代表第 <span
+class="math inline">\(i\)</span> 个token（查询）与第 <span
+class="math inline">\(j\)</span> 个token（键）的匹配相似度。</p></li>
+<li><p>缩放：除以 <span class="math inline">\(\sqrt{d_k}\)</span>
+对得分矩阵全体元素做标量除法，矩阵形状保持不变： <span
+class="math display">\[
+\frac{QK^T}{\sqrt{d_k}} \in \mathbb{R}^{10 \times 10}
+\]</span></p></li>
+<li><p>逐行 Softmax 归一化
+沿着序列维度逐行执行Softmax运算，每行所有数值累加和为1，转化为注意力权重分布；矩阵尺寸依旧不变：
+<span class="math display">\[
+\text{softmax}\left( \frac{QK^T}{\sqrt{d_k}} \right) \in \mathbb{R}^{10
+\times 10}
+\]</span></p></li>
+<li><p>加权求和得到注意力输出 注意力权重矩阵与数值矩阵 <span
+class="math inline">\(V\)</span> 相乘： <span class="math display">\[
+(seq\_len,\ seq\_len) \times (seq\_len,\ d_v) = (seq\_len,\ d_v)
+\]</span> 本例输出尺寸：<span class="math inline">\((10,\
+64)\)</span></p></li>
+</ol>
+<h3 id="引入缩放系数-sqrtd_k-的底层原因">引入缩放系数 <span
+class="math inline">\(\sqrt{d_k}\)</span> 的底层原因</h3>
+<p><strong>对点积结果做方差归一化，抑制Softmax进入饱和区间，防止梯度消失，保障模型训练平稳收敛，这也是「缩放点积注意力」命名的由来。</strong></p>
+<p>数学推导：点积方差随 <span class="math inline">\(d_k\)</span>
+线性上涨</p>
+<p>合理初始化条件下：<span class="math inline">\(Q、K\)</span>
+内各个分量均服从<strong>均值为0、方差为1</strong>的独立分布。 两个 <span
+class="math inline">\(d_k\)</span> 维向量 <span
+class="math inline">\(q、k\)</span> 的点积： <span
+class="math display">\[
+q\cdot k = \sum_{i=1}^{d_k} q_i k_i
+\]</span> 方差运算性质：独立变量乘积方差 <span
+class="math inline">\(\text{Var}(q_ik_i)=\text{Var}(q_i)\cdot\text{Var}(k_i)=1\times1=1\)</span></p>
+<p><strong>方差有一个核心性质：独立随机变量之和的方差 =
+方差之和</strong></p>
+<p>累加求和后总方差： <span class="math display">\[
+\text{Var}(q\cdot k) = \sum_{i=1}^{d_k}\text{Var}(q_ik_i) = d_k
+\]</span></p>
+<p>由于<span class="math inline">\(\text{Var}(q_i\cdot k_i) =
+1\)</span>, 然后有dk个1相加，所以总的方差=dk，点积标准差 <span
+class="math inline">\(=\sqrt{d_k}\)</span> 向量维度 <span
+class="math inline">\(d_k\)</span>
+越大，点积数值波动区间越大，向量间得分差距会被持续拉大。</p>
+<h3 id="softmax-饱和问题">Softmax 饱和问题</h3>
+<p>Softmax 函数的作用是将一组任意实数（logits）映射为 <strong>0~1
+之间、和为 1 的概率分布</strong>，公式为： <span class="math display">\[
+\sigma(z)_i = \frac{e^{z_i}}{\sum_{j=1}^K e^{z_j}}
+\]</span></p>
+<p><strong>饱和区</strong>指的是：当输入的各个 logit
+之间<strong>相对差值极大</strong>时，Softmax 的输出会极度趋近于 0 或
+1，此时函数曲线进入非常平坦的区域，函数自身的导数趋近于
+0，梯度几乎无法有效回传。</p>
+<p>简单理解：模型对预测结果“过度自信”，最大类别的概率接近
+100%，其他类别接近 0，函数进入“几乎不再变化”的饱和状态。</p>
+<hr />
+<h2 id="二从导数看饱和的本质">二、从导数看饱和的本质</h2>
+<p>Softmax 的偏导数分两种情况： <span class="math display">\[
+\begin{aligned}
+1.\ &amp; \text{对自身输入求导}(i=j)：\frac{\partial \sigma_i}{\partial
+z_i} = \sigma_i(1-\sigma_i) \\
+2.\ &amp; \text{对其他输入求导}(i\neq j)：\frac{\partial
+\sigma_i}{\partial z_j} = -\sigma_i\sigma_j
+\end{aligned}
+\]</span></p>
+<p>饱和区的导数特征 - 当 <span class="math inline">\(\sigma_i \to
+1\)</span>（某类概率接近 1）：<span
+class="math inline">\(\sigma_i(1-\sigma_i) \to 0\)</span> - 当 <span
+class="math inline">\(\sigma_i \to 0\)</span>（某类概率接近 0）：<span
+class="math inline">\(\sigma_i(1-\sigma_i) \to 0\)</span></p>
+<p>无论输出趋近 0 还是 1，Softmax 自身的导数都会无限趋近于
+0，这就是“饱和”的数学本质——函数对输入的变化不再敏感，输入再怎么变，输出都几乎不动。</p>
+<p>以二分类为例： | 输入 z = [z₁, z₂] | 输出 σ₁ | 输出 σ₂ | 导数 dσ₁/dz₁
+| 饱和程度 | | :— | :— | :— | :— | :— | | [2, 0] | 0.88 | 0.12 | 0.106 |
+不饱和 | | [5, 0] | 0.993 | 0.007 | 0.007 | 轻度饱和 | | [10, 0] |
+0.99995 | 0.00005 | ≈ 0.00005 | 深度饱和 |</p>
+<p>差值越大，输出越靠近 0/1，导数越接近 0，饱和越严重。</p>
+<hr />
 <h3 id="normalization深层模型更稳">Normalization：深层模型更稳</h3>
 <p>原始 Transformer 使用 Post-Norm，大概形式是：</p>
 <p><span class="math display">\[

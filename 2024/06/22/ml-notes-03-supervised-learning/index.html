@@ -421,7 +421,7 @@
     
       
       
-        <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="机器学习笔记 05：无监督学习与降维"
+        <a href="/2024/07/06/ml-notes-05-unsupervised-learning/" title="机器学习笔记 05：无监督学习与降维"
            class="list-group-item list-group-item-action
            ">
           <span class="category-post">机器学习笔记 05：无监督学习与降维</span>
@@ -448,10 +448,10 @@
     
       
       
-        <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" title="机器学习笔记 02：损失函数、优化与正则化"
+        <a href="/2024/06/15/ml-notes-02-loss-optimization/" title="机器学习笔记 02：信息论、损失函数、与优化"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">机器学习笔记 02：损失函数、优化与正则化</span>
+          <span class="category-post">机器学习笔记 02：信息论、损失函数、与优化</span>
         </a>
       
     
@@ -582,9 +582,9 @@ L(y,\hat{y})=-[y\log(\hat{y})+(1-y)\log(1-\hat{y})]
 </tr>
 </tbody>
 </table>
-<h2 id="knn没有显式训练过程的模型">KNN：没有显式训练过程的模型</h2>
-<p>KNN 全称是 K-Nearest
-Neighbors。它的思想很直接：要预测一个新样本，就看训练集中离它最近的
+<h2 id="knn">KNN</h2>
+<p>KNN 全称是 K-Nearest Neighbors。（它是个<strong>分类</strong>算法！！
+！别和kmeans弄混了）它的思想很直接：要预测一个新样本，就看训练集中离它最近的
 <span class="math inline">\(K\)</span> 个样本，然后让它们投票。</p>
 <p>分类任务里，流程是：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs text">预测过程（给定新样本 x，近邻数 k）：<br><br>函数 KNN_Predict(x, D, k):<br><br>1. 初始化一个空列表 distances = []<br><br>2. 对于 D 中的每个样本 (xi, yi):<br>    计算距离 d = Distance(x, xi) // 如欧氏距离<br>    将 (d, yi) 加入 distances<br><br>3. 对 distances 按距离 d 从小到大排序<br><br>4. 取前 k 个元素作为最近邻 neighbors<br><br>5. 提取 neighbors 中所有标签，记作 labels = [y1, y2, ..., yk]<br><br>6. 如果任务是分类:<br>    返回 labels 中出现次数最多的标签（多数投票）<br>  如果任务是回归:<br>    返回 labels 的算术平均值（或加权平均）<br></code></pre></td></tr></table></figure>
@@ -717,8 +717,8 @@ Statistical Learning</a></li>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" title="机器学习笔记 02：损失函数、优化与正则化">
-                        <span class="hidden-mobile">机器学习笔记 02：损失函数、优化与正则化</span>
+                      <a href="/2024/06/15/ml-notes-02-loss-optimization/" title="机器学习笔记 02：信息论、损失函数、与优化">
+                        <span class="hidden-mobile">机器学习笔记 02：信息论、损失函数、与优化</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

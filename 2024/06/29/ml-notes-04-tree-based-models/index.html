@@ -19,12 +19,12 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。">
+    <meta name="description" content="树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。本文介绍： decision tree 随机森林 XGBoost">
 <meta property="og:type" content="article">
 <meta property="og:title" content="机器学习笔记 04：树模型">
 <meta property="og:url" content="https://sssssimonk.github.io/2024/06/29/ml-notes-04-tree-based-models/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。">
+<meta property="og:description" content="树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。本文介绍： decision tree 随机森林 XGBoost">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-06-29T13:30:00.000Z">
 <meta property="article:modified_time" content="2024-06-29T13:30:00.000Z">
@@ -335,7 +335,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.2k 字
+          5k 字
         
       </span>
     
@@ -346,7 +346,7 @@
         
         
         
-          35 分钟
+          42 分钟
         
       </span>
     
@@ -421,7 +421,7 @@
     
       
       
-        <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="机器学习笔记 05：无监督学习与降维"
+        <a href="/2024/07/06/ml-notes-05-unsupervised-learning/" title="机器学习笔记 05：无监督学习与降维"
            class="list-group-item list-group-item-action
            ">
           <span class="category-post">机器学习笔记 05：无监督学习与降维</span>
@@ -448,10 +448,10 @@
     
       
       
-        <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" title="机器学习笔记 02：损失函数、优化与正则化"
+        <a href="/2024/06/15/ml-notes-02-loss-optimization/" title="机器学习笔记 02：信息论、损失函数、与优化"
            class="list-group-item list-group-item-action
            ">
-          <span class="category-post">机器学习笔记 02：损失函数、优化与正则化</span>
+          <span class="category-post">机器学习笔记 02：信息论、损失函数、与优化</span>
         </a>
       
     
@@ -487,7 +487,10 @@
             
               <div class="markdown-body">
                 
-                <p>树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。</p>
+                <p>树模型的核心思想很直观：不断用特征把数据切开，让每个子节点里的样本越来越“纯”。本文介绍：</p>
+<p>decision tree</p>
+<p>随机森林</p>
+<p>XGBoost</p>
 <span id="more"></span>
 <h2 id="决策树decision-tree的基本想法">决策树（decision
 tree）的基本想法</h2>
@@ -549,7 +552,7 @@ id="如何切分数据信息什么叫节点更纯">如何切分数据信息，�
 <p>在这里使用<strong>熵（entropy）</strong> 衡量不确定性：
 熵越低，节点越“纯”</p>
 <p><span class="math display">\[
-H(S)=-\sum_{c}p_c\log_2(p_c)
+H(S)=-\sum_{class}p_c * \log(p_c)
 \]</span></p>
 <p>其中，<span class="math inline">\(p_c\)</span> 是类别 <span
 class="math inline">\(c\)</span> 在节点中的比例。</p>
@@ -580,17 +583,56 @@ class="math inline">\(c\)</span> 在节点中的比例。</p>
 </table>
 <p>Entropy 越低，节点越纯。</p>
 <h2 id="splitting-metrics">Splitting metrics</h2>
-<p><strong>信息增益（information gain）</strong></p>
+<h3 id="信息增益information-gain">信息增益（information gain）</h3>
 <p>Information Gain 衡量 split 后 entropy 降低了多少：</p>
 <p><span class="math display">\[
 IG(S,A)=H(S)-\sum_{v \in Values(A)}\frac{|S_v|}{|S|}H(S_v)
 \]</span></p>
-<p>前半部分是 split 前的不确定性，后半部分是 split
-后各子节点不确定性的加权平均。</p>
-<p>如果 split 后子节点变得很纯，后半部分就小，information gain
-就大。</p>
+<p>前半部分是 split 前的不确定性熵，后半部分是 split
+后各子节点不确定性的加权平均熵量。如果 split
+后子节点变得很纯，后半部分就小，information gain 就大。</p>
+<p>用分裂前的熵减去分裂后的熵，就可以知道获取了多少信息（降低了多少熵）</p>
 <p>ID3 使用 information gain 来作为split指标。</p>
-<p><strong>增益率（gain ratio）</strong></p>
+<ul>
+<li>小例子：用“年龄”预测“是否购买电脑”</li>
+</ul>
+<p>假设数据集 <span class="math inline">\(S\)</span> 有 10
+个样本，目标变量“购买”为：是（正类，6 个）、否（负类，4 个）。<br />
+按特征“年龄”分裂后得到三个子集：</p>
+<ul>
+<li>青年：3 个样本（1 是，2 否）</li>
+<li>中年：4 个样本（4 是，0 否）</li>
+<li>老年：3 个样本（1 是，2 否）</li>
+</ul>
+<p><strong>分裂前熵 <span
+class="math inline">\(H(S)\)</span></strong></p>
+<p><span class="math display">\[
+H(S) = -\frac{6}{10}\log_2\frac{6}{10} - \frac{4}{10}\log_2\frac{4}{10}
+\approx 0.971
+\]</span></p>
+<p><strong>各子集熵及加权平均</strong></p>
+<ul>
+<li>青年：<span class="math inline">\(H(\text{青年}) =
+-\frac{1}{3}\log_2\frac{1}{3} - \frac{2}{3}\log_2\frac{2}{3} \approx
+0.918\)</span></li>
+<li>中年：<span class="math inline">\(H(\text{中年}) =
+-\frac{4}{4}\log_2\frac{4}{4} - 0 = 0\)</span> （纯节点，熵为 0）</li>
+<li>老年：<span class="math inline">\(H(\text{老年}) =
+-\frac{1}{3}\log_2\frac{1}{3} - \frac{2}{3}\log_2\frac{2}{3} \approx
+0.918\)</span></li>
+</ul>
+<p>加权平均（按样本数占比）：</p>
+<p><span class="math display">\[
+\sum_{v} \frac{|S_v|}{|S|} H(S_v) = \frac{3}{10}\times 0.918 +
+\frac{4}{10}\times 0 + \frac{3}{10}\times 0.918 = 0.5508
+\]</span></p>
+<p><strong>信息增益</strong></p>
+<p><span class="math display">\[
+IG(S,\text{年龄}) = 0.971 - 0.5508 = 0.4202
+\]</span></p>
+<p>分裂后整体不确定性从 0.971 降到了 0.551，信息增益为
+0.42，说明“年龄”这个特征能够有效降低混乱度。</p>
+<h3 id="增益率gain-ratio">增益率（gain ratio）</h3>
 <p>Information Gain 有一个问题：它偏好取值很多的特征。</p>
 <p>比如用户 ID 这种特征，每个用户几乎都是唯一值。按用户 ID
 切，训练集上可以变得很纯，但完全没有泛化意义。</p>
@@ -600,7 +642,7 @@ GainRatio(S,A)=\frac{InformationGain(S,A)}{SplitInfo(S,A)}
 \]</span></p>
 <p>C4.5 使用 gain ratio。直觉上，它不只看 split 后纯不纯，也看这个 split
 是不是把数据切得过于碎。</p>
-<p><strong>基尼指数（Gini index）</strong></p>
+<h3 id="基尼指数gini-index">基尼指数（Gini index）</h3>
 <p>CART 分类树常用 Gini Index：</p>
 <p><span class="math display">\[
 Gini(S)=1-\sum_c p_c^2
@@ -684,8 +726,10 @@ split，直到叶子节点里只剩很少样本，甚至每个叶子只对应一
 <p><strong>Pre-pruning</strong>：树还没长完就提前停止，比如限制最大深度。</p>
 <p><strong>Post-pruning</strong>：先长出一棵比较完整的树，再从底部往上剪掉泛化收益不大的分支。</p>
 <p>简单说，剪枝就是不让树把训练集记得太细。</p>
-<h2 id="多棵树的组合">多棵树的组合</h2>
-<p><strong>Bagging：随机森林（random forest）</strong></p>
+<h2 id="tree-ensemble-bagging-boosting">Tree Ensemble： Bagging &amp;
+Boosting</h2>
+<p><strong>用多颗树来构建模型 Bagging：随机森林（random
+forest）</strong></p>
 <p>Random Forest 属于 Bagging 方法。它训练很多棵 decision
 tree，然后让它们投票或取平均。</p>
 <p>Random Forest 的随机性主要来自两点：</p>
@@ -694,8 +738,8 @@ tree，然后让它们投票或取平均。</p>
 <li>每次 split 时，只从部分特征中选择最佳 split。</li>
 </ol>
 <p>这样每棵树都不太一样，错误也不会完全一致。</p>
-<p>单棵树 variance 很高，Random Forest 通过多棵树平均来降低
-variance。</p>
+<p>单棵树 variance 很高，<strong>Random Forest 通过多棵树平均来降低
+variance。</strong></p>
 <p>一个直觉例子：一个人判断可能很偏，但如果很多个相对独立的人投票，最终结果通常更稳定。Random
 Forest 也是类似的思路。</p>
 <p><strong>Boosting：GBDT，XGBoost，lightGBM</strong></p>
@@ -704,7 +748,8 @@ Forest 也是类似的思路。</p>
 是一棵接一棵训练，后面的树重点修正前面模型的错误。</p>
 <p><strong>GBDT</strong> 的思路是：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">initial prediction<br>-&gt; compute residual / negative gradient<br>-&gt; train a new tree to fit the residual<br>-&gt; add this tree to the ensemble<br>-&gt; repeat<br></code></pre></td></tr></table></figure>
-<p>如果第一棵树预测房价总是偏低，下一棵树就会学习这个偏差，把预测往正确方向拉。</p>
+<p>如果第一棵树预测房价总是偏低，下一棵树就会学习这个偏差，把预测往正确方向拉。
+<strong>可以理解为Boosting是减小偏差bias的方法</strong></p>
 <p><strong>XGBoost</strong>可以看作更工程化、更正则化、更高效的 gradient
 boosting tree 实现。它的特点包括：</p>
 <ul>
@@ -828,7 +873,7 @@ Statistical Learning</a></li>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="机器学习笔记 05：无监督学习与降维">
+                      <a href="/2024/07/06/ml-notes-05-unsupervised-learning/" title="机器学习笔记 05：无监督学习与降维">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">机器学习笔记 05：无监督学习与降维</span>
                         <span class="visible-mobile">上一篇</span>

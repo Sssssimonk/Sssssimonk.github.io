@@ -19,26 +19,28 @@
   <meta name="author" content="Siyu Chen">
   <meta name="keywords" content="AI, machine learning, LLM, paper reading, algorithms, research notes">
   
-    <meta name="description" content="在无监督学习中，通常没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。">
+    <meta name="description" content="在监督学习中我们会有一个标准答案：label y和预测值prediction，为了让预测值不断接近真实答案，就需要用到损失函数了。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="机器学习笔记 05：无监督学习与降维">
-<meta property="og:url" content="https://sssssimonk.github.io/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/index.html">
+<meta property="og:title" content="机器学习笔记 02：信息论、损失函数、与优化">
+<meta property="og:url" content="https://sssssimonk.github.io/2024/06/15/ml-notes-02-loss-optimization/index.html">
 <meta property="og:site_name" content="Siyu Chen">
-<meta property="og:description" content="在无监督学习中，通常没有明确答案，目标更多是发现数据结构。最常见的两类任务是 clustering 和 dimensionality reduction。">
+<meta property="og:description" content="在监督学习中我们会有一个标准答案：label y和预测值prediction，为了让预测值不断接近真实答案，就需要用到损失函数了。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-07-06T14:00:00.000Z">
-<meta property="article:modified_time" content="2024-07-06T14:00:00.000Z">
+<meta property="og:image" content="https://sssssimonk.github.io/2024/06/15/ml-notes-02-loss-optimization/image.png">
+<meta property="article:published_time" content="2024-06-15T12:30:00.000Z">
+<meta property="article:modified_time" content="2024-06-15T12:30:00.000Z">
 <meta property="article:author" content="Siyu Chen">
-<meta property="article:tag" content="PCA">
-<meta property="article:tag" content="无监督学习">
+<meta property="article:tag" content="优化">
+<meta property="article:tag" content="损失函数">
 <meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="正则化">
 <meta property="article:tag" content="笔记">
-<meta property="article:tag" content="聚类">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://sssssimonk.github.io/2024/06/15/ml-notes-02-loss-optimization/image.png">
   
   
   
-  <title>机器学习笔记 05：无监督学习与降维 - Siyu Chen</title>
+  <title>机器学习笔记 02：信息论、损失函数、与优化 - Siyu Chen</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -312,7 +314,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="机器学习笔记 05：无监督学习与降维"></span>
+            <span id="subtitle" data-typed-text="机器学习笔记 02：信息论、损失函数、与优化"></span>
           
         </div>
 
@@ -323,8 +325,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-07-06 22:00" pubdate>
-          2024-07-06
+        <time datetime="2024-06-15 20:30" pubdate>
+          2024-06-15
         </time>
       </span>
     
@@ -335,7 +337,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.4k 字
+          5.6k 字
         
       </span>
     
@@ -346,7 +348,7 @@
         
         
         
-          29 分钟
+          47 分钟
         
       </span>
     
@@ -421,9 +423,9 @@
     
       
       
-        <a href="/2024/07/06/ml-notes-05-unsupervised-learning-dimensionality-reduction/" title="机器学习笔记 05：无监督学习与降维"
+        <a href="/2024/07/06/ml-notes-05-unsupervised-learning/" title="机器学习笔记 05：无监督学习与降维"
            class="list-group-item list-group-item-action
-           active">
+           ">
           <span class="category-post">机器学习笔记 05：无监督学习与降维</span>
         </a>
       
@@ -448,10 +450,10 @@
     
       
       
-        <a href="/2024/06/15/ml-notes-02-loss-optimization-regularization/" title="机器学习笔记 02：损失函数、优化与正则化"
+        <a href="/2024/06/15/ml-notes-02-loss-optimization/" title="机器学习笔记 02：信息论、损失函数、与优化"
            class="list-group-item list-group-item-action
-           ">
-          <span class="category-post">机器学习笔记 02：损失函数、优化与正则化</span>
+           active">
+          <span class="category-post">机器学习笔记 02：信息论、损失函数、与优化</span>
         </a>
       
     
@@ -482,236 +484,261 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">机器学习笔记 05：无监督学习与降维</h1>
+            <h1 id="seo-header">机器学习笔记 02：信息论、损失函数、与优化</h1>
             
             
               <div class="markdown-body">
                 
-                <p>在无监督学习中，通常没有明确答案，目标更多是发现数据结构。最常见的两类任务是
-clustering 和 dimensionality reduction。</p>
+                <p>在监督学习中我们会有一个标准答案：label
+y和预测值prediction，为了让预测值不断接近真实答案，就需要用到损失函数了。</p>
 <span id="more"></span>
-<h2
-id="什么是无监督学习unsupervised-learning">什么是无监督学习（unsupervised
-learning）</h2>
-<p>无监督学习只有输入 <span class="math inline">\(x\)</span>，没有标签
-<span class="math inline">\(y\)</span>。</p>
-<p>比如有一批用户行为数据：</p>
-<table>
-<thead>
-<tr class="header">
-<th>用户</th>
-<th style="text-align: right;">访问次数</th>
-<th style="text-align: right;">平均停留时间</th>
-<th style="text-align: right;">购买次数</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>A</td>
-<td style="text-align: right;">50</td>
-<td style="text-align: right;">8 分钟</td>
-<td style="text-align: right;">5</td>
-</tr>
-<tr class="even">
-<td>B</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">1 分钟</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td>C</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: right;">7 分钟</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td>D</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">2 分钟</td>
-<td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-<p>没有人告诉模型谁是“高价值用户”，但模型可以发现 A 和 C 比较像，B 和 D
-比较像。这就是 clustering 的典型使用场景。</p>
-<p>无监督学习不是为了直接预测
-label，而是为了整理数据：哪些样本相似，数据有没有低维结构，有没有异常点。</p>
-<h2
-id="聚类clustering把相似样本放在一起">聚类（clustering）：把相似样本放在一起</h2>
-<p>Clustering
-的目标是把样本分成若干组，让同一组内部尽量相似，不同组之间尽量不同。</p>
-<p>但这里有一个麻烦：没有
-label，所以“分得好不好”不像分类任务那样容易判断。</p>
-<p>不同 clustering 方法对 cluster 形状有不同假设。KMeans 偏向球形
-cluster，DBSCAN 偏向密度连通区域，hierarchical clustering
-更强调层级关系。</p>
-<h3 id="kmeans最经典的聚类方法">KMeans：最经典的聚类方法</h3>
-<p>KMeans 是最经典的 clustering 方法之一。它需要先指定 cluster 数量
-<span class="math inline">\(K\)</span>。</p>
-<p>基本流程：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">1. 选择k个centroids<br>2. 计算每个点与centroids的距离<br>3. 将每个点分配给距离最近的centroid<br>4. 更新centroid位置<br>5. 重复3、4直到手链<br></code></pre></td></tr></table></figure>
-<p>目标可以理解为最小化簇内平方距离：</p>
+<h2 id="信息论基础">信息论基础</h2>
+<p>在正式讲解损失函数前，先需要普及一点点信息论的概念，因为熵（Entropy）对于理解交叉熵，KL散度等概念很重要。</p>
+<p>我们首先考虑如何量化一个特定事件所包含的信息量。直观上，一个事件发生的概率越低，它的发生就越出乎意料，因此它所携带的信息量就越大。反之，一个事件发生的概率越高，它的发生就越司空见惯，信息量就越小。</p>
+<ul>
+<li>对一个<strong>随机变量X的的单个事件x取值</strong>的自信息 = <span
+class="math inline">\(I(x) = -logP(X=x)\)</span></li>
+</ul>
+<p>概率越小，自信息越大，概率越大，自信息越小</p>
+<ul>
+<li>而整个随机变量的<strong>所有事件的平均信息量</strong>就是熵，表示一个随机变量中事件信息量的期望。</li>
+</ul>
 <p><span class="math display">\[
-\sum_{k=1}^{K}\sum_{x_i \in C_k}\|x_i-\mu_k\|^2
+H(X) = E[I(X)] = -\sum^{N}_{i = 1}p(x_i) * log p(x_i)
 \]</span></p>
-<p>其中，<span class="math inline">\(C_k\)</span> 是第 <span
-class="math inline">\(k\)</span> 个 cluster，<span
-class="math inline">\(\mu_k\)</span> 是这个 cluster 的中心。</p>
-<p>优点：实现简单</p>
-<p>KMeans 的问题：</p>
+<p>熵 = 一个事件的概率 * 事件的自信息 的和。</p>
+<p>举个例子，假如随机变量X的空间只有三种结果：2，3，3。也就是说P（X=2）=
+1/3， P（X=3） = 2/3 那么单个事件X=3的自信息量 = <span
+class="math inline">\(-log\frac{2}{3}\)</span></p>
+<p>整个X=x的熵 = <span class="math inline">\(-(\frac{1}{3} *
+log\frac{1}{3} + \frac{2}{3} * log\frac{2}{3})\)</span></p>
+<p>ok回到公式，其他的熵的公式为： - 联合熵 Joint Entropy</p>
+<p><span class="math display">\[
+H(X,Y) = -\sum_{x}\sum_{y}p(x, y) * log p(x, y)
+\]</span></p>
 <ul>
-<li>需要提前指定 <span class="math inline">\(K\)</span></li>
-<li>对初始中心敏感</li>
-<li>对 outlier 敏感</li>
-<li>更适合接近球形的 cluster</li>
-<li>特征 scale 会影响距离，通常要先 normalization</li>
+<li>条件熵 Conditional Entropy</li>
 </ul>
-<p><strong>关于怎么选 K</strong></p>
-<p>常见方法是 elbow method 和 silhouette score。</p>
-<p><strong>Elbow method</strong> 看不同 <span
-class="math inline">\(K\)</span> 下的簇内误差。随着 <span
-class="math inline">\(K\)</span> 增大，误差一定会下降，因为 cluster
-越多，样本离中心越近。但下降幅度会逐渐变小。拐点附近的 <span
-class="math inline">\(K\)</span> 通常是一个候选。</p>
-<p><strong>Silhouette score</strong> 同时考虑样本离自己 cluster
-的距离，以及离其他 cluster 的距离。分数越高，说明样本更像自己
-cluster，而不像其他 cluster。</p>
-<p>对于kmeans的改进方法有：kmeans++，sequential
-kmeans等，这里我就懒得写了，感兴趣可以搜一下。</p>
-<h3 id="dbscan基于密度的聚类">DBSCAN：基于密度的聚类</h3>
-<p>DBSCAN 不需要提前指定 cluster 数量。它通过密度来定义 cluster。</p>
-<p>两个重要参数：</p>
+<p><span class="math display">\[
+H(Y | X) = -\sum_{x}\sum_{y}p(x, y) * log P(y | x)
+\]</span></p>
+<h3
+id="交叉熵衡量预测与真实分布的不一致性">交叉熵：衡量预测与真实分布的「不一致性」</h3>
+<p>我们通常用p(x)表示真实的目标分布，用q(x)表示模型预测的近似分布，它们之间的<strong>交叉熵（Cross-Entropy）</strong> 定义为：</p>
+<p><span class="math display">\[
+H(p, q) = -\sum^{N}_{i = 1}p(x) * \log q(x)
+\]</span></p>
+<p><strong>最小化交叉熵，就等价于最大化真实标签对应的预测概率的对数</strong>。</p>
+<h3 id="kl散度">KL散度</h3>
+<p><strong>KL散度（Kullback-Leibler Divergence），也称为相对熵(Relative
+Entropy)</strong> 是衡量两个概率分布p(x)和q(x)之间(用q拟合 p
+分布)差异的非对称度量。它的定义为：</p>
+<p><span class="math display">\[
+KL(p || q) = -\sum p(x) * log\frac{p(x)}{q(x)}
+\]</span></p>
+<p>KL散度的性质：</p>
 <ul>
-<li><code>eps</code>：邻域半径</li>
-<li><code>min_samples</code>：成为核心点需要的邻居数量</li>
+<li><strong>非负性：</strong>。KL散度 ≥ 0
+这意味着当两个分布完全相同时，没有信息损失。</li>
+<li><strong>非对称性：</strong>。这是一个关键性质。这意味着KL散度不是一个真正的「距离」（因为它不满足距离度量的对称性），它衡量的是从p到 q的「信息损失」或「额外成本」，而不是反过来。</li>
 </ul>
-<p>DBSCAN 会把点分成三类：</p>
+<p>也就是说，熵与KL的关系图如下</p>
+<figure>
+<img src="image.png" srcset="/img/loading.gif" lazyload alt="alt text" />
+<figcaption aria-hidden="true">alt text</figcaption>
+</figure>
+<p>直接从公式推导的话，可以得出交叉熵 = 熵 + KL散度，展开： <span
+class="math display">\[
+\begin{aligned}
+D_{KL}(P \parallel Q)
+&amp;= \sum_x P(x) \log \frac{P(x)}{Q(x)} \\
+&amp;= \sum_x P(x) \bigl[ \log P(x) - \log Q(x) \bigr] \\
+&amp;= \underbrace{\sum_x P(x) \log P(x)}_{-H(P)} - \sum_x P(x) \log
+Q(x) \\
+&amp;= -H(P) + H(P, Q)
+\end{aligned}
+\]</span></p>
+<p>最后一步将等式重新排列，就得到：</p>
+<p><span class="math display">\[
+\boxed{H(P, Q) = H(P) + D_{KL}(P \parallel Q)}
+\]</span></p>
+<h2 id="损失函数loss-function先定义什么叫错">损失函数（loss
+function）：先定义什么叫错</h2>
+<p>模型训练把“预测错了多少”变成一个可以计算的数值。这个数值就是
+loss。不同任务会使用不同 loss。</p>
+<h3 id="mse回归任务里最常见的-loss">MSE：回归任务里最常见的 loss</h3>
+<p>Mean Squared Error 常用于回归任务：</p>
+<p><span class="math display">\[
+J(\theta) = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+\]</span></p>
+<p>其中，<span class="math inline">\(y_i\)</span> 是真实值，<span
+class="math inline">\(\hat{y}_i\)</span>
+是预测值。预测和真实值差得越远，loss 越大。</p>
+<p>它惩罚预测值和真实值之间的平方误差。因为误差被平方，大误差会受到更大惩罚。</p>
+<p>例子：</p>
 <table>
 <thead>
 <tr class="header">
-<th>类型</th>
-<th>含义</th>
+<th style="text-align: right;">真实值 <span
+class="math inline">\(y\)</span></th>
+<th style="text-align: right;">预测值 <span
+class="math inline">\(\hat{y}\)</span></th>
+<th style="text-align: right;">误差</th>
+<th style="text-align: right;">平方误差</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Core point</td>
-<td>eps 范围内有足够多邻居</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
-<td>Border point</td>
-<td>不满足 core 条件，但在某个 core point 邻域内</td>
-</tr>
-<tr class="odd">
-<td>Noise point</td>
-<td>不属于任何密度区域</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">2500</td>
 </tr>
 </tbody>
 </table>
-<p>DBSCAN 的优点是能发现非球形 cluster，也能识别 outlier。</p>
-<p>比如二维空间里有两个弯月形 cluster，KMeans
-可能分不好，因为它偏向球形；DBSCAN 更可能按密度连通性分出来。</p>
-<p>缺点是参数敏感。如果 <code>eps</code> 太小，很多点会被当成
-noise；如果太大，不同 cluster 可能被连在一起。</p>
-<p>以下是pseudo code <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs text">DBSCAN(D, eps, minPts):<br>    所有点标记为未访问，cluster_id = 0<br><br>    for p in D:<br>        if p 已访问: continue<br>        标记 p 已访问<br>        neighbors = 距离 p ≤ eps 的所有点<br><br>        if |neighbors| &lt; minPts:<br>            标记 p 为噪声<br>        else:<br>            cluster_id += 1<br>            把 p 归入 cluster_id<br>            把 neighbors 加入队列<br>            while 队列非空:<br>                q = 队列出队<br>                if q 未访问:<br>                    标记 q 已访问<br>                    qNeighbors = 距离 q ≤ eps 的所有点<br>                    if |qNeighbors| &gt;= minPts:<br>                        队列加入 qNeighbors<br>                if q 尚未归入任何簇:<br>                    把 q 归入 cluster_id<br></code></pre></td></tr></table></figure> ### 层次聚类（hierarchical
-clustering）</p>
-<p>Hierarchical clustering 关注层级结构。最常见的是 agglomerative
-clustering，也就是自底向上合并。</p>
-<p>流程：</p>
-<ol type="1">
-<li>找最近的两个点/cluster合并成新cluster。</li>
-<li>不断合并直到收敛</li>
+<p>第二个预测只比第一个多错 40，但平方误差大很多。这就是 MSE
+对大偏差更敏感的原因。</p>
+<p>所以 MSE
+的直觉是：不仅希望预测接近真实值，而且特别不希望出现很离谱的预测。</p>
+<h3 id="二元交叉熵binary-cross-entropy二分类任务">二元交叉熵（binary
+cross entropy）：二分类任务</h3>
+<p>二分类中，模型通常输出样本属于正类的概率 <span
+class="math inline">\(\hat{y}\)</span>：</p>
+<p><span class="math display">\[
+L(y, \hat{y}) = -[y\log(\hat{y}) + (1-y)\log(1-\hat{y})]
+\]</span></p>
+<p>如果真实标签 <span class="math inline">\(y=1\)</span>，这个式子会变成
+<span
+class="math inline">\(-\log(\hat{y})\)</span>。模型给正确类别的概率越低，loss
+越大。</p>
+<p>比如一封邮件确实是垃圾邮件。如果模型预测“是垃圾邮件”的概率是
+0.9，loss 很小；如果只给 0.1，loss 会很大。Cross entropy
+惩罚的不是类别名本身，而是模型有没有把足够高的概率给到正确类别。</p>
+<p>这和分类任务的目标一致：模型不只是要给出类别，还要把概率质量放到正确类别上。</p>
+<h3
+id="多类交叉熵categorical-cross-entropy多分类任务">多类交叉熵（categorical
+cross entropy）：多分类任务</h3>
+<p>多分类任务常用 softmax 把 logits 转成概率分布：</p>
+<p><span class="math display">\[
+\text{softmax}(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{K}e^{z_j}}
+\]</span></p>
+<p>根据信息论推导出来的公式应该是： <span class="math display">\[
+H(p, q) = -\sum_{x} p(x) \log q(x)
+\]</span> 代表用q (prediction)去拟合p (label)的分布。</p>
+<p>用在实际情况中用y和y hat表示：</p>
+<p><span class="math display">\[
+L(y, \hat{y}) = -\sum_{j=1}^{K} y_j \log(\hat{y}_j)
+\]</span></p>
+<p>如果 <span class="math inline">\(y\)</span> 是 one-hot
+label，这个式子本质上就是取正确类别概率的负对数。</p>
+<p>实现时一般会对 logits 做数值稳定处理，例如先减去最大值：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">softmax</span>(<span class="hljs-params">logits</span>):<br>    logits = logits - np.<span class="hljs-built_in">max</span>(logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br>    exp_logits = np.exp(logits)<br>    <span class="hljs-keyword">return</span> exp_logits / np.<span class="hljs-built_in">sum</span>(exp_logits, axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">mean_squared_error</span>(<span class="hljs-params">y_true, y_pred</span>):<br>    <span class="hljs-keyword">return</span> np.mean((y_true - y_pred)**<span class="hljs-number">2</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">binary_cross_entropy</span>(<span class="hljs-params">y_true, y_pred</span>):<br>    <span class="hljs-keyword">return</span> -np.mean(y_true * np.log(y_pred) + (<span class="hljs-number">1</span> - y_true) * np.log(<span class="hljs-number">1</span> - y_pred))<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cross_entropy</span>(<span class="hljs-params">y_pred, y_true</span>):<br>    eps = <span class="hljs-number">1e-12</span><br>    y_pred = np.clip(y_pred, eps, <span class="hljs-number">1.0</span> - eps)<br>    <span class="hljs-keyword">return</span> -np.mean(np.<span class="hljs-built_in">sum</span>(y_true * np.log(y_pred), axis=<span class="hljs-number">1</span>))<br></code></pre></td></tr></table></figure>
+<p>思考： 1. 为什么是y true * log（y pred）而不能反着来呢？
+因为是用q分布（pred）去拟合真实分布，而q必须在log里</p>
+<ol start="2" type="1">
+<li>为什么交叉熵前面有负号？ 两个容易写错的点：第一，cross entropy
+前面有负号；第二，如果输入是 logits，应该先 softmax，而不是直接拿 logits
+当概率。</li>
 </ol>
-<p>它的结果可以用 dendrogram
-表示。虽然这里不画图，但可以把它想成一棵树：底部是单个样本，越往上
-cluster 越大。</p>
-<p>关键在于怎么定义 cluster 之间的距离：</p>
-<ul>
-<li>single linkage：两个 cluster 中最近点的距离</li>
-<li>complete linkage：两个 cluster 中最远点的距离</li>
-<li>average linkage：所有点对距离的平均</li>
-<li>Ward linkage：合并后簇内方差增加最小</li>
-</ul>
-<p>Hierarchical clustering 的优点是能看到层级关系，不一定要一开始就指定
-cluster 数。缺点是计算成本高，大数据上不一定适合。</p>
-<p>聚类（clustering）方法对比</p>
+<h2 id="梯度下降gradient-descent模型如何优化参数">梯度下降（gradient
+descent）：模型如何优化参数</h2>
+<p>有了 loss 后，训练的目标就是找到让 loss 更小的参数。</p>
+<p>Gradient descent 的更新规则是：</p>
+<p><span class="math display">\[
+\theta_{\text{new}} = \theta_{\text{old}} - \alpha \nabla J(\theta)
+\]</span></p>
+<p>其中，<span class="math inline">\(\theta\)</span> 是模型参数，<span
+class="math inline">\(\alpha\)</span> 是 learning rate，<span
+class="math inline">\(\nabla J(\theta)\)</span> 是 loss
+function对参数的梯度。</p>
+<p>直觉上，梯度指向 loss 增长最快的方向，所以参数更新要往反方向走。</p>
+<p>训练时可以把流程想成：</p>
+<p>current parameters 1. forward prediction 2. compute loss 3. compute
+gradient 4. update parameters 5. repeat</p>
+<p>下面用一维 linear regression 展示一次完整训练循环。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><br>x = np.array([<span class="hljs-number">1.0</span>, <span class="hljs-number">2.0</span>, <span class="hljs-number">3.0</span>, <span class="hljs-number">4.0</span>])<br>y = np.array([<span class="hljs-number">3.0</span>, <span class="hljs-number">5.0</span>, <span class="hljs-number">7.0</span>, <span class="hljs-number">9.0</span>])  <span class="hljs-comment"># y = 2x + 1</span><br><br>w, b = <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span><br>learning_rate = <span class="hljs-number">0.05</span><br><br><span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">500</span>):<br>    <span class="hljs-comment"># forward</span><br>    y_pred = w * x + b<br>    error = y_pred - y<br>    loss = np.mean(error ** <span class="hljs-number">2</span>)<br><br>    <span class="hljs-comment"># backward: MSE 对 w 和 b 的梯度</span><br>    grad_w = <span class="hljs-number">2</span> * np.mean(error * x)<br>    grad_b = <span class="hljs-number">2</span> * np.mean(error)<br><br>    <span class="hljs-comment"># update</span><br>    w -= learning_rate * grad_w<br>    b -= learning_rate * grad_b<br></code></pre></td></tr></table></figure>
+<p>随着训练进行，<code>w</code> 会逐渐接近 2，<code>b</code> 会逐渐接近
+1。神经网络的训练循环也是这四步，只是 forward 和 gradient
+的计算图更复杂。</p>
+<h2
+id="正则化regularization限制模型复杂度">正则化（regularization）：限制模型复杂度</h2>
+<p>Regularization的主要作用是限制模型为了降低训练误差而使用过于复杂的参数，增加模型的泛化能力。</p>
+<p>常见方式是在原本 loss 后面加一个惩罚项：</p>
+<p><span class="math display">\[
+J_{\text{regularized}}(\theta) = J(\theta) + \lambda R(\theta)
+\]</span></p>
+<p>其中，<span class="math inline">\(R(\theta)\)</span> 是
+regularization term，<span class="math inline">\(\lambda\)</span>
+控制正则化强度。</p>
+<h3 id="l1-正则化l1-regularization">L1 正则化（L1 regularization）</h3>
+<p>L1 正则使用参数绝对值之和：</p>
+<p><span class="math display">\[
+R(\theta) = \sum_i |\theta_i|
+\]</span></p>
+<p>它的特点是容易让部分参数变成0（可以变成0），因此可以产生稀疏性，也常被用于特征选择。</p>
+<p>直觉上，如果一个特征贡献不大，L1 会倾向于直接把它的权重压到 0。</p>
+<h3 id="l2-正则化l2-regularization">L2 正则化（L2 regularization）</h3>
+<p>L2 正则使用参数平方和：</p>
+<p><span class="math display">\[
+R(\theta) = \sum_i \theta_i^2
+\]</span></p>
+<p>它会让参数变小，但通常不会直接变成 0。L2
+更像是在鼓励模型使用更平滑、更小的权重。</p>
+<p>很多时候提到的 weight decay 和 L2 regularization
+相关，都是通过限制权重大小来降低模型复杂度。</p>
 <table>
-
 <thead>
 <tr class="header">
 <th>方法</th>
-<th>核心假设</th>
-<th>优点</th>
-<th>缺点</th>
+<th>作用</th>
+<th>结果</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>KMeans</td>
-<td>cluster 接近球形</td>
-<td>简单、快</td>
-<td>要指定 K，对 outlier 敏感</td>
+<td>L1</td>
+<td>惩罚绝对值</td>
+<td>参数更稀疏，部分权重为 0</td>
 </tr>
 <tr class="even">
-<td>DBSCAN</td>
-<td>cluster 是密度区域</td>
-<td>能识别噪声，支持非球形</td>
-<td>参数敏感，高维效果可能差</td>
-</tr>
-<tr class="odd">
-<td>Hierarchical</td>
-<td>数据有层级结构</td>
-<td>结果可解释</td>
-<td>大数据成本高</td>
+<td>L2</td>
+<td>惩罚平方和</td>
+<td>参数更小更平滑，通常不为 0</td>
 </tr>
 </tbody>
 </table>
-<p>KMeans 更像是在找中心点，DBSCAN 更像是在找密度连通区域，hierarchical
-clustering 更像是在整理样本之间的层级关系。</p>
-<h2 id="降维dimensionality-reduction为什么要降维">降维（dimensionality
-reduction）：为什么要降维</h2>
-<p>降维的目标是把高维数据变成低维表示，同时尽量保留重要信息。</p>
-<p>常见动机：</p>
-<ul>
-<li>可视化：把高维 embedding 投到 2D/3D</li>
-<li>去噪：去掉不重要的方向</li>
-<li>压缩：减少特征数量</li>
-<li>缓解维度灾难：高维空间中距离可能变得不稳定</li>
-</ul>
-<p>比如一个用户有 1000
-个行为特征，很多特征之间高度相关。降维可以把它们压成几十个综合特征，保留主要变化方向。</p>
-<h3 id="pca用主成分保留主要变化">PCA：用主成分保留主要变化</h3>
-<p>PCA
-的核心思想是：找到数据方差最大的方向，然后把数据投影到这些方向上。</p>
-<p>基本流程：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">1. 将数据标准化（或中心化），使得每个特征均值为0。<br><br>2. 计算协方差矩阵，反映特征间的相关性。<br><br>3. 对协方差矩阵进行特征值分解，得到特征值和特征向量。<br><br>4. 将特征值从大到小排序，选择前k个最大特征值对应的特征向量作为主成分。<br><br>5. 用这些特征向量组成投影矩阵，将原始数据乘以该矩阵，得到降维后的数据。<br></code></pre></td></tr></table></figure>
-<p><strong>简单的说就是找eigenvector，这个就是主成分。</strong></p>
-<p>如果一个二维数据集大致沿着一条斜线分布，PCA
-的第一主成分就是这条斜线方向。把数据投影到这条线，就能用一维保留大部分变化。</p>
-<p>数学上，PCA 会找一组正交方向，第一主成分解释最多
-variance，第二主成分在和第一主成分正交的条件下解释剩余最多
-variance。</p>
-<p>PCA 的几个注意点</p>
-<ul>
-<li>PCA 对 scale 敏感。一个特征范围是 <span
-class="math inline">\([0,100000]\)</span>，另一个是 <span
-class="math inline">\([0,1]\)</span>，如果不
-standardize，大范围特征会主导 principal components。</li>
-<li>PCA 是线性降维。如果数据本身是复杂非线性结构，PCA
-可能表达不好。</li>
-<li>PCA
-的主成分不一定好解释。原始特征可能有明确含义，但主成分是多个特征的线性组合，解释起来会更抽象。</li>
-</ul>
-<p>其他：t-SNE 和 UMAP</p>
-<p>t-SNE 和 UMAP 常用于可视化高维 embedding，比如把文本 embedding 或图像
-embedding 投到二维。</p>
-<p>它们更关注局部邻域结构，适合看样本是否聚在一起。但这类方法主要用于
-visualization，不太适合直接当成严肃的全局距离解释。</p>
-<p>一个常见误区是看见二维图上两个 cluster
-离得远，就断言原始高维空间里它们也有同样的全局距离关系。这个不一定成立。</p>
+<p>L1 更像在做“删特征”，L2 更像在做“压权重”。</p>
+<h2 id="其他防止过拟合的方法">其他防止过拟合的方法：</h2>
+<p><strong>早停（early stopping）：用验证集控制训练</strong></p>
+<p>Early stopping 是一种很实用的防过拟合方法。</p>
+<p>训练过程中，如果 validation loss
+连续若干轮（比如设置个3，5轮）不再下降，就停止训练。关键是看 validation
+set，而不是只看 training loss。</p>
+<p>它的直觉是：当模型继续训练只是在降低 training loss，但 validation
+loss 开始变差时，模型可能已经开始记训练集噪声了。</p>
+<p>Early stopping
+的优点是简单有效，缺点是它会把“什么时候停止训练”也变成一个需要调的超参数。</p>
+<p><strong>dropout</strong>：
+在训练过程中，每次前向传播时以一定概率随机“丢弃”一部分神经元（即将输出置零），反向传播不更新被丢弃神经元的权重。
+测试时不丢弃，但将所有权重乘以保留概率以保证尺度一致。</p>
+<p>直觉上，dropout
+强迫网络不能过度依赖某些特定的神经元或特征组合，相当于每次训练一个不同的子网络，最终预测时近似于大量子网络的集成，从而显著降低过拟合风险。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><br><span class="hljs-comment"># 使用时，定义 dropout 层（p=0.5），训练时随机丢弃，eval时自动关闭</span><br><span class="hljs-variable language_">self</span>.dropout = nn.Dropout(<span class="hljs-number">0.5</span>)<br>x = <span class="hljs-variable language_">self</span>.dropout(x)<br><br><span class="hljs-comment">#dropout的实现</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">dropout_forward</span>(<span class="hljs-params">x, p=<span class="hljs-number">0.5</span>, training=<span class="hljs-literal">True</span></span>):<br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> training:<br>        <span class="hljs-keyword">return</span> x<br>    <span class="hljs-comment"># 生成与 x 形状相同的 mask，每个元素以概率 (1-p) 保留为1，以概率 p 置为0</span><br>    mask = torch.bernoulli(torch.full_like(x, <span class="hljs-number">1</span> - p))<br>    <span class="hljs-comment"># 训练时丢弃部分神经元，并将保留的神经元除以 (1-p) 保持期望一致</span><br>    <span class="hljs-keyword">return</span> x * mask / (<span class="hljs-number">1</span> - p)<br></code></pre></td></tr></table></figure>
+<p><strong>data augmentation</strong>：
+简单的说就是加数据，加数据，加数据！</p>
+<p>在不改变样本标签的前提下，对训练数据进行随机但语义合理的变换，以低成本成倍扩充有效数据量。例如，在图像任务中常用随机裁剪、水平翻转、旋转、缩放、色彩抖动等；
+在文本任务中可用同义词替换、回译等。直觉是，模型看到更多变体后，能学到更本质的不变性特征，而不是死记硬背原始训练样本的表观细节，从而提升泛化能力。</p>
+<p>优点是无需额外标注、防过拟合效果显著、提升模型鲁棒性；缺点是依赖领域知识设计合理增强策略，若变换过强或不符合真实分布，可能引入噪声误导模型。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li>hkust bdt5002课程</li>
+<li><a target="_blank" rel="noopener" href="https://cs229.stanford.edu/">Stanford CS229: Machine
+Learning</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.statlearning.com/">An Introduction to
 Statistical Learning</a></li>
 </ul>
@@ -750,13 +777,13 @@ Statistical Learning</a></li>
       
         <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
       
+        <a href="/tags/%E6%AD%A3%E5%88%99%E5%8C%96/" class="print-no-link">#正则化</a>
+      
         <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="print-no-link">#机器学习</a>
       
-        <a href="/tags/%E6%97%A0%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/" class="print-no-link">#无监督学习</a>
+        <a href="/tags/%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/" class="print-no-link">#损失函数</a>
       
-        <a href="/tags/%E8%81%9A%E7%B1%BB/" class="print-no-link">#聚类</a>
-      
-        <a href="/tags/PCA/" class="print-no-link">#PCA</a>
+        <a href="/tags/%E4%BC%98%E5%8C%96/" class="print-no-link">#优化</a>
       
     </div>
   
@@ -770,9 +797,9 @@ Statistical Learning</a></li>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/07/14/ml-notes-06-evaluation-validation-model-selection/" title="机器学习笔记 06：评估、验证与模型选择">
+                      <a href="/2024/06/22/ml-notes-03-supervised-learning/" title="机器学习笔记 03：有监督学习">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">机器学习笔记 06：评估、验证与模型选择</span>
+                        <span class="hidden-mobile">机器学习笔记 03：有监督学习</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -780,8 +807,8 @@ Statistical Learning</a></li>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/06/29/ml-notes-04-tree-based-models/" title="机器学习笔记 04：树模型">
-                        <span class="hidden-mobile">机器学习笔记 04：树模型</span>
+                      <a href="/2024/06/08/ml-notes-01-machine-learning-framework/" title="机器学习笔记 01：机器学习的基本框架">
+                        <span class="hidden-mobile">机器学习笔记 01：机器学习的基本框架</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
