@@ -1,5 +1,5 @@
-favicon: /img/fluid.png
-apple_touch_icon: /img/fluid.png
+favicon: ""
+apple_touch_icon: ""
 
 dark_mode:
   enable: true
@@ -61,7 +61,7 @@ footer:
     enable: false
 
 index:
-  banner_img: /img/default.png
+  banner_img: ""
   banner_img_height: 62
   banner_mask_alpha: 0.35
   slogan:
@@ -78,7 +78,7 @@ index:
     tag: true
 
 post:
-  banner_img: /img/default.png
+  banner_img: ""
   banner_img_height: 42
   banner_mask_alpha: 0.35
   meta:
@@ -134,13 +134,13 @@ post:
     enable: false
 
 archive:
-  banner_img: /img/default.png
+  banner_img: ""
   banner_img_height: 36
   banner_mask_alpha: 0.35
 
 category:
   enable: true
-  banner_img: /img/default.png
+  banner_img: ""
   banner_img_height: 36
   banner_mask_alpha: 0.35
   order_by: "-length"
@@ -150,7 +150,7 @@ category:
 
 tag:
   enable: true
-  banner_img: /img/default.png
+  banner_img: ""
   banner_img_height: 36
   banner_mask_alpha: 0.35
   tagcloud:
@@ -162,10 +162,10 @@ tag:
 
 about:
   enable: true
-  banner_img: /img/default.png
+  banner_img: ""
   banner_img_height: 40
   banner_mask_alpha: 0.35
-  avatar: /img/avatar.png
+  avatar: ""
   name: "Siyu Chen"
   intro: "AI research notes, paper reading, and engineering experience."
   icons:
@@ -173,17 +173,16 @@ about:
     - { class: "iconfont icon-mail", link: "mailto:simon.chensiyu@hotmail.com", tip: "Email" }
 
 page:
-  banner_img: /img/default.png
+  banner_img: ""
   banner_img_height: 36
   banner_mask_alpha: 0.35
 
 page404:
   enable: true
-  banner_img: /img/default.png
+  banner_img: ""
   banner_img_height: 60
   banner_mask_alpha: 0.35
   redirect_delay: 5000
 
 links:
   enable: false
-

@@ -1,7 +1,7 @@
 ---
-title: "后训练笔记 02：SFT 与 PEFT"
-date: 2025-11-08 20:30:00
-updated: 2025-11-08 20:30:00
+title: "后训练笔记 01：SFT 与 PEFT"
+date: 2025-12-24 20:30:00
+updated: 2025-12-24 20:30:00
 categories:
   - 后训练笔记
 tags:

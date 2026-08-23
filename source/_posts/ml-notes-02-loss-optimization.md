@@ -85,7 +85,7 @@ KL散度的性质：
 
 也就是说，熵与KL的关系图如下
 
-![alt text](image.png)
+![熵、交叉熵与 KL 散度的关系](/img/ml/entropy-cross-entropy-kl-divergence.png)
 
 
 直接从公式推导的话，可以得出交叉熵 = 熵 + KL散度，展开：

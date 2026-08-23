@@ -1,376 +1,523 @@
 ---
-title: "后训练笔记 04：GRPO变体与DPO变体"
+title: "后训练笔记 04：GRPO 变体，从归一化、ratio 到 group-aware reward"
 date: 2025-11-22 21:30:00
-updated: 2025-11-22 21:30:00
+updated: 2026-08-23 22:30:00
 categories:
   - 后训练笔记
 tags:
   - 后训练
   - GRPO
   - DAPO
+  - Dr.GRPO
+  - CISPO
   - GSPO
-  - KTO
-  - 偏好优化
+  - SAPO
+  - GAPO
   - 笔记
 math: true
 category_bar: true
 ---
 
-这一篇整理 GRPO 的变体，以及DPO的变体。
+GRPO 之后出现了很多相关的改进算法。
 
-所以这一篇分成两条线：
+这篇文章围绕四个问题整理 GRPO 变体：
 
-- GRPO 变体：围绕 RLVR 里的 group sampling、advantage、clipping、sequence-level 更新做改造
-- KTO：围绕 preference data 的形式做改造，从 pairwise preference 变成 binary feedback
+1. reward 如何变成 advantage；
+2. token loss 如何聚合与归一化；
+3. importance ratio 在什么粒度上计算，surrogate 又如何约束 policy shift；
+4. 哪些 prompt、response 和 token 真正进入梯度。
+
+按照这个坐标系，本文精读六项代表性工作：DAPO、Dr.GRPO、CISPO、GSPO、SAPO 和 GAPO。
 
 <!-- more -->
 
-## GRPO 的基本问题
+## 统一坐标：GRPO baseline
 
-GRPO 的基础想法很清楚：同一个prompt采样多个 responses，用组内 reward 相对值估计 advantage。
-
-但真实训练里会遇到几个问题。
-
-第一，组内 reward 没有差异。
-
-如果一组全对或全错，标准差接近 0，训练信号很弱。
-
-第二，reward 太稀疏。
-
-数学题只有最终答案对错，代码题只有测试通过与否。中间推理过程没有细粒度反馈。
-
-第三，token-level clipping 可能浪费训练信号。
-
-有些 token 的 ratio 被 clip 后，梯度贡献变小甚至消失。
-
-第四，长度会膨胀。
-
-模型可能生成越来越长的 reasoning，因为长输出更容易覆盖更多尝试，也可能更容易骗过某些 reward。
-
-第五，MoE 模型 RL 更不稳定。
-
-RL 更新会影响 routing、专家激活和序列分布，sequence-level 稳定性变得更重要。
-
-GRPO 变体基本都在修这些问题。
-
-## Dr.GRPO：重新看 normalization
-
-GRPO 的 advantage 常写成：
+给定 prompt $q$，旧策略对它采样 $G$ 个回答：
 
 $$
-A_i = \frac{r_i - \mu}{\sigma}
+o_1,\ldots,o_G \sim \pi_{\theta_{\mathrm{old}}}(\cdot\mid q).
 $$
 
-其中 $\mu$ 和 $\sigma$ 是同一组 responses 的 reward 均值和标准差。
-
-这个标准化看起来很自然，但它也会改变训练信号强度。
-
-如果组内 reward 差异很小，$\sigma$ 很小，更新可能被放大或不稳定。
-
-如果组内全同，$\sigma$ 接近 0，训练信号又会失效。
-
-Dr.GRPO 这类方法的核心思路，是重新审视 group normalization 是否真的合理，尤其是在二元 reward 场景里。
-
-二元 reward 下，一组 responses 的 reward 只可能是 0 或 1。此时标准差本质上反映的是这个 prompt 下样本是否有分歧。
-
-如果全对或全错，没有分歧，就没有可学习的相对信号。
-
-如果一半对一半错，分歧最大，训练信号最强。
-
-这说明 GRPO 的学习重点其实被 group disagreement 控制了。
-
-## DAPO：dynamic sampling 和 clipping
-
-DAPO 可以理解成对 GRPO 训练细节的进一步修补。
-
-它关注两个问题：
-
-- 哪些 prompts / groups 值得训练
-- policy ratio 的 clipping 怎样更合理
-
-如果一个 group 全对或全错，继续训练价值低。Dynamic sampling 会更关注那些能产生有效差异的样本。
-
-这和人刷题有点像。
-
-太简单的题已经都会，太难的题全不会，最有训练价值的是“有时会、有时不会”的题。
-
-对于 LLM RLVR，也是这样。能让同一个 prompt 下的 samples 产生分歧，才有足够的相对学习信号。
-
-Clipping 的问题则是：固定 clip range 可能不适合所有 token、所有阶段。模型训练初期和后期需要的更新幅度不同，高置信 token 和低置信 token 也不同。
-
-所以 DAPO 这类方法会尝试让 sampling 和 clipping 更动态。
-
-## GSPO：从 token-level 到 sequence-level
-
-GSPO 是 Group Sequence Policy Optimization。
-
-它的一个重要变化是把优化从 token-level ratio 推向 sequence-level ratio。
-
-在语言模型里，reward 很多时候是 response-level 的。数学答案对不对，是整段 response 的结果；代码能不能过测试，也是整段 response 的结果。
-
-如果 reward 是 sequence-level，但优化时过度依赖 token-level ratio，就可能出现不匹配。
-
-GSPO 的想法是：既然 reward 是整段序列的结果，就直接在 sequence level 处理 importance ratio、clipping 和优化。
-
-这对 MoE 模型尤其重要。因为 MoE 的 token-level routing 更复杂，token-level 更新可能带来不稳定。Sequence-level objective 更贴近最终任务评价，也可能更稳定。
-
-可以这样理解：
-
-> GRPO 问的是“这组回答里哪个更好”；GSPO 进一步问“整段回答作为一个整体，应该怎样被加强或削弱”。
-
-## DCPO：dynamic clipping
-
-DCPO 关注的是 GRPO 里的 zero gradient 和 clipping 问题。
-
-在 PPO/GRPO 类目标里，clipping 是为了防止 policy 更新过猛。
-
-但 clipping 太强会损失训练信号。
-
-如果很多 token 的 ratio 都被 clip，模型即使生成了有价值的 response，也不能有效学习。
-
-DCPO 的思路是动态调整 clipping 策略，让不同 token 或不同训练阶段有更合适的更新空间。
-
-它还关注 reward standardization 的问题，希望提升 response-level 样本利用率。
-
-核心不是“clip 越少越好”，而是：
-
-> 该限制的地方限制，该学习的地方不要过早截断。
-
-## DRA-GRPO：把 diversity 纳入 reward
-
-GRPO 采样一组 responses，但如果这些 responses 高度相似，组内比较的价值有限。
-
-DRA-GRPO 这类方法关注 diversity。
-
-它希望不同 reasoning paths 不要因为最终 reward 相同就被完全等价对待。
-
-比如两条解法都错，但一条接近正确思路，另一条完全胡乱推理；或者两条都对，但一条更简洁，另一条绕远路。单纯 0/1 reward 分不出来。
-
-Diversity-aware reward adjustment 试图让训练信号不仅看正确性，也看候选之间的语义差异和探索价值。
-
-这对 reasoning 很重要。因为模型不是只需要记住一个答案，而是要学习更可靠的解题路径。
-
-## GRPO 变体的共同主线
-
-这些方法名字很多，但不要被缩写带跑。
-
-它们基本在改四件事。
-
-第一，采样。
-
-哪些 prompts 要采，采几个 responses，如何过滤全对/全错。
-
-第二，advantage。
-
-组内 reward 怎么归一化，是否使用标准差，是否引入 difficulty / diversity。
-
-第三，clipping。
-
-policy ratio 怎么限制，token-level 还是 sequence-level，固定还是动态。
-
-第四，reward。
-
-只看最终答案，还是加入格式、长度、过程、diversity、verifier confidence。
-
-理解这四个维度，比记住每个方法缩写更有用。
-
-可以用一段统一伪代码把这些改动放回同一个训练循环。不同变体主要是在替换标注出来的步骤：
-
-```python
-effective_groups = []
-
-while len(effective_groups) < target_group_count:
-    prompt = sample_prompt()
-    responses = sample_group(policy_old, prompt, group_size=G)
-    rewards = verifier(prompt, responses)
-
-    # DAPO-style dynamic sampling：过滤没有组内差异的题
-    if std(rewards) < epsilon:
-        continue
-
-    # reward shaping 可以加入长度、格式或 diversity 调整
-    rewards = rewards - length_penalty(responses)
-    rewards = rewards + diversity_bonus(responses)
-
-    # Dr.GRPO 等方法会在这里修改 normalization
-    advantages = normalize_group_reward(rewards)
-    effective_groups.append((prompt, responses, advantages))
-
-for prompt, responses, advantages in effective_groups:
-    old_token_logp = token_logp(policy_old, prompt, responses)
-    new_token_logp = token_logp(policy, prompt, responses)
-
-    if objective_level == "token":
-        ratio = exp(new_token_logp - old_token_logp)
-    else:
-        # GSPO-style：先把 token log-ratio 聚合成 sequence ratio
-        ratio = exp(mean_over_response(
-            new_token_logp - old_token_logp
-        ))
-
-    # DCPO 等方法会在这里动态决定上下 clipping boundary
-    lower, upper = clipping_range(training_state, responses)
-    clipped_ratio = clip(ratio, lower, upper)
-    loss = -mean(min(
-        ratio * advantages,
-        clipped_ratio * advantages
-    ))
-
-    update(policy, loss)
+Verifier 为每个回答给出 reward $R_i$。标准 GRPO 用组内均值和标准差构造 advantage：
+
+$$
+\hat A_i
+=
+\frac{R_i-\operatorname{mean}(R_1,\ldots,R_G)}
+{\operatorname{std}(R_1,\ldots,R_G)}.
+$$
+
+同一回答里的 token 通常共享这个 response-level advantage。对第 $i$ 个回答的第 $t$ 个 token，importance ratio 为：
+
+$$
+r_{i,t}(\theta)
+=
+\frac{
+\pi_\theta(o_{i,t}\mid q,o_{i,<t})
+}{
+\pi_{\theta_{\mathrm{old}}}(o_{i,t}\mid q,o_{i,<t})
+}.
+$$
+
+标准 clipped surrogate 可以记为：
+
+$$
+\ell_{i,t}(\theta)
+=
+\min\left(
+r_{i,t}(\theta)\hat A_i,
+\operatorname{clip}\left(r_{i,t}(\theta),1-\epsilon,1+\epsilon\right)\hat A_i
+\right).
+$$
+
+最后还要决定怎样把所有 token 的 loss 聚合成一个标量。原始 GRPO 常见写法是先在每条回答内部平均，再对回答平均：
+
+$$
+\mathcal L_{\mathrm{GRPO}}
+=
+-\frac{1}{G}
+\sum_{i=1}^{G}
+\frac{1}{|o_i|}
+\sum_{t=1}^{|o_i|}
+\ell_{i,t}(\theta).
+$$
+
+这四步正好对应后续变体的主要分歧：
+
+```text
+group rewards
+    ↓
+advantage 构造与缩放
+    ↓
+token / sequence importance ratio
+    ↓
+hard clip / clipped weight / soft gate
+    ↓
+mask 与 loss normalization
+    ↓
+policy update
 ```
 
-因此读一个新变体时，可以直接问：它替换了这段循环里的 sampling、reward、advantage、ratio，还是 clipping？
 
-## KTO：为什么不是 DPO 的简单替代
 
-DPO 需要 preference pair：
+## 第一组：归一化、优势尺度与长度偏置
 
-$$
-(x, y_w, y_l)
-$$
+### DAPO：它首先是一套长 CoT RL recipe
 
-也就是同一个 prompt 下，一个 chosen response，一个 rejected response。
+[DAPO](https://arxiv.org/abs/2503.14476) 很容易被简化成“把 sample-level loss 改成 token-level loss”。论文的消融恰好说明，这种理解太窄。DAPO 真正处理的是长链路 reasoning RL 中同时出现的多个训练症状。
 
-但真实产品数据经常不是这样。
+#### DAPO 在修什么
 
-用户可能只是点了赞或踩：
+1. **Entropy collapse**：policy 很快变尖，同组回答趋于相似，探索 token 难以被继续提升；
+2. **零梯度 prompt**：同组回答全对或全错时，组内 advantage 全为零；
+3. **长回答中的 token 被稀释**：先对每条回答按长度平均，会让长回答中单个 token 的权重更小；
+4. **截断样本的 reward noise**：一个推理方向可能是对的，只是超过 generation budget，却被直接当成错误回答惩罚。
 
-$$
-(x, y, \mathrm{desirable})
-$$
+#### DAPO 的四个官方组件
 
-或者：
+**1. Clip-Higher：给正向探索更宽的上界**
 
-$$
-(x, y, \mathrm{undesirable})
-$$
-
-没有配对 rejected response。
-
-KTO 的动机就是：能不能直接用这种 binary feedback 做 alignment？
-
-KTO 全称是 Kahneman-Tversky Optimization，借用了 prospect theory 里的损失厌恶、参考点等想法。
-
-## KTO 的 implied reward
-
-KTO 也使用 policy 和 reference 的 log-ratio 来定义 implied reward：
+DAPO 将上下 clipping boundary 解耦：
 
 $$
-r_\theta(x,y) = \beta \log \frac{\pi_\theta(y \mid x)}{\pi_{\mathrm{ref}}(y \mid x)}
+r_{i,t}\in[1-\epsilon_{\mathrm{low}},\ 1+\epsilon_{\mathrm{high}}],
+\qquad
+\epsilon_{\mathrm{high}}>\epsilon_{\mathrm{low}}.
 $$
 
-这个量表示：相对于 reference model，当前 policy 对这个 response 的偏好提高了多少。
+论文使用的直觉是：低概率 exploration token 即使 ratio 增加相同倍数，绝对概率仍然很低。对它使用和高概率 token 相同的上界，会过早阻止这些稀有路径继续增大概率。提高上界主要是在正 advantage 方向保留探索空间，而不是无条件放大所有更新。
 
-如果 $y$ 是 desirable，应该提高它的 implied reward。
+**2. Dynamic Sampling：保证 batch 中有足够的有效 prompt**
 
-如果 $y$ 是 undesirable，应该降低它的 implied reward。
+对于二元 verifier reward，如果某个 prompt 的 $G$ 个回答全对或全错，则：
 
-和 DPO 不同，KTO 不需要同一个 prompt 下同时有 chosen 和 rejected。它只需要知道某个 response 是好还是坏。
+$$
+R_1=\cdots=R_G
+\quad\Longrightarrow\quad
+\hat A_1=\cdots=\hat A_G=0.
+$$
 
-这在真实数据里更容易获得。
+这些 group 占用 rollout 和训练 batch，却不产生 policy gradient。DAPO 持续过采样并过滤组内准确率为 $0$ 或 $1$ 的 prompt，直到有效 batch 被填满：
 
-## KTO 的参考点
+$$
+0 < \sum_{i=1}^{G}\mathbb 1[R_i=1] < G.
+$$
 
-KTO 不只是把好样本推高、坏样本压低。
+它改善的是 batch 的有效梯度密度，不是发明新的 advantage 公式。代价是需要额外 rollout；收益是减少零梯度 group 对 batch gradient 的稀释。
 
-它引入 reference point，类似 prospect theory 里人们不是看绝对收益，而是看相对某个参考点的 gain/loss。
+**3. Token-Level Policy Gradient Loss：让 token 而不是 response 获得等权重**
 
-可以粗略理解成：
+DAPO 将 loss 改为在整个有效 token 集合上归一化：
 
-> 对 desirable response，希望它比参考点更好；对 undesirable response，希望它比参考点更差。
+$$
+\mathcal L_{\mathrm{DAPO}}
+=
+-\frac{1}{\sum_{i=1}^{G}|o_i|}
+\sum_{i=1}^{G}
+\sum_{t=1}^{|o_i|}
+\ell_{i,t}(\theta).
+$$
 
-这种设计让 KTO 更适合不成对的二元反馈。
+原始 GRPO 是“每条回答等权”，DAPO 是“每个有效 token 等权”。因此长回答在总梯度里会有更高权重，但长回答中的每个 token 不再因为回答更长而被额外稀释。
 
-但它也带来新问题：desirable 和 undesirable 数据分布是否匹配？好样本和坏样本是否来自相同类型 prompt？类别比例是否平衡？
+**4. Overlong Reward Shaping：区分截断和真正错误**
 
-如果点赞数据和点踩数据分布差很多，模型可能学到数据分布偏差，而不是偏好本身。
+DAPO 先给出 Overlong Filtering：截断 completion 不参与 loss，而不是直接给负 reward。对应到工程实现，就是让 truncated token mask 为零。
 
-## DPO 和 KTO 的区别
+论文又加入 Soft Overlong Punishment。在接近最大长度的缓冲区间内，长度惩罚连续增加；只有真正越过上限时才达到最大惩罚。概念上可以写成：
 
-DPO 学的是 pairwise preference。
+$$
+R_{\mathrm{length}}(o)=
+\begin{cases}
+0, & |o|\le L_{\max}-L_{\mathrm{cache}},\\
+-\dfrac{|o|-(L_{\max}-L_{\mathrm{cache}})}{L_{\mathrm{cache}}},
+& L_{\max}-L_{\mathrm{cache}}<|o|\le L_{\max},\\
+-1, & |o|>L_{\max}.
+\end{cases}
+$$
 
-它看的是：
+所以 `mask_truncated_completions=True` 和 soft overlong punishment 都属于 Overlong Reward Shaping 的实现，但它们不是 token-level loss 的替代品。
 
-> 对同一个 prompt，$y_w$ 应该比 $y_l$ 更可能。
 
-KTO 学的是 binary desirability。
+### Dr.GRPO：去掉两个看似自然的归一化项
 
-它看的是：
+[Dr.GRPO](https://arxiv.org/abs/2503.20783) 来自论文 *Understanding R1-Zero-Like Training: A Critical Perspective*。它的核心贡献不是增加新模块，而是指出标准 GRPO 的两个分母会隐式改变样本权重。
 
-> 这个 prompt-response pair 是 desirable 还是 undesirable。
+#### 偏置一：response-level length bias
 
-DPO 的信号更强，因为同一个 prompt 下直接比较两个 responses。
+原始 GRPO 对每条回答除以自身长度 $|o_i|$。这会产生不对称行为：
 
-KTO 的数据更容易收集，因为不需要配对。
+- 对正 advantage，短的正确回答获得更大的单 token 更新；
+- 对负 advantage，长的错误回答因为除数更大而被惩罚得更轻。
 
-所以两者不是谁完全替代谁，而是数据形态不同。
+结果不是单纯“模型偏好短回答”，而是更具体的：**正确回答被推向更短，错误回答却可能被推向更长。** 论文观察到错误 response 的长度增长尤其明显。
 
-如果有高质量 pairwise preference，DPO 很自然。
+Dr.GRPO 用全局常数 $L$ 代替每条回答自己的长度，通常取最大 completion length：
 
-如果只有线上 thumbs up / thumbs down，KTO 更合适。
+$$
+\mathcal L_{\mathrm{Dr.GRPO}}
+=
+-\frac{1}{GL}
+\sum_{i=1}^{G}
+\sum_{t=1}^{|o_i|}
+\ell_{i,t}(\theta).
+$$
 
-## KTO 和 GRPO 的区别
+因为 $L$ 对所有回答相同，回答长度不再偷偷进入 sample weight。
 
-KTO 不是 RLVR。
+#### 偏置二：question-level difficulty bias
 
-它不需要对同一个 prompt 采样一组 responses，也不依赖 verifier 给 reward。
+标准 GRPO 还会用每个 group 自己的 reward std 做缩放：
 
-它更接近 DPO 的 direct alignment。
+$$
+\hat A_i=\frac{R_i-\bar R}{\operatorname{std}(R_1,\ldots,R_G)}.
+$$
 
-GRPO 适合数学、代码这种可验证任务。
+不同 prompt 的 std 不同，相当于给题目施加不同权重。Dr.GRPO 认为，这不是无害的方差归一化，而是 question-level reweighting。它建议只保留中心化：
 
-KTO 适合真实用户反馈、偏好稀疏、难以构造 pairwise comparison 的场景。
+$$
+\hat A_i=R_i-\bar R.
+$$
 
-所以不要把 KTO 放进 GRPO 变体里。它应该放在 direct preference optimization 这条线。
+#### Dr.GRPO 的方法边界
 
-## 读 GRPO 变体论文时看什么
+Dr.GRPO 和 DAPO 都讨论长度，但它们不相同：
 
-我会看这些问题：
+- DAPO 用全 batch 的有效 token 数做分母，使每个 token 等权；
+- Dr.GRPO 用固定 generation budget 做分母，目标是彻底移除由实际回答长度引起的权重变化；
+- DAPO 是多组件 recipe；Dr.GRPO 是对 loss 和 reward scaling 的最小 bias correction。
 
-- 它改的是 sampling、advantage、clipping，还是 reward？
-- 是否仍然需要 group sampling？
-- 是否处理全对/全错 group？
-- 是否从 token-level 改到 sequence-level？
-- 是否控制 length inflation？
-- 是否在 greedy decoding 下提升，而不是只在多采样下提升？
-- 对 MoE 模型是否稳定？
-- 训练成本是否增加？
+Dr.GRPO 的限制也很清楚：关闭 std scaling 后，reward 的原始尺度和 batch composition 会直接影响梯度大小。二元 verifier reward 比较适合这种设计；如果混合多个量纲不同的 reward，需要先处理 reward calibration。
 
-很多变体会在 benchmark 上提升，但可能用了更复杂的采样、筛选、reward shaping。要看清楚收益来自算法本身，还是额外工程。
+#### Dr.GRPO 在 TRL 中的改动
 
-## 读 KTO 论文时看什么
+```python
+dr_grpo_args = GRPOConfig(
+    loss_type="dr_grpo",
+    scale_rewards=False,       # 只做组内中心化，不除以 group std
+    max_completion_length=8192,
+    beta=0.0,
+)
+```
 
-我会看这些问题：
+这两个开关要一起看：`loss_type="dr_grpo"` 去掉 response-length denominator，`scale_rewards=False` 去掉 group-std denominator。
 
-- 数据是 pairwise preference 还是 binary feedback？
-- desirable / undesirable 是否平衡？
-- 好坏样本是否来自同一 prompt 分布？
-- Reference model 是什么？
-- 是否和 DPO 在同等数据条件下比较？
-- 是否对真实线上反馈更有优势？
-- 是否出现过度压制某类回答的问题？
+## 第二组：importance ratio 与 surrogate 形状
 
-KTO 的价值不只是 loss 公式，而是它放宽了数据要求。
+### CISPO：clip importance weight，但保留 token 梯度
 
-在真实系统里，二元反馈通常比 pairwise preference 更容易拿到。
+[CISPO](https://arxiv.org/abs/2506.13585) 是 MiniMax-M1 技术报告中的 RL 算法。它关心的不是 reward 怎样归一化，而是 hard clipping 在多轮 off-policy update 中会丢掉什么。
 
-## 小结
 
-GRPO 变体主要在修 RLVR 训练信号的问题：采样、advantage、clipping、sequence-level 稳定性。
+#### CISPO 的关键改动
 
-KTO 则是在修偏好数据形态的问题：从成对偏好变成二元反馈。
+MiniMax 的实验观察到，一些反思或转折 token，例如 “However”“Wait”“Recheck”，在 base model 中概率很低。一次更新后，它们的 ratio 可能快速越过 clipping boundary。标准 PPO/GRPO surrogate 会让这些 token 在后续 minibatch update 中失去梯度。
 
-我的理解是：
+问题在长 CoT 中更明显：稀有 token 可能正好代表推理路径的分叉点，但 hard clip 把它们最先丢掉。
 
-> GRPO 变体关心“怎么从一组 sampled responses 里学得更稳”；KTO 关心“没有 chosen/rejected pair 时，怎么从好/坏反馈里学”。
 
-这两条线都属于后训练，但不要混成一类。
+CISPO 先裁剪 importance sampling weight：
+
+$$
+\hat r_{i,t}(\theta)
+=
+\operatorname{clip}\left(
+r_{i,t}(\theta),
+1-\epsilon_{\mathrm{IS}}^{\mathrm{low}},
+1+\epsilon_{\mathrm{IS}}^{\mathrm{high}}
+\right),
+$$
+
+然后对这个 weight 使用 stop-gradient，并保留 log-policy gradient：
+
+$$
+\mathcal J_{\mathrm{CISPO}}
+=
+\frac{1}{\sum_i|o_i|}
+\sum_{i,t}
+\operatorname{sg}\!\left(\hat r_{i,t}(\theta)\right)
+\hat A_i
+\log\pi_\theta(o_{i,t}\mid q,o_{i,<t}).
+$$
+
+标准 clipped surrogate 在越界区域可能直接给零梯度；CISPO 则限制这个 token 对梯度的权重，却继续保留它的学习方向。
+
+论文实现还叠加了 DAPO 的 Dynamic Sampling 和 length penalty。因此 MiniMax-M1 的整体收益不能全部归因于 CISPO 的单一公式。
+
+### GSPO：让 ratio 的粒度与 reward 对齐
+
+[GSPO](https://arxiv.org/abs/2507.18071) 的出发点更激进：它认为 **token-level importance ratio**在语言生成里没有完成预期的 distribution correction，反而把单样本噪声沿长序列累积起来。
+
+#### GSPO 的关键改动
+
+Reasoning reward 通常属于整段回答：答案是否正确、代码是否通过测试，都是 sequence-level 结果。GRPO 却对每个 token 单独计算 ratio 和 clipping condition。
+
+GSPO 提出一个原则：
+
+> optimization unit 应该与 reward unit 对齐。
+
+于是GSPO 将一整条回答的 token log-ratio 取平均，再指数化：
+
+$$
+s_i(\theta)
+=
+\exp\left(
+\frac{1}{|o_i|}
+\sum_{t=1}^{|o_i|}
+\log r_{i,t}(\theta)
+\right).
+$$
+
+这等价于 token ratio 的几何平均，也是做过长度归一化的 sequence likelihood ratio。随后，一整条回答共享同一个 clipping decision：
+
+$$
+\mathcal L_{\mathrm{GSPO}}
+=
+-\frac{1}{G}
+\sum_{i=1}^{G}
+\min\left(
+s_i(\theta)\hat A_i,
+\operatorname{clip}(s_i(\theta),1-\epsilon,1+\epsilon)\hat A_i
+\right).
+$$
+
+这里最重要的不是“把 token 求平均”本身，而是 clipping 的对象变了：GRPO 决定哪些 token 越界，GSPO 决定哪条 response 整体越界。
+
+- GSPO 为什么对 MoE的贡献
+
+论文在 Qwen3-30B-A3B MoE 上比较 GSPO 和 GRPO。GRPO 需要 Routing Replay 才能正常收敛，GSPO 在不使用该稳定化机制时仍保持训练稳定，并在 AIME 2024、LiveCodeBench 和 CodeForces 上显示更好的训练效率。
+
+论文还报告 GSPO 的平均 clipping fraction 约为 $0.15$，GRPO 约为 $0.0013$。GSPO 虽然一次排除更多 token，却训练得更好；作者据此认为 GRPO 保留下来的 token-level gradient 本身含有较强噪声。
+
+这个结论目前主要由 Qwen3 MoE 长序列训练支持。对较短回答、dense model 或接近完全 on-policy 的训练，sequence-level ratio 的优势是否同样大，还需要单独验证。
+
+#### GSPO 在 TRL 中的改动
+
+```python
+gspo_args = GRPOConfig(
+    importance_sampling_level="sequence",
+    loss_type="grpo",
+    epsilon=3e-4,
+    epsilon_high=4e-4,
+    beta=0.0,
+)
+```
+
+`importance_sampling_level="sequence"` 是决定 ratio 粒度的关键开关。GSPO 的 ratio 与 token ratio 数值尺度不同，不能直接沿用 GRPO 常见的 `0.2` clipping range。
+
+### SAPO：把 hard clip 改成 soft gate
+
+[SAPO](https://arxiv.org/abs/2511.20347) 接受 token-level adaptivity，但不接受 hard clipping 的全有或全无行为。
+
+#### SAPO 在修什么
+
+GRPO 的 hard clip 在边界处不连续：ratio 还在 trust region 内时保留完整梯度，一旦越界，梯度可能突然变为零。GSPO 把这个决定提升到 sequence-level 后，还会出现另一个问题：少数极端 off-policy token 可能让整条序列被裁掉，连同其中大量 near-on-policy token 的有效信号一起消失。
+
+#### SAPO 的两个核心改动
+
+**1. 用连续 soft gate 替代 hard clipping**
+
+SAPO 定义：
+
+$$
+f_{i,t}(x)
+=
+\sigma\left(\tau_{i,t}(x-1)\right)
+\frac{4}{\tau_{i,t}},
+$$
+
+并使用：
+
+$$
+\mathcal J_{\mathrm{SAPO}}
+=
+\frac{1}{G}
+\sum_i\frac{1}{|o_i|}
+\sum_t
+f_{i,t}\!\left(r_{i,t}(\theta)\right)\hat A_i.
+$$
+
+对它求导后，gradient weight 在 $r_{i,t}=1$ 时达到最大值 $1$，ratio 离 $1$ 越远，权重越平滑地衰减。它不会像 hard clip 那样在某条边界外突然归零。
+
+**2. 对正、负 advantage 使用不同温度**
+
+$$
+\tau_{i,t}=
+\begin{cases}
+\tau_{\mathrm{pos}}, & \hat A_i>0,\\
+\tau_{\mathrm{neg}}, & \hat A_i\le 0.
+\end{cases}
+$$
+
+SAPO 建议 $\tau_{\mathrm{neg}}>\tau_{\mathrm{pos}}$，也就是让负 advantage token 的梯度衰减更快。论文给出的解释是：负向更新会降低 sampled token，同时相对抬高大词表中大量未采样 token，更容易在 off-policy 条件下引入不稳定。
+
+#### SAPO 与 CISPO、GSPO 的边界
+
+- CISPO 裁的是 importance weight，并通过 stop-gradient 保留 log-policy gradient；
+- GSPO 仍然 hard clip，但 clipping unit 是整个 sequence；
+- SAPO 仍保留 token-level ratio，却用连续 gate 逐 token 衰减梯度。
+
+在 Qwen3-30B-A3B 的数学 reasoning 实验中，SAPO 比 GSPO 和带 Routing Replay 的 GRPO-R2 更稳定；温度消融也显示 $\tau_{\mathrm{neg}}>\tau_{\mathrm{pos}}$ 最稳定。论文还在 Qwen3-VL 的 dense/MoE、多模态和文本任务上报告一致提升。
+
+#### SAPO 在 TRL 中的实现
+
+```python
+sapo_args = GRPOConfig(
+    loss_type="sapo",
+    sapo_temperature_pos=1.0,
+    sapo_temperature_neg=1.05,
+    beta=0.0,
+)
+```
+
+SAPO 的温度不是普通 sampling temperature，而是控制 off-policy gradient 随 ratio 偏移衰减多快的 trust-region 参数。
+
+## 第三组：reward-level 方法
+
+### GAPO：reward 的定义对象从单个回答变成整组回答
+
+[GAPO](https://arxiv.org/abs/2511.12596) 不是纯粹的 GRPO loss 变体。它不改 advantage normalization、ratio 或 clipping，而是改变 reward function 的输入。
+
+#### GAPO 在修什么
+
+标准 GRPO 默认先独立给每个回答打分：
+
+$$
+R_i=R(q,o_i).
+$$
+
+这适合正确性等单样本属性，却难以直接表达“整组回答是否覆盖了多种有效模式”。如果 prompt 有多个同样有效的答案，独立 reward 可能让最常见的答案不断获得强化，最终出现 mode collapse。
+
+GAPO 改成：
+
+$$
+(\widetilde R_1,\ldots,\widetilde R_G)
+=
+\widetilde R(q,o_1,\ldots,o_G).
+$$
+
+每个 rollout 的 reward 可以依赖同组其他 rollout。
+
+#### frequency-aware reward
+
+论文研究一个有明确有效集合 $\mathcal V$ 的任务。对组内有效答案 $v$，先计算经验频率：
+
+$$
+f_v(\mathbf o)
+=
+\frac{\sum_{i=1}^{G}\mathbb 1[o_i=v]}
+{\sum_{i=1}^{G}\mathbb 1[o_i\in\mathcal V]}.
+$$
+
+如果目标是对 $L=|\mathcal V|$ 个答案均匀采样，则：
+
+$$
+\widetilde R_i=
+\begin{cases}
+1-\left(f_{o_i}(\mathbf o)-\dfrac{1}{L}\right), & o_i\in\mathcal V,\\
+-1, & o_i\notin\mathcal V.
+\end{cases}
+$$
+
+低频但有效的答案获得更高 reward，高频答案获得较低 reward，无效答案仍被惩罚。得到的 group-aware reward vector 再交给普通 GRPO 计算 advantage 和 loss。
+
+#### GAPO 的证据与边界
+
+在固定列表选择任务中，GAPO 让输出分布更接近均匀分布，平均 Jensen-Shannon divergence 从基线大于 $0.3$ 降到小于 $0.1$。在开放类别任务中，GAPO 微调后的 Qwen2.5-32B 在 500 次采样中平均给出 147 个不同答案，微调前为 24 个。
+
+创意写作实验也显示 semantic distance 和 $1-\mathrm{SelfBLEU}$ 提升。但标准 benchmark 结果不是每项都上升，例如 GSM8K exact match 和 MMLU-Pro 略降，而 flexible/verify 指标与 HumanEval 略升。因此更谨慎的结论是：GAPO 显著改善多样性，并在论文测试中大体维持能力，而不是“多样性完全没有代价”。
+
+它还有一个重要限制：frequency-aware reward 假设有效答案集合已知，并且目标分布接近均匀。开放式任务中什么算“有效”、不同模式应该占多少比例，仍然需要额外 verifier 或 reward model。
+
+#### GAPO 在 TRL 中的最小改动
+
+GAPO 不需要新的 `loss_type`，而需要一个能按 group 读取 completions 的 custom reward function：
+
+```python
+from collections import Counter
+
+
+def gapo_rewards_for_group(outputs, valid_outputs):
+    valid = [x for x in outputs if x in valid_outputs]
+    counts = Counter(valid)
+    total_valid = max(len(valid), 1)
+    target = 1.0 / len(valid_outputs)
+
+    rewards = []
+    for output in outputs:
+        if output not in valid_outputs:
+            rewards.append(-1.0)
+            continue
+
+        frequency = counts[output] / total_valid
+        rewards.append(1.0 - (frequency - target))
+    return rewards
+```
+
+接入 `GRPOTrainer` 时，要保证同一 prompt 的 `num_generations` 个 completion 在 reward function 中被还原为一组，再返回与原 flattened completion 顺序一致的 reward list。
+
+## 方法地图：这些论文分别改了什么
+
+| 方法 | 主要修改层 | 想修复的症状 | 一句话概括 |
+| --- | --- | --- | --- |
+| DAPO | 训练 recipe，跨越 sampling、clip、loss 和 reward | 熵塌陷、零梯度 prompt、长回答梯度稀释、截断噪声 | 把长 CoT RL 中几个耦合问题拆开处理 |
+| Dr.GRPO | advantage scaling 与 loss normalization | 回答长度偏置、题目难度偏置 | 去掉 response length 和 group std 带来的隐式重加权 |
+| CISPO | importance weight 与 surrogate | hard clipping 丢掉稀有但关键 token 的梯度 | clip IS weight，但不把 token 梯度直接置零 |
+| GSPO | importance ratio 粒度 | token-level ratio 噪声累积，尤其影响长序列和 MoE | reward 是 sequence-level，ratio 和 clipping 也提升到 sequence-level |
+| SAPO | surrogate 的 trust region | hard clip 不连续，越界后梯度突然消失 | 用带正负温度的 soft gate 平滑衰减梯度 |
+| GAPO | reward 的定义对象 | 单回答 reward 无法直接优化整组输出的多样性 | reward 从单样本函数变成 group-aware 函数 |
+
+严格来说，这些方法不是同一条单线演化路线。DAPO 是系统 recipe，Dr.GRPO 是 bias correction，CISPO、GSPO、SAPO 主要改 optimizer，GAPO 则位于 optimizer 之前的 reward construction 层。
+
 
 ## 参考资料
 
-- Shao et al., [DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models](https://arxiv.org/abs/2402.03300)
-- DeepSeek-AI, [DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning](https://arxiv.org/abs/2501.12948)
+- Yu et al., [DAPO: An Open-Source LLM Reinforcement Learning System at Scale](https://arxiv.org/abs/2503.14476)
+- Liu et al., [Understanding R1-Zero-Like Training: A Critical Perspective](https://arxiv.org/abs/2503.20783)
+- MiniMax-AI, [MiniMax-M1: Scaling Test-Time Compute Efficiently with Lightning Attention](https://arxiv.org/abs/2506.13585)
 - Zheng et al., [Group Sequence Policy Optimization](https://arxiv.org/abs/2507.18071)
-- Yang et al., [DCPO: Dynamic Clipping Policy Optimization](https://arxiv.org/abs/2509.02333)
-- Chen et al., [DRA-GRPO: Exploring Diversity-Aware Reward Adjustment](https://arxiv.org/abs/2505.09655)
-- Ethayarajh et al., [KTO: Model Alignment as Prospect Theoretic Optimization](https://arxiv.org/abs/2402.01306)
+- Qwen Team, [Soft Adaptive Policy Optimization](https://arxiv.org/abs/2511.20347)
+- Anschel et al., [Group-Aware Reinforcement Learning for Output Diversity in Large Language Models](https://arxiv.org/abs/2511.12596)
+- Hugging Face, [TRL GRPO Trainer Documentation](https://huggingface.co/docs/trl/grpo_trainer)
+- wenzhaoabc, [LLM TAP RL: GRPO Variants Notebook](https://github.com/wenzhaoabc/llm-tap-rl/blob/main/9.GRPO-Variants.ipynb)

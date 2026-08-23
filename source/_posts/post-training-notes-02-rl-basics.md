@@ -1,7 +1,7 @@
 ---
-title: "后训练笔记 01：强化学习基础"
-date: 2025-11-01 20:00:00
-updated: 2025-11-01 20:00:00
+title: "后训练笔记 02：强化学习基础"
+date: 2026-02-11 20:00:00
+updated: 2026-02-11 20:00:00
 categories:
   - 后训练笔记
 tags:
@@ -197,9 +197,9 @@ $$
 
 这里的 $V(s_{t+1})$ 不是完整的真实 return，而是当前 value function 对未来的估计，所以单步 TD 可以在线更新，但会引入 bootstrap bias。它只看一步真实 reward，后面的结果完全依赖 value estimate，方差通常较低，但偏差可能比较大。
 
-#### 广义优势估计（GAE）：在 MC 和 TD 之间取平衡
+#### 广义优势估计（GAE）
 
-PPO 中常用的 GAE（Generalized Advantage Estimation）并不是另一个 value function，而是一种估计 advantage 的方法。它先计算每一步的 TD error，再把未来多个时间步的 TD error 做指数加权：
+PPO 中常用的 GAE（Generalized Advantage Estimation）是一种介于MC和单步TD之间的估计 advantage 的方法。它先计算每一步的 TD error，再把未来多个时间步的 TD error 做指数加权：
 
 $$
 A_t^{\mathrm{GAE}(\gamma,\lambda)}
@@ -276,17 +276,6 @@ def compute_gae(rewards, values, dones, gamma=0.99, gae_lambda=0.95):
 
 如果最后一步只是达到固定 rollout 长度，`dones[-1]=0`，代码会保留 `values[-1]`；如果 episode 真正结束，`dones[-1]=1`，未来 value 和 advantage 都会在这里截断。
 
-#### PPO 中的实际流程：批次采样后统一计算优势
-
-工业界通常不是走一步就更新一次，而是采用 rollout batch 的方式：
-
-1. 用当前 policy 与 environment 交互，收集一批固定长度的 trajectory。
-2. 保存每一步的 state、action、reward、old log probability 和 value estimate。
-3. 数据收集完成后，从后往前用 GAE 计算每一步的 advantage。
-4. 用这批数据更新 actor 和 critic 多个 epoch。
-5. 丢弃旧 batch，再用更新后的 policy 重新采样。
-
-因此，GAE 需要未来若干步信息这件事，在 PPO 的批次训练范式中并不是问题。它换来了更稳定的 advantage，以及比纯 MC 更低的等待成本和更好的样本利用方式。
 
 | 方法 | target 从哪里来 | 是否需要等 episode 结束 | 典型特点 |
 | --- | --- | --- | --- |
@@ -294,7 +283,7 @@ def compute_gae(rewards, values, dones, gamma=0.99, gae_lambda=0.95):
 | 单步 TD | $r_t + \gamma V(s_{t+1})$ | 不需要 | 可以在线更新，但 bootstrap bias 较大 |
 | GAE | 多个 TD error 的指数加权和 | 不需要等完整 episode，但要等一段 rollout | 用 $\lambda$ 平衡 bias 和 variance |
 
-可以把三者记成一句话：单步 TD 只相信下一步，Monte Carlo 相信完整 trajectory，GAE 则在两者之间做平滑融合。Actor-critic 方法通常正是用 critic 估计 value，再用 GAE 产生 advantage，给 actor 提供更新方向。
+Actor-critic 方法通常正是用 critic 估计 value，再用 GAE 产生 advantage，给 actor 提供更新方向。
 
 
 ## 语言模型里的 policy 是什么
@@ -335,25 +324,8 @@ $$
 
 因为整段 response 的概率是 token 概率连乘，直接乘容易数值很小，取 log 后就变成求和。
 
-## Token-level action 和 response-level action
 
-理论上，LLM 每一步生成 token 都是一个 action。
-
-但很多 reward 是 response-level 的。比如数学题最后答案对不对、代码是否通过测试、回答是否更符合人类偏好，这些通常是整段回答生成完之后才知道。
-
-这就带来一个 credit assignment 问题：
-
-> 如果最终回答错了，到底是哪几个 token 造成的？
-
-PPO 里会尝试用 value model 和 advantage estimation，把整段 reward 分摊到 token-level 更新上。
-
-GRPO 里则常见做法是对同一个 prompt 采样多个 responses，再用组内 reward 相对大小得到 advantage。
-
-DPO 更进一步，不显式做在线 RL，而是直接比较 chosen response 和 rejected response 的 log probability。
-
-这些算法看起来差很多，但都绕不开同一个问题：训练信号怎样从“整段回答好不好”传回到模型参数。
-
-## Reward：后训练真正优化的目标
+## LLM里的Reward
 
 Reward 可以来自很多地方。
 
@@ -385,57 +357,8 @@ RLVR 的优势是 reward 更客观，不需要每个样本都人工标注偏好�
 - 如何避免只学会猜答案
 - 如何让 reward 不只看最终答案
 
-## Return、value 和 advantage
 
-在一般 RL 里，$G_t$ 通常表示一条已采样轨迹上，从当前时刻往后得到的 discounted return：
-
-$$
-G_t = \sum_{k=t}^{T-1} \gamma^{k-t} r_k
-$$
-
-LLM 后训练里，很多任务只有最终 reward，所以可以粗略理解为整段回答的得分。
-
-Value function 估计的是某个状态下未来能拿到多少 reward：
-
-$$
-V^\pi(s) = \mathbb{E}_{\pi}[U_t \mid s_t=s]
-$$
-
-Advantage 衡量的是某个 action 比平均水平好多少：
-
-$$
-A_t = G_t - V^\pi(s_t)
-$$
-
-这个量很重要。
-
-如果一个回答得分是 0.8，不一定说明它很值得加强。也许这个 prompt 很简单，随便生成都能 0.8。
-
-如果另一个回答得分是 0.6，也不一定差。也许这个 prompt 很难，大多数回答都是 0.1。
-
-Advantage 想表达的是：相对于当前状态的预期表现，这个 action / response 到底更好还是更差。
-
-## Policy gradient 的直觉
-
-Policy gradient 的经典形式可以写成：
-
-$$
-\nabla_\theta J(\theta) = \underset{\pi_\theta}{\mathbb{E}}[\nabla_\theta \log \pi_\theta(a \mid s) A(s,a)]
-$$
-
-放到 LLM 里，可以粗略理解成：
-
-> 如果某个 response 的 advantage 为正，就提高它的生成概率；如果 advantage 为负，就降低它的生成概率。
-
-但这里有两个细节点。
-
-第一，提高的是整段 response 里 tokens 的 log probability，不是直接给最终答案加分。
-
-第二，更新不能太大。语言模型是高维分布，一次更新如果把概率分布拉得太远，可能会破坏原来的语言能力。
-
-这就引出 KL constraint。
-
-## KL constraint：防止模型跑远了
+## KL constraint：限制模型更新幅度
 
 后训练里通常会保留一个 reference model，记作 $\pi_{\mathrm{ref}}$。
 
@@ -479,7 +402,7 @@ Off-policy 成本低，可以直接用已有数据训练。但如果数据分布
 
 这就是为什么 PPO / GRPO / OPD 都强调 on-policy 或接近 on-policy。它们希望模型在自己的生成分布上学习，而不是只模仿静态数据。
 
-## 为什么 reasoning model 更依赖 RL：RL 和 SFT 的本质区别
+**为什么 reasoning model 更依赖 RL：RL 和 SFT 的本质区别**
 
 我觉得应该这么理解，虽然SFT 可以让模型学会解题格式，但它本质上是模仿。
 而在reasoning问题上，潜在的解题方式有很多，比如1+1=2可以通过一堆不一样的复杂公式来给出同样的结果，这种情况下的action space太大了，只靠SFT是模仿不完的。所以需要用RL来自己探索。
@@ -502,13 +425,13 @@ Off-policy 成本低，可以直接用已有数据训练。但如果数据分布
 "Learning to Summarize with Human Feedback" (OpenAI)
 在 RLHF 训练摘要模型时，明确观察到模型学会利用 reward model 的偏差。
 
-第二，mode collapse。
+第二，entropy collapse。
 
-模型输出变得单一，缺少多样性。
+熵塌陷，模型输出变得单一，更倾向于高概率的token，而缺少对低概率token的探索，导致模型可能会陷入local minimum，达不到最优值。
 
-第三，length inflation。
+第三，length inflation/hacking。
 
-模型生成越来越长，因为长回答更容易看起来努力，或者更容易覆盖答案。
+收到长度奖励的影响，模型生成越来越长，因为长回答更容易看起来努力，或者更容易覆盖答案。
 
 第四，over-optimization。
 
@@ -526,6 +449,7 @@ policy 离 reference model 太远，语言能力或安全边界受损。
 
 ## 参考资料
 
+- 王树森强化学习 https://github.com/wangshusen/DRL
 - Schulman et al., [Proximal Policy Optimization Algorithms](https://arxiv.org/abs/1707.06347)
 - Ouyang et al., [Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155)
 - Rafailov et al., [Direct Preference Optimization: Your Language Model is Secretly a Reward Model](https://arxiv.org/abs/2305.18290)
