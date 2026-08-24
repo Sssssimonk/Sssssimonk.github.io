@@ -1,6 +1,6 @@
 ---
 title: "后训练笔记 04：GRPO 变体，从归一化、ratio 到 group-aware reward"
-date: 2025-11-22 21:30:00
+date: 2026-06-21 21:30:00
 updated: 2026-08-23 22:30:00
 categories:
   - 后训练笔记
