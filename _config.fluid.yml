@@ -73,7 +73,7 @@ index:
     enable: true
   post_url_target: _self
   post_meta:
-    date: true
+    date: false
     category: true
     tag: true
 
@@ -85,7 +85,7 @@ post:
     author:
       enable: false
     date:
-      enable: true
+      enable: false
       format: "YYYY-MM-DD"
     wordcount:
       enable: true
@@ -96,7 +96,7 @@ post:
     views:
       enable: false
   updated:
-    enable: true
+    enable: false
     date_format: "YYYY-MM-DD"
     relative: false
     note_class: info
