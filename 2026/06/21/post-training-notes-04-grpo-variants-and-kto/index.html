@@ -22,11 +22,11 @@
     <meta name="description" content="GRPO 之后出现了很多相关的改进算法。 这篇文章围绕四个问题整理 GRPO 变体：  reward 如何变成 advantage； token loss 如何聚合与归一化； importance ratio 在什么粒度上计算，surrogate 又如何约束 policy shift； 哪些 prompt、response 和 token 真正进入梯度。  按照这个坐标系，本文精读六项代表性工作：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="后训练笔记 04：GRPO 变体，从归一化、ratio 到 group-aware reward">
-<meta property="og:url" content="https://sssssimonk.github.io/2025/11/22/post-training-notes-04-grpo-variants-and-kto/index.html">
+<meta property="og:url" content="https://sssssimonk.github.io/2026/06/21/post-training-notes-04-grpo-variants-and-kto/index.html">
 <meta property="og:site_name" content="Siyu Chen">
 <meta property="og:description" content="GRPO 之后出现了很多相关的改进算法。 这篇文章围绕四个问题整理 GRPO 变体：  reward 如何变成 advantage； token loss 如何聚合与归一化； importance ratio 在什么粒度上计算，surrogate 又如何约束 policy shift； 哪些 prompt、response 和 token 真正进入梯度。  按照这个坐标系，本文精读六项代表性工作：">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-11-22T13:30:00.000Z">
+<meta property="article:published_time" content="2026-06-21T13:30:00.000Z">
 <meta property="article:modified_time" content="2026-08-23T14:30:00.000Z">
 <meta property="article:author" content="Siyu Chen">
 <meta property="article:tag" content="CISPO">
@@ -327,8 +327,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2025-11-22 21:30" pubdate>
-          2025-11-22
+        <time datetime="2026-06-21 21:30" pubdate>
+          2026-06-21
         </time>
       </span>
     
@@ -416,6 +416,15 @@
     
       
       
+        <a href="/2026/06/21/post-training-notes-04-grpo-variants-and-kto/" title="后训练笔记 04：GRPO 变体，从归一化、ratio 到 group-aware reward"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">后训练笔记 04：GRPO 变体，从归一化、ratio 到 group-aware reward</span>
+        </a>
+      
+    
+      
+      
         <a href="/2026/02/11/post-training-notes-02-rl-basics/" title="后训练笔记 02：强化学习基础"
            class="list-group-item list-group-item-action
            ">
@@ -434,16 +443,7 @@
     
       
       
-        <a href="/2025/11/22/post-training-notes-04-grpo-variants-and-kto/" title="后训练笔记 04：GRPO 变体，从归一化、ratio 到 group-aware reward"
-           class="list-group-item list-group-item-action
-           active">
-          <span class="category-post">后训练笔记 04：GRPO 变体，从归一化、ratio 到 group-aware reward</span>
-        </a>
-      
-    
-      
-      
-        <a href="/2025/11/15/post-training-notes-03-ppo-dpo-grpo/" title="后训练笔记 03：PPO、DPO 与 GRPO"
+        <a href="/2025/02/12/post-training-notes-03-ppo-dpo-grpo/" title="后训练笔记 03：PPO、DPO 与 GRPO"
            class="list-group-item list-group-item-action
            ">
           <span class="category-post">后训练笔记 03：PPO、DPO 与 GRPO</span>
@@ -1050,18 +1050,12 @@ TAP RL: GRPO Variants Notebook</a></li>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/12/24/post-training-notes-01-sft-and-peft/" title="后训练笔记 01：SFT 与 PEFT">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">后训练笔记 01：SFT 与 PEFT</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2025/11/15/post-training-notes-03-ppo-dpo-grpo/" title="后训练笔记 03：PPO、DPO 与 GRPO">
-                        <span class="hidden-mobile">后训练笔记 03：PPO、DPO 与 GRPO</span>
+                      <a href="/2026/02/11/post-training-notes-02-rl-basics/" title="后训练笔记 02：强化学习基础">
+                        <span class="hidden-mobile">后训练笔记 02：强化学习基础</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
