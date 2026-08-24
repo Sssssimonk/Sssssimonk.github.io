@@ -330,7 +330,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          7.6k 字
+          6.4k 字
         
       </span>
     
@@ -341,7 +341,7 @@
         
         
         
-          64 分钟
+          54 分钟
         
       </span>
     
@@ -680,70 +680,6 @@ policy，并且有足够工程资源。</p>
 pairs，希望稳定、低成本地做对齐。</p>
 <p>GRPO 适合可验证 reasoning 场景：数学、代码、逻辑推理，能自动给
 reward，并且愿意为每个 prompt 采样多个 responses。</p>
-<p>如果从个人学习角度看，我会这样排序：</p>
-<p>先理解 DPO，因为它最简洁，能帮助理解 reference model 和
-log-ratio。</p>
-<p>再理解 PPO，因为它是 RLHF 的经典路线。</p>
-<p>最后理解 GRPO，因为它建立在 RL 直觉上，同时更贴近 DeepSeek-R1 这类
-reasoning model。</p>
-<h2 id="为什么-dpo-不是-rl但又和-rlhf-有关系">为什么 DPO 不是 RL，但又和
-RLHF 有关系</h2>
-<p>DPO 经常被放在 RLHF 的替代方法里，但它本身不是在线 RL。</p>
-<p>它不采样当前 policy 的新 outputs 来计算 reward，也不做环境交互。</p>
-<p>但 DPO 和 RLHF 有理论联系：DPO 从 reward model
-的隐式形式出发，把偏好优化转成 policy loss。</p>
-<p>所以 DPO 更像是：</p>
-<blockquote>
-<p>把“先学 reward，再优化 policy”的两步合成一个监督式目标。</p>
-</blockquote>
-<p>这也是为什么 DPO 训练起来像 SFT，但作用却更接近偏好对齐。</p>
-<h2 id="为什么-grpo-不是简单版-ppo">为什么 GRPO 不是简单版 PPO</h2>
-<p>GRPO 省掉 value model，但它引入了 group sampling。</p>
-<p>它不是“PPO 少一个模型”这么简单。</p>
-<p>PPO 的 baseline 来自 value model。</p>
-<p>GRPO 的 baseline 来自同一 prompt 下其他 samples。</p>
-<p>这意味着 GRPO 的训练效果很依赖采样分布。如果 samples
-没有差异，学习信号就弱。如果 samples 很混乱，advantage
-也可能噪声很大。</p>
-<p>所以 GRPO 的关键不只是公式，而是：</p>
-<ul>
-<li>group size 怎么选</li>
-<li>sampling temperature 怎么设</li>
-<li>reward 怎么设计</li>
-<li>是否过滤无效 groups</li>
-<li>如何控制 response length</li>
-<li>KL penalty 怎么加</li>
-</ul>
-<p>这些细节决定了 GRPO 是否稳定。</p>
-<h2 id="读-ppo-dpo-grpo-论文时看什么">读 PPO / DPO / GRPO
-论文时看什么</h2>
-<p>我会看这些问题：</p>
-<ul>
-<li>数据是离线 preference pair，还是 online rollout？</li>
-<li>Reward 来自人类偏好、reward model，还是 verifier？</li>
-<li>是否需要 value model？</li>
-<li>Reference model 是哪个 checkpoint？</li>
-<li>KL 系数怎么设？</li>
-<li>每个 prompt 采样几个 responses？</li>
-<li>是否使用 length penalty？</li>
-<li>是否报告训练 token 成本？</li>
-<li>提升是 greedy decoding 下提升，还是采样多次后提升？</li>
-<li>有没有看 reward hacking 或长度膨胀？</li>
-</ul>
-<p>很多方法 benchmark
-看起来提升，但可能是采样更多、输出更长、筛选更强带来的。读的时候要把训练方法和推理策略分开看。</p>
-<h2 id="小结">小结</h2>
-<p>PPO、DPO、GRPO 是三条不同的后训练路线。</p>
-<p>PPO 是经典 RLHF：强大但重。</p>
-<p>DPO 是直接偏好优化：简单稳定，但依赖 preference pairs。</p>
-<p>GRPO 是 reasoning RL 常用路线：省掉 value model，但依赖 group
-sampling 和可验证 reward。</p>
-<p>我的理解是：</p>
-<blockquote>
-<p>PPO 学 reward，DPO 学偏好差，GRPO 学组内相对好坏。</p>
-</blockquote>
-<p>后面讲 GRPO
-变体时，很多改动都围绕一个问题展开：怎么让这个“组内相对好坏”的训练信号更稳定、更有效。</p>
 <h2 id="参考资料">参考资料</h2>
 <ul>
 <li>Schulman et al., <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1707.06347">Proximal
@@ -797,15 +733,15 @@ Learning</a></li>
       
         <a href="/tags/%E5%90%8E%E8%AE%AD%E7%BB%83/" class="print-no-link">#后训练</a>
       
-        <a href="/tags/RLHF/" class="print-no-link">#RLHF</a>
-      
-        <a href="/tags/RLVR/" class="print-no-link">#RLVR</a>
-      
-        <a href="/tags/GRPO/" class="print-no-link">#GRPO</a>
-      
         <a href="/tags/PPO/" class="print-no-link">#PPO</a>
       
         <a href="/tags/DPO/" class="print-no-link">#DPO</a>
+      
+        <a href="/tags/GRPO/" class="print-no-link">#GRPO</a>
+      
+        <a href="/tags/RLHF/" class="print-no-link">#RLHF</a>
+      
+        <a href="/tags/RLVR/" class="print-no-link">#RLVR</a>
       
     </div>
   
